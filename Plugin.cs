@@ -2,6 +2,12 @@
 using BepInEx.Configuration;
 using HarmonyLib;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,15 +17,19 @@ namespace AlweStats {
     [BepInProcess("Valheim.exe")]
     public partial class Plugin : BaseUnityPlugin {
         private readonly Harmony harmony = new("zAlweNy26.AlweStats");
-        public static ConfigEntry<bool> enableGameStats, enableWorldStats;
+        protected static string statsFilePath;
+        protected static string[] statsFileLines;
+        //protected static bool isEditing = false;
+        public static ConfigEntry<bool> enableGameStats, enableWorldStats, enableWorldStatsInSelection;
         public static ConfigEntry<int> gameStatsSize, worldStatsSize;
         public static ConfigEntry<string> 
             gameStatsColor, gameStatsAlign, gameStatsPosition, gameStatsMargin, 
             worldStatsColor, worldStatsAlign, worldStatsPosition, worldStatsMargin;
 
-        void Awake() {
-            enableGameStats = Config.Bind("GameStats", "Enable", true, "Whether or not to show fps and ping counters");
-            enableWorldStats = Config.Bind("WorldStats", "Enable", true, "Whether or not to show days passed and time played counters");
+        public void Awake() {
+            enableGameStats = Config.Bind("GameStats", "Enable", true, "Whether or not to show fps and ping counters in game");
+            enableWorldStats = Config.Bind("WorldStats", "Enable", true, "Whether or not to show days passed and time played counters in game");
+            enableWorldStatsInSelection = Config.Bind("WorldStats", "Enable", true, "Whether or not to show days passed counter in world selection");
 
             gameStatsColor = Config.Bind("GameStats", "Color", "255, 183, 92, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
@@ -45,11 +55,15 @@ namespace AlweStats {
 
             Logger.LogInfo($"Loaded successfully !");
 
-            harmony.PatchAll();
+            statsFilePath = Path.Combine(Paths.PluginPath, "Alwe.stats");
         }
 
+        public void Start() { harmony.PatchAll(); }
+        
+        public void OnDestroy() { harmony.UnpatchSelf(); }
+
         [HarmonyPatch(typeof(ZNetScene), "Update")]
-        static class PatchStats {
+        static class PatchGameStats {
             private static GameObject statsObj = null;
             private static float frameTimer;
             private static int frameSamples;
@@ -70,7 +84,7 @@ namespace AlweStats {
                         statsObj.AddComponent<RectTransform>();
                         statsText = statsObj.AddComponent<Text>();
                         string[] colors = Regex.Replace(gameStatsColor.Value, @"\s+", "").Split(',');
-                        statsText.color = new Color(
+                        statsText.color = new(
                             Mathf.Clamp01(float.Parse(colors[0]) / 255f),
                             Mathf.Clamp01(float.Parse(colors[1]) / 255f),
                             Mathf.Clamp01(float.Parse(colors[2]) / 255f),
@@ -83,15 +97,14 @@ namespace AlweStats {
                         statsText.alignment = textAlignment;
                         statsText.horizontalOverflow = HorizontalWrapMode.Overflow;
                     } else statsText = statsObj.GetComponent<Text>();
-
                     if (ping != 0) statsText.text = $"Ping : {ping:0} ms\nFPS : {fps}";
                     else statsText.text = $"FPS : {fps}";
 
                     RectTransform statsRect = statsObj.GetComponent<RectTransform>();
 
                     string[] positions = Regex.Replace(gameStatsPosition.Value, @"\s+", "").Split(',');
-                    statsRect.anchorMax = statsRect.anchorMin = new Vector2(float.Parse(positions[0]), float.Parse(positions[1]));
-                    Vector2 shiftDirection = new Vector2(0.5f - statsRect.anchorMax.x, 0.5f - statsRect.anchorMax.y);
+                    statsRect.anchorMax = statsRect.anchorMin = new(float.Parse(positions[0]), float.Parse(positions[1]));
+                    Vector2 shiftDirection = new(0.5f - statsRect.anchorMax.x, 0.5f - statsRect.anchorMax.y);
 
                     string[] margins = Regex.Replace(gameStatsMargin.Value, @"\s+", "").Split(',');
                     statsRect.anchoredPosition = shiftDirection * statsRect.rect.size + new Vector2(float.Parse(margins[0]), float.Parse(margins[1]));
@@ -114,10 +127,10 @@ namespace AlweStats {
         }
 
         [HarmonyPatch(typeof(EnvMan), "FixedUpdate")]
-        static class PatchConnectPanel {
+        static class PatchWorldStats {
             private static GameObject statsObj = null;
-            [HarmonyPrefix]
-            static void Prefix(ref EnvMan __instance) {
+            [HarmonyPostfix]
+            static void Postfix(ref EnvMan __instance) {
                 if (!enableWorldStats.Value) return;
                 double timePlayed = ZNet.instance.GetTimeSeconds();
                 int daysPlayed = (int) Math.Floor(timePlayed / __instance.m_dayLengthSec);
@@ -153,8 +166,8 @@ namespace AlweStats {
                 RectTransform statsRect = statsObj.GetComponent<RectTransform>();
 
                 string[] positions = Regex.Replace(worldStatsPosition.Value, @"\s+", "").Split(',');
-                statsRect.anchorMax = statsRect.anchorMin = new Vector2(float.Parse(positions[0]), float.Parse(positions[1]));
-                Vector2 shiftDirection = new Vector2(0.5f - statsRect.anchorMax.x, 0.5f - statsRect.anchorMax.y);
+                statsRect.anchorMax = statsRect.anchorMin = new(float.Parse(positions[0]), float.Parse(positions[1]));
+                Vector2 shiftDirection = new(0.5f - statsRect.anchorMax.x, 0.5f - statsRect.anchorMax.y);
 
                 string[] margins = Regex.Replace(worldStatsMargin.Value, @"\s+", "").Split(',');
                 statsRect.anchoredPosition = shiftDirection * statsRect.rect.size + new Vector2(float.Parse(margins[0]), float.Parse(margins[1]));
@@ -163,12 +176,102 @@ namespace AlweStats {
             }
         }
 
-        /*[HarmonyPatch(typeof(FejdStartup), "UpdateWorldList", new Type[] { typeof(bool) })]
+        static void GetWorldStats(FejdStartup instance) {
+            List<string> worlds = new();
+            if (File.Exists(statsFilePath)) statsFileLines = File.ReadAllLines(statsFilePath);
+            foreach (Transform t in instance.m_worldListRoot) {
+                Transform days = Instantiate(t.Find("name"));
+                days.name = "days";
+                days.SetParent(t.Find("name").parent);
+                days.GetComponent<RectTransform>().localPosition = new(325f, -14f, 0f);
+                string worldName = t.Find("name").GetComponent<Text>().text;
+                string dBPath = $"{Utils.GetSaveDataPath()}/worlds/{worldName}.db";
+                if (File.Exists(dBPath)) {
+                    using FileStream fs = File.OpenRead(dBPath);
+                    using BinaryReader br = new(fs);
+                    int worldVersion = br.ReadInt32();
+                    if (worldVersion >= 4) {
+                        double timePlayed = br.ReadDouble();
+                        long daySeconds = 1200L;
+                        if (statsFileLines != null) {
+                            string str = statsFileLines.FirstOrDefault(s => s.Contains(worldName));
+                            if (str != null) daySeconds = long.Parse(statsFileLines[Array.IndexOf(statsFileLines, str)].Split(':')[1]);
+                        }
+                        int daysPlayed = (int)Math.Floor(timePlayed / daySeconds);
+                        //Debug.Log($"{worldName} : {timePlayed} seconds | {daysPlayed} days");
+                        days.GetComponent<Text>().text = $"{daysPlayed} days";
+                        if (!worlds.Contains(worldName)) worlds.Add(worldName);
+                    }
+                } else days.GetComponent<Text>().text = "0 days";
+                days.gameObject.SetActive(true);
+            }
+        }
+
+        [HarmonyPatch(typeof(FejdStartup), "ShowStartGame")]
         static class PatchWorldList {
             [HarmonyPostfix]
             static void Postfix(ref FejdStartup __instance) {
-                foreach (Transform t in __instance.m_worldListRoot) {
-                    Debug.Log($"Nome : {t.name} | Type : {t.GetType()}");
+                if (!enableWorldStatsInSelection.Value) return;
+                GetWorldStats(__instance);
+            }
+        }
+
+        [HarmonyPatch(typeof(FejdStartup), "OnSelectWorld")]
+        static class PatchWorldSelection {
+            [HarmonyPostfix]
+            static void Postfix(ref FejdStartup __instance) {
+                if (!enableWorldStatsInSelection.Value) return;
+                GetWorldStats(__instance);
+            }
+        }
+
+        [HarmonyPatch(typeof(ZNet), "OnDestroy")]
+        static class PatchWorldEnd {
+            [HarmonyPrefix]
+            static void Prefix(ref ZNet __instance) {
+                if (!enableWorldStatsInSelection.Value) return;
+                string worldName = __instance.GetWorldName();
+                if (File.Exists(statsFilePath)) {
+                    statsFileLines = File.ReadAllLines(statsFilePath);
+                    string str = statsFileLines.FirstOrDefault(s => s.Contains(worldName));
+                    if (str != null) {
+                        statsFileLines[Array.IndexOf(statsFileLines, str)] = $"{worldName}:{EnvMan.instance.m_dayLengthSec}";
+                        File.WriteAllLines(statsFilePath, statsFileLines);
+                    } else File.AppendAllText(statsFilePath, $"{Environment.NewLine}{worldName}:{EnvMan.instance.m_dayLengthSec}");
+                } else File.AppendAllText(statsFilePath, $"{worldName}:{EnvMan.instance.m_dayLengthSec}");
+            }
+        }
+
+        /*[HarmonyPatch(typeof(Settings), "Awake")]
+        static class PatchSettings {
+            [HarmonyPostfix]
+            static void Postfix(ref Settings __instance) {
+                Button moveBtn = Instantiate(Settings.instance.m_resetTutorial, Settings.instance.m_resetTutorial.transform);
+                moveBtn.name = "MoveAlweStatsUI";
+                moveBtn.transform.SetParent(Settings.instance.m_resetTutorial.transform.parent);
+                moveBtn.onClick.RemoveAllListeners();
+                moveBtn.onClick.AddListener(OnMoveButtonPressed);
+                RectTransform moveRect = moveBtn.GetComponent<RectTransform>();
+                moveRect.sizeDelta = new Vector2(180f, 46f);
+                moveRect.localPosition = new Vector3(-176.4f, -176.4f, 0f);
+                moveBtn.GetComponentInChildren<Text>().text = "Move AlweStats UI";
+                moveBtn.gameObject.SetActive(true);
+            }
+
+            private static void OnMoveButtonPressed() {
+                //Debug.Log("Button pressed !");
+                isEditing = !isEditing;
+
+            }
+        }
+
+        [HarmonyPatch(typeof(Hud), "Update")]
+        static class PatchHud {
+            [HarmonyPostfix]
+            static void Postfix(ref Hud __instance) {
+                if (!isEditing) return;
+                else if (Input.GetKeyDown(KeyCode.Mouse1)) {
+
                 }
             }
         }*/
