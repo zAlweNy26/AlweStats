@@ -60,7 +60,7 @@ namespace AlweStats {
 
         public void Start() { harmony.PatchAll(); }
         
-        public void OnDestroy() { harmony.UnpatchSelf(); }
+        //public void OnDestroy() { harmony.UnpatchSelf(); }
 
         [HarmonyPatch(typeof(ZNetScene), "Update")]
         static class PatchGameStats {
@@ -241,39 +241,5 @@ namespace AlweStats {
                 } else File.AppendAllText(statsFilePath, $"{worldName}:{EnvMan.instance.m_dayLengthSec}");
             }
         }
-
-        /*[HarmonyPatch(typeof(Settings), "Awake")]
-        static class PatchSettings {
-            [HarmonyPostfix]
-            static void Postfix(ref Settings __instance) {
-                Button moveBtn = Instantiate(Settings.instance.m_resetTutorial, Settings.instance.m_resetTutorial.transform);
-                moveBtn.name = "MoveAlweStatsUI";
-                moveBtn.transform.SetParent(Settings.instance.m_resetTutorial.transform.parent);
-                moveBtn.onClick.RemoveAllListeners();
-                moveBtn.onClick.AddListener(OnMoveButtonPressed);
-                RectTransform moveRect = moveBtn.GetComponent<RectTransform>();
-                moveRect.sizeDelta = new Vector2(180f, 46f);
-                moveRect.localPosition = new Vector3(-176.4f, -176.4f, 0f);
-                moveBtn.GetComponentInChildren<Text>().text = "Move AlweStats UI";
-                moveBtn.gameObject.SetActive(true);
-            }
-
-            private static void OnMoveButtonPressed() {
-                //Debug.Log("Button pressed !");
-                isEditing = !isEditing;
-
-            }
-        }
-
-        [HarmonyPatch(typeof(Hud), "Update")]
-        static class PatchHud {
-            [HarmonyPostfix]
-            static void Postfix(ref Hud __instance) {
-                if (!isEditing) return;
-                else if (Input.GetKeyDown(KeyCode.Mouse1)) {
-
-                }
-            }
-        }*/
     }
 }
