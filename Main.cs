@@ -68,7 +68,7 @@ namespace AlweStats {
 
         public void Start() { harmony.PatchAll(); }
         
-        public void OnDestroy() { harmony.UnpatchSelf(); }
+        //public void OnDestroy() { harmony.UnpatchSelf(); }
 
         [HarmonyPatch]
         public static class PluginStartup {

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
-using BepInEx.Configuration;
 using UnityEngine;
 using UnityEngine.UI;
 
