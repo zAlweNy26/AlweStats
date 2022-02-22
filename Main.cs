@@ -11,12 +11,13 @@ namespace AlweStats {
         private readonly Harmony harmony = new("zAlweNy26.AlweStats");
         public static string statsFilePath;
         public static ConfigEntry<bool> 
-            enableGameStats, enableWorldStats, enableWorldStatsInSelection, enableWorldClock, twelveHourFormat, showResetButton;
-        public static ConfigEntry<int> gameStatsSize, worldStatsSize, worldClockSize;
+            enableGameStats, enableWorldStats, enableWorldStatsInSelection, enableWorldClock, enableShipStats, twelveHourFormat, showResetButton;
+        public static ConfigEntry<int> gameStatsSize, worldStatsSize, worldClockSize, shipStatsSize;
         public static ConfigEntry<KeyCode> toggleEditMode;
         public static ConfigEntry<string> 
             gameStatsColor, gameStatsAlign, gameStatsPosition, gameStatsMargin, 
             worldStatsColor, worldStatsAlign, worldStatsPosition, worldStatsMargin,
+            shipStatsColor, shipStatsAlign, shipStatsPosition, shipStatsMargin,
             worldClockColor, worldClockPosition, worldClockMargin;
 
         public void Awake() {
@@ -26,6 +27,7 @@ namespace AlweStats {
             enableWorldStats = Config.Bind("WorldStats", "Enable", true, "Whether or not to show days passed and time played counters in game");
             enableWorldStatsInSelection = Config.Bind("WorldStats", "DaysInWorldList", true, "Whether or not to show days passed counter in world selection");
             enableWorldClock = Config.Bind("WorldClock", "Enable", true, "Whether or not to show a clock in game");
+            enableShipStats = Config.Bind("ShipStats", "Enable", true, "Whether or not to show wind speed, wind direction and ship health when on board");
 
             twelveHourFormat = Config.Bind("WorldClock", "TwelveHourFormat", false, "Whether or not to show the clock in the 12h format with AM and PM");
             showResetButton = Config.Bind("General", "ShowResetButton", true, "Whether or not to show a button in the pause menu to reset the AlweStats values");
@@ -52,6 +54,17 @@ namespace AlweStats {
             worldStatsMargin = Config.Bind("WorldStats", "Margin", "-5, 5",
                 "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
 
+            shipStatsColor = Config.Bind("ShipStats", "Color", "255, 183, 92, 255",
+                "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
+            shipStatsSize = Config.Bind("ShipStats", "Size", 14,
+                "The size of the text showed\nThe range of possible values is from 0 to the amount of your blindness");
+            shipStatsAlign = Config.Bind("ShipStats", "Align", "MiddleRight",
+                "The alignment of the text showed\nPossible values : LowerLeft, LowerCenter, LowerRight, MiddleLeft, MiddleCenter, MiddleRight, UpperLeft, UpperCenter, UpperRight");
+            shipStatsPosition = Config.Bind("ShipStats", "Position", "1, 0.25",
+                "The position of the text showed\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between");
+            shipStatsMargin = Config.Bind("ShipStats", "Margin", "-5, 0",
+                "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
+
             worldClockColor = Config.Bind("WorldClock", "Color", "255, 183, 92, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
             worldClockSize = Config.Bind("WorldClock", "Size", 24, 
@@ -68,7 +81,7 @@ namespace AlweStats {
 
         public void Start() { harmony.PatchAll(); }
         
-        //public void OnDestroy() { harmony.UnpatchSelf(); }
+        public void OnDestroy() { harmony.UnpatchSelf(); }
 
         [HarmonyPatch]
         public static class PluginStartup {
@@ -78,6 +91,7 @@ namespace AlweStats {
                 if (enableGameStats.Value) GameStats.Start();
                 if (enableWorldStats.Value) WorldStats.Start();
                 if (enableWorldClock.Value) WorldClock.Start();
+                if (enableShipStats.Value) ShipStats.Start();
                 EditingMode.Start();
             }
 
@@ -104,6 +118,19 @@ namespace AlweStats {
             private static void PatchWorld() {
                 if (enableWorldStats.Value) WorldStats.Update();
                 if (enableWorldClock.Value) WorldClock.Update();
+                if (enableShipStats.Value) ShipStats.Update();
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(Ship), "OnTriggerEnter")]
+            private static void PatchShipEnter() {
+                if (enableShipStats.Value) ShipStats.Show();
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(Ship), "OnTriggerExit")]
+            private static void PatchShipExit() {
+                if (enableShipStats.Value) ShipStats.Hide();
             }
 
             [HarmonyPostfix]

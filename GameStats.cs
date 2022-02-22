@@ -37,7 +37,7 @@ namespace AlweStats {
                 float.Parse(positions[1], CultureInfo.InvariantCulture)
             );
             string[] margins = Regex.Replace(Main.gameStatsMargin.Value, @"\s+", "").Split(',');
-            statsRect.anchoredPosition = new Vector2(
+            statsRect.anchoredPosition = new(
                 float.Parse(margins[0], CultureInfo.InvariantCulture),
                 float.Parse(margins[1], CultureInfo.InvariantCulture)
             );

@@ -32,7 +32,7 @@ namespace AlweStats {
                 float.Parse(positions[1], CultureInfo.InvariantCulture)
             );
             string[] margins = Regex.Replace(Main.worldClockMargin.Value, @"\s+", "").Split(',');
-            clockRect.anchoredPosition = new Vector2(
+            clockRect.anchoredPosition = new(
                 float.Parse(margins[0], CultureInfo.InvariantCulture),
                 float.Parse(margins[1], CultureInfo.InvariantCulture)
             );

@@ -39,7 +39,7 @@ namespace AlweStats {
                 float.Parse(positions[1], CultureInfo.InvariantCulture)
             );
             string[] margins = Regex.Replace(Main.worldStatsMargin.Value, @"\s+", "").Split(',');
-            statsRect.anchoredPosition = new Vector2(
+            statsRect.anchoredPosition = new(
                 float.Parse(margins[0], CultureInfo.InvariantCulture),
                 float.Parse(margins[1], CultureInfo.InvariantCulture)
             );
@@ -52,9 +52,12 @@ namespace AlweStats {
                 int daysPlayed = (int) Math.Floor(timePlayed / EnvMan.instance.m_dayLengthSec);
                 double minutesPlayed = timePlayed / 60;
                 double hoursPlayed = minutesPlayed / 60;
-                //Debug.Log($"Days : {days} | Hours played : {hoursPlayed:0.00}");
+                //string currentBiome = string.Join(" ", Regex.Split(Enum.GetName(typeof(Heightmap.Biome), EnvMan.instance.GetCurrentBiome()), @"(?<!^)(?=[A-Z])"));
+                //if (hoursPlayed < 1) worldObj.GetComponent<Text>().text = $"Days passed : {daysPlayed}\nTime played : {minutesPlayed:0.00} m\nCurrent biome : {currentBiome}";
+                //else worldObj.GetComponent<Text>().text = $"Days passed : {daysPlayed}\nTime played : {hoursPlayed:0.00} h\nCurrent biome : {currentBiome}";
                 if (hoursPlayed < 1) worldObj.GetComponent<Text>().text = $"Days passed : {daysPlayed}\nTime played : {minutesPlayed:0.00} m";
                 else worldObj.GetComponent<Text>().text = $"Days passed : {daysPlayed}\nTime played : {hoursPlayed:0.00} h";
+                //Debug.Log($"Days : {days} | Hours played : {hoursPlayed:0.00} | Current biome : {currentBiome}");
             }
         }
 
