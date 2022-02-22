@@ -13,7 +13,8 @@ namespace AlweStats {
         public static ConfigFile config;
         public static string statsFilePath;
         public static ConfigEntry<bool> 
-            enableGameStats, enableWorldStats, enableWorldStatsInSelection, enableWorldClock, enableShipStats, twelveHourFormat, showResetButton;
+            enableGameStats, enableWorldStats, enableWorldStatsInSelection, enableWorldClock, enableShipStats, 
+            twelveHourFormat, showResetButton, customShowBiome;
         public static ConfigEntry<int> gameStatsSize, worldStatsSize, worldClockSize, shipStatsSize;
         public static ConfigEntry<KeyCode> toggleEditMode;
         public static ConfigEntry<string> 
@@ -35,6 +36,7 @@ namespace AlweStats {
 
             twelveHourFormat = Config.Bind("WorldClock", "TwelveHourFormat", false, "Whether or not to show the clock in the 12h format with AM and PM");
             showResetButton = Config.Bind("General", "ShowResetButton", true, "Whether or not to show a button in the pause menu to reset the AlweStats values");
+            customShowBiome = Config.Bind("WorldStats", "CustomShowBiome", true, "Whether or not to show the current biome in the WorldStats block instead of the top-left corner in minimap");
 
             gameStatsColor = Config.Bind("GameStats", "Color", "255, 183, 92, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");

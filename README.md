@@ -1,14 +1,14 @@
 # AlweStats
 
-https://valheim.thunderstore.io/package/Padank/AlweStats/
+You can find it here : https://valheim.thunderstore.io/package/Padank/AlweStats/
 
-Valheim Mod to easily see "FPS", "Ping", "Clock", "Ship health", "Ship speed", "Wind speed", "Wind direction", "Days passed" and "Time played".
+Valheim Mod to easily see "FPS", "Ping", "Clock", "Ship health", "Ship speed", "Wind speed", "Wind direction", "Days passed", "Time played" and "Current Biome".
 
 **YOU HAVE TO DELETE YOUR CONFIG FILE IF YOU HAVE A VERSION BEFORE 2.0.0**
 
 The UI is separated in four blocks :
 - GameStats, that contains "FPS" and "Ping"
-- WorldStats, that contains "Days passed" and "Time played"
+- WorldStats, that contains "Days passed", "Time played" and "Current biome"
 - WorldClock, that contains "Clock"
 - ShipStats, that contains "Ship health", "Ship speed", "Wind speed", "Wind direction"
 
@@ -19,11 +19,14 @@ For each block you can enable or disable it and you can also set :
 - Text size 
 - Text alignment (not for the Clock)
 
-In "WorldClock" you can also set if the time should be showed in 12h or 24h format.
+In the config file you can also choose :
+- Whether or not to show the reset button in the pause menu
+- Whether or not to show the clock in 12h or 24h format
+- Whether or not to show the current biome in the WorldStats block instead of the top-left corner in minimap 
 
 > Since **2.2.0**, you can see the ship speed.
 > As I don't know the proportions that the game uses, 
-> I have established that the maximum ship speed is equal to : 15 kts
+> I have established that the maximum ship speed is equal to 15 kts
 > so the values ​​are proportioned according to this.
 >
 > **If you have any suggestion regarding this, feel free to create an issue on the GitHub repository !**
@@ -46,6 +49,10 @@ In "WorldClock" you can also set if the time should be showed in 12h or 24h form
 > so that it can get the day length in that world and save it in the "Alwe.stats" file (you have to do it for each world).
 
 ### Changelog
+
+**2.4.0**
+- Fixed error when exiting server
+- Added possibility to remove biome from minimap top-left corner and set it in the WorldStats block
 
 **2.3.0**
 - Optimized the editing mode

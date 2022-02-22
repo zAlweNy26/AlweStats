@@ -28,11 +28,13 @@ namespace AlweStats {
                 int daysPlayed = (int)Math.Floor(timePlayed / EnvMan.instance.m_dayLengthSec);
                 double minutesPlayed = timePlayed / 60;
                 double hoursPlayed = minutesPlayed / 60;
-                //string currentBiome = string.Join(" ", Regex.Split(Enum.GetName(typeof(Heightmap.Biome), EnvMan.instance.GetCurrentBiome()), @"(?<!^)(?=[A-Z])"));
-                //if (hoursPlayed < 1) worldBlock.SetText($"Days passed : {daysPlayed}\nTime played : {minutesPlayed:0.00} m\nCurrent biome : {currentBiome}");
-                //else worldBlock.SetText($"Days passed : {daysPlayed}\nTime played : {hoursPlayed:0.00} h\nCurrent biome : {currentBiome}");
-                if (hoursPlayed < 1) worldBlock.SetText($"Days passed : {daysPlayed}\nTime played : {minutesPlayed:0.00} m");
-                else worldBlock.SetText($"Days passed : {daysPlayed}\nTime played : {hoursPlayed:0.00} h");
+                string currentBiome = "";
+                if (Main.customShowBiome.Value) {
+                    currentBiome = $"\nCurrent biome : {Minimap.instance.m_biomeNameSmall.text}";
+                    Minimap.instance.m_smallRoot.transform.Find("biome").gameObject.SetActive(false);
+                }
+                if (hoursPlayed < 1) worldBlock.SetText($"Days passed : {daysPlayed}\nTime played : {minutesPlayed:0.00} m{currentBiome}");
+                else worldBlock.SetText($"Days passed : {daysPlayed}\nTime played : {hoursPlayed:0.00} h{currentBiome}");
                 //Debug.Log($"Days : {days} | Hours played : {hoursPlayed:0.00} | Current biome : {currentBiome}");
             }
         }
@@ -69,7 +71,7 @@ namespace AlweStats {
         }
 
         public static void UpdateWorldsFile() {
-            if (!Main.enableWorldStatsInSelection.Value) return;
+            if (!Main.enableWorldStatsInSelection.Value || !ZNet.instance.IsServer()) return;
             string worldName = ZNet.instance.GetWorldName();
             if (File.Exists(Main.statsFilePath)) {
                 statsFileLines = File.ReadAllLines(Main.statsFilePath);

@@ -4,7 +4,7 @@
     <TargetFramework>net46</TargetFramework>
     <AssemblyName>AlweStats</AssemblyName>
     <Description>Easily read game and world stats !</Description>
-    <Version>2.3.0</Version>
+    <Version>2.4.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Copyright>zAlweNy26</Copyright>
