@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,19 +6,16 @@ namespace AlweStats {
     public static class EditingMode {
         private static GameObject editObj = null;
         private static bool isEditing = false;
-        private static readonly Transform[] inGameOriginals = new Transform[4];
-        private static readonly List<GameObject> templateObjs = new(4);
+        private static readonly List<GameObject> templateObjs = new();
+        private static List<Block> blockObjs = new();
         private static Vector3 lastMousePos = Vector3.zero;
         private static string currentlyDragging = "";
 
-        public static void Start() {
-            inGameOriginals[0] = Hud.instance.transform.Find("hudroot/GameStats");
-            inGameOriginals[1] = Hud.instance.transform.Find("hudroot/WorldStats");
-            inGameOriginals[2] = Hud.instance.transform.Find("hudroot/WorldClock");
-            inGameOriginals[3] = Hud.instance.transform.Find("hudroot/ShipStats");
-            foreach (Transform t in inGameOriginals) {
-                GameObject templateObj = new($"{t.name}Template");
-                templateObj.transform.SetParent(t.parent);
+        public static void Start(List<Block> blocks) {
+            blockObjs = blocks;
+            foreach (Block b in blocks) {
+                GameObject templateObj = new($"{b.GetName()}Template");
+                templateObj.transform.SetParent(b.GetParent());
                 templateObj.AddComponent<RectTransform>();
                 Canvas canvas = templateObj.AddComponent<Canvas>();
                 GameObject backgroundObj = new("Background");
@@ -28,7 +24,7 @@ namespace AlweStats {
                 GameObject textObj = new("Title");
                 textObj.transform.SetParent(canvas.transform);
                 Text templateText = textObj.AddComponent<Text>();
-                templateText.text = t.name;
+                templateText.text = b.GetName();
                 templateText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
                 templateText.fontSize = 24;
                 templateText.alignment = TextAnchor.MiddleCenter;
@@ -66,7 +62,7 @@ namespace AlweStats {
             if (isEditing) {
                 //Debug.Log("Editing mode : ON !");
                 foreach (GameObject g in templateObjs) {
-                    RectTransform originalRT = Hud.instance.transform.Find($"hudroot{g.name.Replace("Template", "")}").GetComponent<RectTransform>();
+                    RectTransform originalRT = blockObjs.Find(b => b.GetName() == g.name.Replace("Template", "")).GetRect();
                     RectTransform templateRT = g.GetComponent<RectTransform>();
                     templateRT.pivot = originalRT.pivot;
                     templateRT.anchorMin = originalRT.anchorMin;
@@ -94,40 +90,29 @@ namespace AlweStats {
             } else if (!isEditing) {
                 //Debug.Log("Editing mode : OFF !");
                 foreach (GameObject g in templateObjs) {
-                    Transform gameOriginal = Hud.instance.transform.Find($"hudroot{g.name.Replace("Template", "")}");
+                    RectTransform gameOriginal = blockObjs.Find(b => b.GetName() == g.name.Replace("Template", "")).GetRect();
                     gameOriginal.position = g.transform.position;
                     g.SetActive(false);
                 }
             }
         }
 
-        private static string VectorToString(Vector2 v) {
-            string x = v.x.ToString("0.00", CultureInfo.InvariantCulture);
-            string y = v.y.ToString("0.00", CultureInfo.InvariantCulture);
-            return $"{x}, {y}";
-        }
-
         public static void Destroy() {
             foreach (GameObject g in templateObjs) Object.Destroy(g);
             templateObjs.Clear();
-            Main.gameStatsPosition.Value = VectorToString(inGameOriginals[0].GetComponent<RectTransform>().pivot);
-            Main.worldStatsPosition.Value = VectorToString(inGameOriginals[1].GetComponent<RectTransform>().pivot);
-            Main.worldClockPosition.Value = VectorToString(inGameOriginals[2].GetComponent<RectTransform>().pivot);
-            Main.shipStatsPosition.Value = VectorToString(inGameOriginals[3].GetComponent<RectTransform>().pivot);
-            Main.gameStatsMargin.Value = VectorToString(inGameOriginals[0].GetComponent<RectTransform>().anchoredPosition);
-            Main.worldStatsMargin.Value = VectorToString(inGameOriginals[1].GetComponent<RectTransform>().anchoredPosition);
-            Main.worldClockMargin.Value = VectorToString(inGameOriginals[2].GetComponent<RectTransform>().anchoredPosition);
-            Main.shipStatsMargin.Value = VectorToString(inGameOriginals[3].GetComponent<RectTransform>().anchoredPosition);
+            foreach (Block b in blockObjs) {
+                b.SetPosition(b.GetRect().pivot);
+                b.SetMargin(b.GetRect().anchoredPosition);
+            }
+            blockObjs.Clear();
+            Main.config.Reload();
         }
 
         private static void Reset() {
             isEditing = false;
-            Vector2[] positions = { new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 1f), new Vector2(1f, 0.5f) };
-            Vector2[] margins = { new Vector2(5f, 5f), new Vector2(-5f, 5f), new Vector2(0f, 0f), new Vector2(-5f, 0f) };
-            for (int i = 0; i < inGameOriginals.Length; i++) {
-                RectTransform originalRT = inGameOriginals[i].GetComponent<RectTransform>();
-                originalRT.anchorMax = originalRT.anchorMin = originalRT.pivot = positions[i];
-                originalRT.anchoredPosition = margins[i];
+            foreach (Block b in blockObjs) {
+                b.SetPosition(b.GetConfigValue<string>(b.GetName(), "Position").DefaultValue.ToString());
+                b.SetMargin(b.GetConfigValue<string>(b.GetName(), "Margin").DefaultValue.ToString());
             }
             Destroy();
         }

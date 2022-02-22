@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ namespace AlweStats {
     [BepInProcess("Valheim.exe")]
     public class Main : BaseUnityPlugin {
         private readonly Harmony harmony = new("zAlweNy26.AlweStats");
+        public static ConfigFile config;
         public static string statsFilePath;
         public static ConfigEntry<bool> 
             enableGameStats, enableWorldStats, enableWorldStatsInSelection, enableWorldClock, enableShipStats, twelveHourFormat, showResetButton;
@@ -21,6 +23,8 @@ namespace AlweStats {
             worldClockColor, worldClockPosition, worldClockMargin;
 
         public void Awake() {
+            config = Config;
+
             toggleEditMode = Config.Bind("General", "EditModeKey", KeyCode.F9, "Key to toggle hud editing mode, set it to None to disable it");
 
             enableGameStats = Config.Bind("GameStats", "Enable", true, "Whether or not to show fps and ping counters in game");
@@ -88,11 +92,12 @@ namespace AlweStats {
             [HarmonyPostfix]
             [HarmonyPatch(typeof(Hud), "Awake")]
             private static void PatchHudStart() {
-                if (enableGameStats.Value) GameStats.Start();
-                if (enableWorldStats.Value) WorldStats.Start();
-                if (enableWorldClock.Value) WorldClock.Start();
-                if (enableShipStats.Value) ShipStats.Start();
-                EditingMode.Start();
+                List<Block> blocks = new();
+                if (enableGameStats.Value) blocks.Add(GameStats.Start());
+                if (enableWorldStats.Value) blocks.Add(WorldStats.Start());
+                if (enableWorldClock.Value) blocks.Add(WorldClock.Start());
+                if (enableShipStats.Value) blocks.Add(ShipStats.Start());
+                EditingMode.Start(blocks);
             }
 
             [HarmonyPostfix]

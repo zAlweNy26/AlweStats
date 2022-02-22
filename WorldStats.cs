@@ -1,62 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace AlweStats {
     public static class WorldStats {
-        private static GameObject worldObj = null;
+        private static Block worldBlock = null;
         private static string[] statsFileLines;
 
-        public static void Start() {
-            worldObj = new GameObject("WorldStats");
-            worldObj.transform.SetParent(Hud.instance.transform.Find("hudroot"));
-            worldObj.AddComponent<RectTransform>();
-            ContentSizeFitter contentFitter = worldObj.AddComponent<ContentSizeFitter>();
-            contentFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-            contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            Text worldText = worldObj.AddComponent<Text>();
-            string[] colors = Regex.Replace(Main.worldStatsColor.Value, @"\s+", "").Split(',');
-            worldText.color = new(
-                Mathf.Clamp01(float.Parse(colors[0], CultureInfo.InvariantCulture) / 255f),
-                Mathf.Clamp01(float.Parse(colors[1], CultureInfo.InvariantCulture) / 255f),
-                Mathf.Clamp01(float.Parse(colors[2], CultureInfo.InvariantCulture) / 255f),
-                Mathf.Clamp01(float.Parse(colors[3], CultureInfo.InvariantCulture) / 255f)
+        public static Block Start() {
+            worldBlock = new Block(
+                "WorldStats",
+                Main.worldStatsColor.Value,
+                Main.worldStatsSize.Value,
+                Main.worldStatsAlign.Value,
+                Main.worldStatsPosition.Value,
+                Main.worldStatsMargin.Value
             );
-            worldText.font = MessageHud.instance.m_messageCenterText.font;
-            worldText.fontSize = Main.worldStatsSize.Value;
-            worldText.enabled = true;
-            Enum.TryParse(Main.worldStatsAlign.Value, out TextAnchor textAlignment);
-            worldText.alignment = textAlignment;
-            RectTransform statsRect = worldObj.GetComponent<RectTransform>();
-            string[] positions = Regex.Replace(Main.worldStatsPosition.Value, @"\s+", "").Split(',');
-            statsRect.anchorMax = statsRect.anchorMin = statsRect.pivot = new(
-                float.Parse(positions[0], CultureInfo.InvariantCulture),
-                float.Parse(positions[1], CultureInfo.InvariantCulture)
-            );
-            string[] margins = Regex.Replace(Main.worldStatsMargin.Value, @"\s+", "").Split(',');
-            statsRect.anchoredPosition = new(
-                float.Parse(margins[0], CultureInfo.InvariantCulture),
-                float.Parse(margins[1], CultureInfo.InvariantCulture)
-            );
-            worldObj.SetActive(true);
+            return worldBlock;
         }
 
         public static void Update() {
-            if (worldObj != null) {
+            if (worldBlock != null) {
                 double timePlayed = ZNet.instance.GetTimeSeconds();
-                int daysPlayed = (int) Math.Floor(timePlayed / EnvMan.instance.m_dayLengthSec);
+                int daysPlayed = (int)Math.Floor(timePlayed / EnvMan.instance.m_dayLengthSec);
                 double minutesPlayed = timePlayed / 60;
                 double hoursPlayed = minutesPlayed / 60;
                 //string currentBiome = string.Join(" ", Regex.Split(Enum.GetName(typeof(Heightmap.Biome), EnvMan.instance.GetCurrentBiome()), @"(?<!^)(?=[A-Z])"));
-                //if (hoursPlayed < 1) worldObj.GetComponent<Text>().text = $"Days passed : {daysPlayed}\nTime played : {minutesPlayed:0.00} m\nCurrent biome : {currentBiome}";
-                //else worldObj.GetComponent<Text>().text = $"Days passed : {daysPlayed}\nTime played : {hoursPlayed:0.00} h\nCurrent biome : {currentBiome}";
-                if (hoursPlayed < 1) worldObj.GetComponent<Text>().text = $"Days passed : {daysPlayed}\nTime played : {minutesPlayed:0.00} m";
-                else worldObj.GetComponent<Text>().text = $"Days passed : {daysPlayed}\nTime played : {hoursPlayed:0.00} h";
+                //if (hoursPlayed < 1) worldBlock.SetText($"Days passed : {daysPlayed}\nTime played : {minutesPlayed:0.00} m\nCurrent biome : {currentBiome}");
+                //else worldBlock.SetText($"Days passed : {daysPlayed}\nTime played : {hoursPlayed:0.00} h\nCurrent biome : {currentBiome}");
+                if (hoursPlayed < 1) worldBlock.SetText($"Days passed : {daysPlayed}\nTime played : {minutesPlayed:0.00} m");
+                else worldBlock.SetText($"Days passed : {daysPlayed}\nTime played : {hoursPlayed:0.00} h");
                 //Debug.Log($"Days : {days} | Hours played : {hoursPlayed:0.00} | Current biome : {currentBiome}");
             }
         }

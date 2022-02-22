@@ -1,68 +1,43 @@
 ﻿using System;
-using System.Globalization;
-using System.Text.RegularExpressions;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace AlweStats {
     public static class ShipStats {
-        private static GameObject shipObj = null;
+        private static Block shipBlock = null;
         private static bool isOnBoard = false;
         private static Ship nearestShip = null;
 
-        public static void Start() {
-            shipObj = new GameObject("ShipStats");
-            shipObj.transform.SetParent(Hud.instance.transform.Find("hudroot"));
-            shipObj.AddComponent<RectTransform>();
-            ContentSizeFitter contentFitter = shipObj.AddComponent<ContentSizeFitter>();
-            contentFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-            contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            Text shipText = shipObj.AddComponent<Text>();
-            string[] colors = Regex.Replace(Main.shipStatsColor.Value, @"\s+", "").Split(',');
-            shipText.color = new(
-                Mathf.Clamp01(float.Parse(colors[0], CultureInfo.InvariantCulture) / 255f),
-                Mathf.Clamp01(float.Parse(colors[1], CultureInfo.InvariantCulture) / 255f),
-                Mathf.Clamp01(float.Parse(colors[2], CultureInfo.InvariantCulture) / 255f),
-                Mathf.Clamp01(float.Parse(colors[3], CultureInfo.InvariantCulture) / 255f)
+        public static Block Start() {
+            shipBlock = new Block(
+                "ShipStats",
+                Main.shipStatsColor.Value,
+                Main.shipStatsSize.Value,
+                Main.shipStatsAlign.Value,
+                Main.shipStatsPosition.Value,
+                Main.shipStatsMargin.Value
             );
-            shipText.font = MessageHud.instance.m_messageCenterText.font;
-            shipText.fontSize = Main.shipStatsSize.Value;
-            shipText.enabled = true;
-            Enum.TryParse(Main.shipStatsAlign.Value, out TextAnchor textAlignment);
-            shipText.alignment = textAlignment;
-            RectTransform statsRect = shipObj.GetComponent<RectTransform>();
-            string[] positions = Regex.Replace(Main.shipStatsPosition.Value, @"\s+", "").Split(',');
-            statsRect.anchorMax = statsRect.anchorMin = statsRect.pivot = new(
-                float.Parse(positions[0], CultureInfo.InvariantCulture),
-                float.Parse(positions[1], CultureInfo.InvariantCulture)
-            );
-            string[] margins = Regex.Replace(Main.shipStatsMargin.Value, @"\s+", "").Split(',');
-            statsRect.anchoredPosition = new(
-                float.Parse(margins[0], CultureInfo.InvariantCulture),
-                float.Parse(margins[1], CultureInfo.InvariantCulture)
-            );
-            shipObj.SetActive(false);
-            isOnBoard = false;
+            return shipBlock;
         }
 
         public static void Update() {
-            if (shipObj != null && shipObj.activeInHierarchy && isOnBoard && nearestShip != null) {
-                //Vector3 windDirection = EnvMan.instance.GetWindDir();
-                //Vector3 windForce = EnvMan.instance.GetWindForce();
+            if (shipBlock != null && shipBlock.IsActiveAndAlsoParents() && isOnBoard && nearestShip != null) {
                 WearNTear wnt = nearestShip.GetComponent<WearNTear>();
                 ZNetView znv = nearestShip.GetComponent<ZNetView>();
+                //Vector3 windDirection = EnvMan.instance.GetWindDir();
+                //Vector3 windForce = EnvMan.instance.GetWindForce();
+                string shipHealth = "";
                 float windIntensity = EnvMan.instance.GetWindIntensity();
                 string windAngle = GetWindAngle(nearestShip.GetWindAngle());
                 float windSpeed = windIntensity * 100; // 1 : maximum speed
-                string shipHealth = "";
-                float shipSpeed = Math.Max(0, (nearestShip.GetSpeed() * 15f) / 3); // 3 : maximum speed
-                if (wnt && znv?.IsValid() == true) shipHealth = $"\nShip health : {Mathf.RoundToInt(znv.GetZDO().GetFloat("health", wnt.m_health))} / {Mathf.RoundToInt(wnt.m_health)}";
+                float shipSpeed = Math.Max(0, nearestShip.GetSpeed() * 15f); // 3 : maximum speed
+                if (wnt && znv?.IsValid() == true) 
+                    shipHealth = $"\nShip health : {Mathf.RoundToInt(znv.GetZDO().GetFloat("health", wnt.m_health))} / {Mathf.RoundToInt(wnt.m_health)}";
                 //Debug.Log($"Ship speed : {shipSpeed}");
                 //Debug.Log($"Ship health : {shipHealth}");
                 //Debug.Log($"Wind angle : {windAngle}");
                 //Debug.Log($"Wind force : {windForce.x}, {windForce.y}, {windForce.z}");
                 //Debug.Log($"Wind intensity : {windIntensity}");
-                shipObj.GetComponent<Text>().text = $"Ship speed : {shipSpeed:0.0} kts{shipHealth}\nWind speed : {windSpeed:0.0} km/h\nWind direction : {windAngle}";
+                shipBlock.SetText($"Ship speed : {shipSpeed:0.0} kts{shipHealth}\nWind speed : {windSpeed:0.0} km/h\nWind direction : {windAngle}");
             }
         }
 
@@ -81,7 +56,7 @@ namespace AlweStats {
         }
 
         public static void Show() {
-            if (shipObj != null) {
+            if (shipBlock != null) {
                 try {
                     Ship[] ships = UnityEngine.Object.FindObjectsOfType<Ship>();
                     float pieceDistance = 0f;
@@ -92,15 +67,15 @@ namespace AlweStats {
                     }
                 } catch (Exception) {}
                 isOnBoard = true;
-                shipObj.SetActive(true);
+                shipBlock.SetActive(true);
             }
         }
 
         public static void Hide() {
-            if (shipObj != null && !Player.m_localPlayer.GetControlledShip()) {
+            if (shipBlock != null && !Player.m_localPlayer.GetControlledShip()) {
                 nearestShip = null;
                 isOnBoard = false;
-                shipObj.SetActive(false);
+                shipBlock.SetActive(false);
             }
         }
     }
