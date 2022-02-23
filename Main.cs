@@ -80,7 +80,7 @@ namespace AlweStats {
             worldClockMargin = Config.Bind("WorldClock", "Margin", "0, 0", 
                 "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
 
-            Logger.LogInfo($"AlweStats loaded successfully !");
+            Logger.LogInfo($"{PluginInfo.PLUGIN_GUID} loaded successfully !");
 
             statsFilePath = Path.Combine(Paths.PluginPath, "Alwe.stats");
         }

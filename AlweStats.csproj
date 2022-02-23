@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
     <AssemblyName>AlweStats</AssemblyName>
-    <Description>Easily read game and world stats !</Description>
+    <Description>Easily read game, world and ship stats !</Description>
     <Version>2.4.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
