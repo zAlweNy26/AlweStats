@@ -26,13 +26,13 @@ namespace AlweStats {
                 }
                 WearNTear wnt = nearestShip.GetComponent<WearNTear>();
                 ZNetView znv = nearestShip.GetComponent<ZNetView>();
+                string shipHealth = "";
                 //Vector3 windDirection = EnvMan.instance.GetWindDir();
                 //Vector3 windForce = EnvMan.instance.GetWindForce();
-                string shipHealth = "";
-                float windIntensity = EnvMan.instance.GetWindIntensity();
+                //float windIntensity = EnvMan.instance.GetWindIntensity();
                 string windAngle = GetWindAngle(nearestShip.GetWindAngle());
-                float windSpeed = windIntensity * 100; // 100 (max km/h I decided) / 1 (maximum speed in game)
-                float shipSpeed = Math.Max(0, nearestShip.GetSpeed() * 3f); // 30 (max kts I decided) / 10 (maximum speed in game)
+                float windSpeed = EnvMan.instance.GetWindIntensity() * 100f; // 100 (max km/h I decided) / 1 (maximum speed in game)
+                float shipSpeed = Mathf.Abs(nearestShip.GetSpeed() * 3f); // 30 (max kts I decided) / 10 (maximum speed in game)
                 if (wnt && znv?.IsValid() == true) {
                     int currentHealth = Mathf.RoundToInt(znv.GetZDO().GetFloat("health", wnt.m_health));
                     int totalHealth = Mathf.RoundToInt(wnt.m_health);
