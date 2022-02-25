@@ -4,7 +4,6 @@ using UnityEngine;
 namespace AlweStats {
     public static class ShipStats {
         private static Block shipBlock = null;
-        private static bool isOnBoard = false;
         private static Ship nearestShip = null;
 
         public static Block Start() {
@@ -20,7 +19,11 @@ namespace AlweStats {
         }
 
         public static void Update() {
-            if (shipBlock != null && shipBlock.IsActiveAndAlsoParents() && isOnBoard && nearestShip != null) {
+            if (shipBlock != null && shipBlock.IsActiveAndAlsoParents() && nearestShip != null) {
+                if (!nearestShip.IsPlayerInBoat(Player.m_localPlayer)) {
+                    shipBlock.SetActive(false);
+                    return;
+                }
                 WearNTear wnt = nearestShip.GetComponent<WearNTear>();
                 ZNetView znv = nearestShip.GetComponent<ZNetView>();
                 //Vector3 windDirection = EnvMan.instance.GetWindDir();
@@ -28,10 +31,13 @@ namespace AlweStats {
                 string shipHealth = "";
                 float windIntensity = EnvMan.instance.GetWindIntensity();
                 string windAngle = GetWindAngle(nearestShip.GetWindAngle());
-                float windSpeed = windIntensity * 100; // 1 : maximum speed
-                float shipSpeed = Math.Max(0, nearestShip.GetSpeed() * 15f); // 3 : maximum speed
-                if (wnt && znv?.IsValid() == true) 
-                    shipHealth = $"\nShip health : {Mathf.RoundToInt(znv.GetZDO().GetFloat("health", wnt.m_health))} / {Mathf.RoundToInt(wnt.m_health)}";
+                float windSpeed = windIntensity * 100; // 100 (max km/h I decided) / 1 (maximum speed in game)
+                float shipSpeed = Math.Max(0, nearestShip.GetSpeed() * 3f); // 30 (max kts I decided) / 10 (maximum speed in game)
+                if (wnt && znv?.IsValid() == true) {
+                    int currentHealth = Mathf.RoundToInt(znv.GetZDO().GetFloat("health", wnt.m_health));
+                    int totalHealth = Mathf.RoundToInt(wnt.m_health);
+                    shipHealth = $"\nShip health : {currentHealth} / {totalHealth}";
+                }
                 //Debug.Log($"Ship speed : {shipSpeed}");
                 //Debug.Log($"Ship health : {shipHealth}");
                 //Debug.Log($"Wind angle : {windAngle}");
@@ -55,7 +61,7 @@ namespace AlweStats {
             return angleString;
         }
 
-        public static void Show() {
+        public static void Check() {
             if (shipBlock != null) {
                 try {
                     Ship[] ships = UnityEngine.Object.FindObjectsOfType<Ship>();
@@ -65,17 +71,11 @@ namespace AlweStats {
                         if (nearestShip == null || lastDistance < pieceDistance) nearestShip = s;
                         pieceDistance = lastDistance;
                     }
-                } catch (Exception) {}
-                isOnBoard = true;
-                shipBlock.SetActive(true);
-            }
-        }
-
-        public static void Hide() {
-            if (shipBlock != null && !Player.m_localPlayer.GetControlledShip()) {
-                nearestShip = null;
-                isOnBoard = false;
-                shipBlock.SetActive(false);
+                } catch (Exception) {} finally {
+                    if (nearestShip != null) {
+                        shipBlock.SetActive(true);
+                    }
+                }
             }
         }
     }

@@ -131,13 +131,7 @@ namespace AlweStats {
             [HarmonyPostfix]
             [HarmonyPatch(typeof(Ship), "OnTriggerEnter")]
             private static void PatchShipEnter() {
-                if (enableShipStats.Value) ShipStats.Show();
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch(typeof(Ship), "OnTriggerExit")]
-            private static void PatchShipExit() {
-                if (enableShipStats.Value) ShipStats.Hide();
+                if (enableShipStats.Value) ShipStats.Check();
             }
 
             [HarmonyPostfix]

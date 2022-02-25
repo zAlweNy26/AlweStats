@@ -34,25 +34,25 @@
   
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>E:\Games\Valheim\BepInEx\core\0Harmony.dll</HintPath>
+      <HintPath>.\dependences\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="assembly_utils">
-      <HintPath>E:\Games\Valheim\valheim_Data\Managed\assembly_utils.dll</HintPath>
+      <HintPath>.\dependences\assembly_utils.dll</HintPath>
     </Reference>
     <Reference Include="assembly_valheim">
-      <HintPath>E:\Games\Valheim\valheim_Data\Managed\assembly_valheim.dll</HintPath>
+      <HintPath>.\dependences\assembly_valheim.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>E:\Games\Valheim\BepInEx\core\BepInEx.dll</HintPath>
+      <HintPath>.\dependences\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>E:\Games\Valheim\unstripped_corlib\UnityEngine.dll</HintPath>
+      <HintPath>.\dependences\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>E:\Games\Valheim\unstripped_corlib\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>.\dependences\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>E:\Games\Valheim\unstripped_corlib\UnityEngine.UI.dll</HintPath>
+      <HintPath>.\dependences\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
