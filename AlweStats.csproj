@@ -34,25 +34,25 @@
   
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>.\dependences\0Harmony.dll</HintPath>
+      <HintPath>.\dependencies\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="assembly_utils">
-      <HintPath>.\dependences\assembly_utils.dll</HintPath>
+      <HintPath>.\dependencies\assembly_utils.dll</HintPath>
     </Reference>
     <Reference Include="assembly_valheim">
-      <HintPath>.\dependences\assembly_valheim.dll</HintPath>
+      <HintPath>.\dependencies\assembly_valheim.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>.\dependences\BepInEx.dll</HintPath>
+      <HintPath>.\dependencies\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>.\dependences\UnityEngine.dll</HintPath>
+      <HintPath>.\dependencies\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>.\dependences\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>.\dependencies\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>.\dependences\UnityEngine.UI.dll</HintPath>
+      <HintPath>.\dependencies\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
