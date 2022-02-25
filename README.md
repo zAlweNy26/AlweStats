@@ -1,5 +1,6 @@
 # AlweStats
 
+
 You can find it here : https://valheim.thunderstore.io/package/Padank/AlweStats/
 
 Valheim Mod to easily see "FPS", "Ping", "Clock", "Ship health", "Ship speed", "Wind speed", "Wind direction", "Days passed", "Time played" and "Current Biome".
@@ -20,35 +21,34 @@ For each block you can enable or disable it and you can also set :
 - Text alignment (not for the Clock)
 
 In the config file you can also choose :
+- Whether or not to show the "Days passed" counter in the world selection panel
 - Whether or not to show the reset button in the pause menu
 - Whether or not to show the clock in 12h or 24h format
 - Whether or not to show the current biome in the WorldStats block instead of the top-left corner in minimap 
 
-> Since **2.2.0**, you can see the ship speed.
-> As I don't know the proportions that the game uses, 
-> I have established that the maximum ship speed is equal to 15 kts
-> so the values ​​are proportioned according to this.
->
-> **If you have any suggestion regarding this, feel free to create an issue on the GitHub repository !**
+**If you have any suggestion regarding the implemented features, feel free to create an issue on the GitHub repository !**
 
-> Since **2.1.0**, you can see the wind speed.
-> As I don't know the proportions that the game uses, 
-> I have established that the maximum wind speed is equal to 100 km/h, 
-> so the values ​​are proportioned according to this.
->
-> **If you have any suggestion regarding this, feel free to create an issue on the GitHub repository !**
-
-> Since **2.0.0**, you can move the blocks in game with your mouse ! 
-> To enable the editing mode you just have to click the button chose in the config file (default: F9)
-> and move the blocks where you prefer ! To save your changes, you need to restart the game.
+> You can move the blocks in game with your mouse ! 
+> To enable the editing mode you just have to click the key chose in the config file (default: F9)
+> and move the blocks where you prefer ! To save your changes, you need to press again the key.
 > You can also reset all the positions and margins of the blocks with the button in the pause menu.
 
-> Since **1.1.0**, you can add a "Days passed" counter in the world selection panel. 
-> Since the default day length declared in Valheim doesn't match the real one, 
-> to make the mod works fine, you need to join in the world at least one time, 
-> so that it can get the day length in that world and save it in the "Alwe.stats" file (you have to do it for each world).
+> Since the default day length declared in Valheim doesn't match the real one,
+> to successfully use the "Days passed" counter in the world selection panel you need to join in a world at least one time, 
+> The mod will then get the day length in that world and save it in the "Alwe.stats" file (you have to do it for each world).
+
+> As I don't know the proportions that the game uses, 
+> I have established that the maximum **ship speed** is equal to **30 kts** and the maximum **wind speed** is equal to **100 km/h**,
+> so the values ​​are proportioned according to this.
 
 ### Changelog
+
+**2.4.2**
+- Fixed the ship speed that was showing 0 when revesing
+
+**2.4.1**
+- Fixed the check if the player in on a ship or not
+- Fixed the ship speed with more credible values (in order to better respect the true speeds of Viking ships)
 
 **2.4.0**
 - Fixed error when exiting server
