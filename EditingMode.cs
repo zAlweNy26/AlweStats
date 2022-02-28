@@ -105,7 +105,7 @@ namespace AlweStats {
                 b.SetMargin(b.GetRect().anchoredPosition);
             }
             blockObjs.Clear();
-            Main.config.Reload();
+            Main.ReloadConfig();
         }
 
         private static void Reset() {

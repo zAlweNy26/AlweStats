@@ -13,30 +13,36 @@ namespace AlweStats {
         public static ConfigFile config;
         public static string statsFilePath;
         public static ConfigEntry<bool> 
-            enableGameStats, enableWorldStats, enableWorldStatsInSelection, enableWorldClock, enableShipStats, 
-            twelveHourFormat, showResetButton, customShowBiome;
+            enableGameStats, enableWorldStats, enableWorldStatsInSelection, enableWorldClock, enableShipStats, enableEnvStats, 
+            twelveHourFormat, showResetButton, customShowBiome, enableRockStatus, enableTreeStatus, enableBushStatus;
         public static ConfigEntry<int> gameStatsSize, worldStatsSize, worldClockSize, shipStatsSize;
-        public static ConfigEntry<KeyCode> toggleEditMode;
+        public static ConfigEntry<KeyCode> toggleEditMode, reloadPluginKey;
         public static ConfigEntry<string> 
             gameStatsColor, gameStatsAlign, gameStatsPosition, gameStatsMargin, 
             worldStatsColor, worldStatsAlign, worldStatsPosition, worldStatsMargin,
             shipStatsColor, shipStatsAlign, shipStatsPosition, shipStatsMargin,
-            worldClockColor, worldClockPosition, worldClockMargin;
+            worldClockColor, worldClockPosition, worldClockMargin, 
+            envStatsStringFormat;
 
         public void Awake() {
             config = Config;
 
-            toggleEditMode = Config.Bind("General", "EditModeKey", KeyCode.F9, "Key to toggle hud editing mode, set it to None to disable it");
+            reloadPluginKey = Config.Bind("General", "ReloadPluginKey", KeyCode.F9, "Key to reload the plugin config file");
+            toggleEditMode = Config.Bind("General", "EditModeKey", KeyCode.F8, "Key to toggle hud editing mode, set it to None to disable it");
 
             enableGameStats = Config.Bind("GameStats", "Enable", true, "Whether or not to show fps and ping counters in game");
             enableWorldStats = Config.Bind("WorldStats", "Enable", true, "Whether or not to show days passed and time played counters in game");
-            enableWorldStatsInSelection = Config.Bind("WorldStats", "DaysInWorldList", true, "Whether or not to show days passed counter in world selection");
             enableWorldClock = Config.Bind("WorldClock", "Enable", true, "Whether or not to show a clock in game");
             enableShipStats = Config.Bind("ShipStats", "Enable", true, "Whether or not to show wind speed, wind direction and ship health when on board");
+            enableEnvStats = Config.Bind("EnvStats", "Enable", true, "Whether or not to show the status about every environment element");
 
+            enableRockStatus = Config.Bind("EnvStats", "RockStatus", true, "Whether or not to show the status for rocks");
+            enableTreeStatus = Config.Bind("EnvStats", "TreeStatus", true, "Whether or not to show the status for trees");
+            enableBushStatus = Config.Bind("EnvStats", "BushStatus", true, "Whether or not to show the status for bushes");
             twelveHourFormat = Config.Bind("WorldClock", "TwelveHourFormat", false, "Whether or not to show the clock in the 12h format with AM and PM");
             showResetButton = Config.Bind("General", "ShowResetButton", true, "Whether or not to show a button in the pause menu to reset the AlweStats values");
             customShowBiome = Config.Bind("WorldStats", "CustomShowBiome", true, "Whether or not to show the current biome in the WorldStats block instead of the top-left corner in minimap");
+            enableWorldStatsInSelection = Config.Bind("WorldStats", "DaysInWorldList", true, "Whether or not to show days passed counter in world selection");
 
             gameStatsColor = Config.Bind("GameStats", "Color", "255, 183, 92, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
@@ -80,6 +86,13 @@ namespace AlweStats {
             worldClockMargin = Config.Bind("WorldClock", "Margin", "0, 0", 
                 "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
 
+            envStatsStringFormat = Config.Bind("EnvStats", "StringFormat", "{0:0.0} / {1} ({2} %)", 
+                "The format of the string when showing the health of the environment element" + 
+                "\n'{0}' stands for 'Current Health' value" +
+                "\n'{1}' stands for 'Total Health' value" +
+                "\n'{2}' stands for 'Health Percentage' value" +
+                "\n':0.0' means that the number is formatted to show only one digit after the point");
+
             Logger.LogInfo($"{PluginInfo.PLUGIN_GUID} loaded successfully !");
 
             statsFilePath = Path.Combine(Paths.PluginPath, "Alwe.stats");
@@ -88,6 +101,11 @@ namespace AlweStats {
         public void Start() { harmony.PatchAll(); }
         
         public void OnDestroy() { harmony.UnpatchSelf(); }
+
+        public static void ReloadConfig() { 
+            Debug.Log($"The config file of {PluginInfo.PLUGIN_GUID} was reloaded successfully !");
+            config.Reload(); 
+        }
 
         [HarmonyPatch]
         public static class PluginStartup {
@@ -105,6 +123,7 @@ namespace AlweStats {
             [HarmonyPostfix]
             [HarmonyPatch(typeof(Hud), "Update")]
             private static void PatchHudUpdate() {
+                if (Input.GetKeyDown(reloadPluginKey.Value)) ReloadConfig();    
                 EditingMode.Update();
             }
 
