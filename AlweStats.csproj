@@ -37,6 +37,9 @@
     <Reference Include="0Harmony">
       <HintPath>.\dependencies\0Harmony.dll</HintPath>
     </Reference>
+    <Reference Include="assembly_guiutils_publicized">
+      <HintPath>.\dependencies\assembly_guiutils_publicized.dll</HintPath>
+    </Reference>
     <Reference Include="assembly_utils_publicized">
       <HintPath>.\dependencies\assembly_utils_publicized.dll</HintPath>
     </Reference>

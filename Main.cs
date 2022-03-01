@@ -13,16 +13,18 @@ namespace AlweStats {
         public static ConfigFile config;
         public static string statsFilePath;
         public static ConfigEntry<bool> 
-            enableGameStats, enableWorldStats, enableWorldStatsInSelection, enableWorldClock, enableShipStats, enableEnvStats, 
-            twelveHourFormat, showResetButton, customShowBiome, enableRockStatus, enableTreeStatus, enableBushStatus;
-        public static ConfigEntry<int> gameStatsSize, worldStatsSize, worldClockSize, shipStatsSize;
+            enableGameStats, enableWorldStats, enableWorldClock, enableShipStats, enableEnvStats, 
+            enableRockStatus, enableTreeStatus, enableBushStatus, enableBowStats, customBowCharge,
+            enableWorldStatsInSelection, twelveHourFormat, showResetButton, customShowBiome;
+        public static ConfigEntry<int> gameStatsSize, worldStatsSize, worldClockSize, shipStatsSize, bowStatsSize;
         public static ConfigEntry<KeyCode> toggleEditMode, reloadPluginKey;
         public static ConfigEntry<string> 
             gameStatsColor, gameStatsAlign, gameStatsPosition, gameStatsMargin, 
             worldStatsColor, worldStatsAlign, worldStatsPosition, worldStatsMargin,
             shipStatsColor, shipStatsAlign, shipStatsPosition, shipStatsMargin,
+            bowStatsColor, bowStatsAlign, bowStatsPosition, bowStatsMargin,
             worldClockColor, worldClockPosition, worldClockMargin, 
-            envStatsStringFormat;
+            envStatsStringFormat, bowChargeBarColor;
 
         public void Awake() {
             config = Config;
@@ -35,6 +37,7 @@ namespace AlweStats {
             enableWorldClock = Config.Bind("WorldClock", "Enable", true, "Whether or not to show a clock in game");
             enableShipStats = Config.Bind("ShipStats", "Enable", true, "Whether or not to show wind speed, wind direction and ship health when on board");
             enableEnvStats = Config.Bind("EnvStats", "Enable", true, "Whether or not to show the status about every environment element");
+            enableBowStats = Config.Bind("BowStats", "Enable", true, "Whether or not to show the current and total ammo in a text block in the hud");
 
             enableRockStatus = Config.Bind("EnvStats", "RockStatus", true, "Whether or not to show the status for rocks");
             enableTreeStatus = Config.Bind("EnvStats", "TreeStatus", true, "Whether or not to show the status for trees");
@@ -43,6 +46,7 @@ namespace AlweStats {
             showResetButton = Config.Bind("General", "ShowResetButton", true, "Whether or not to show a button in the pause menu to reset the AlweStats values");
             customShowBiome = Config.Bind("WorldStats", "CustomShowBiome", true, "Whether or not to show the current biome in the WorldStats block instead of the top-left corner in minimap");
             enableWorldStatsInSelection = Config.Bind("WorldStats", "DaysInWorldList", true, "Whether or not to show days passed counter in world selection");
+            customBowCharge = Config.Bind("BowStats", "CustomBowCharge", true, "Whether or not to show a bow charge bar instead of the vanilla circle that shrinks");
 
             gameStatsColor = Config.Bind("GameStats", "Color", "255, 183, 92, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
@@ -86,6 +90,18 @@ namespace AlweStats {
             worldClockMargin = Config.Bind("WorldClock", "Margin", "0, 0", 
                 "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
 
+            bowStatsColor = Config.Bind("BowStats", "Color", "255, 183, 92, 255",
+                "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
+            bowStatsSize = Config.Bind("BowStats", "Size", 14,
+                "The size of the text showed\nThe range of possible values is from 0 to the amount of your blindness");
+            bowStatsPosition = Config.Bind("BowStats", "Position", "0, 0.5",
+                "The position of the text showed\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between");
+            bowStatsMargin = Config.Bind("BowStats", "Margin", "5, 0",
+                "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
+
+            bowChargeBarColor = Config.Bind("BowStats", "ChargeBarColor", "255, 183, 92, 255",
+                "The color of the bow charge bar\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
+
             envStatsStringFormat = Config.Bind("EnvStats", "StringFormat", "{0:0.0} / {1} ({2} %)", 
                 "The format of the string when showing the health of the environment element" + 
                 "\n'{0}' stands for 'Current Health' value" +
@@ -117,12 +133,15 @@ namespace AlweStats {
                 if (enableWorldStats.Value) blocks.Add(WorldStats.Start());
                 if (enableWorldClock.Value) blocks.Add(WorldClock.Start());
                 if (enableShipStats.Value) blocks.Add(ShipStats.Start());
+                if (enableBowStats.Value) blocks.Add(BowStats.Start());
+                else if (customBowCharge.Value) BowStats.Start();
                 EditingMode.Start(blocks);
             }
 
             [HarmonyPostfix]
             [HarmonyPatch(typeof(Hud), "Update")]
             private static void PatchHudUpdate() {
+                if (enableBowStats.Value || customBowCharge.Value) BowStats.Update();
                 if (Input.GetKeyDown(reloadPluginKey.Value)) ReloadConfig();    
                 EditingMode.Update();
             }

@@ -11,9 +11,9 @@ namespace AlweStats {
                 "ShipStats",
                 Main.shipStatsColor.Value,
                 Main.shipStatsSize.Value,
-                Main.shipStatsAlign.Value,
                 Main.shipStatsPosition.Value,
-                Main.shipStatsMargin.Value
+                Main.shipStatsMargin.Value,
+                Main.shipStatsAlign.Value
             );
             return shipBlock;
         }

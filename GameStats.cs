@@ -12,9 +12,9 @@ namespace AlweStats {
                 "GameStats", 
                 Main.gameStatsColor.Value, 
                 Main.gameStatsSize.Value, 
-                Main.gameStatsAlign.Value,
                 Main.gameStatsPosition.Value,
-                Main.gameStatsMargin.Value
+                Main.gameStatsMargin.Value,
+                Main.gameStatsAlign.Value
             );
             return gameBlock;
         }

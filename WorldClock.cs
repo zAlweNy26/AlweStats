@@ -9,7 +9,6 @@ namespace AlweStats {
                 "WorldClock",
                 Main.worldClockColor.Value,
                 Main.worldClockSize.Value,
-                "",
                 Main.worldClockPosition.Value,
                 Main.worldClockMargin.Value
             );

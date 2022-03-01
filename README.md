@@ -3,22 +3,27 @@
 You can find it here : https://valheim.thunderstore.io/package/Padank/AlweStats/
 
 Valheim Mod to easily see "FPS", "Ping", "Clock", "Ship health", "Ship speed", "Wind speed", "Wind direction", 
-"Days passed", "Time played", "Current Biome" and "Health" for every environment element.
+"Days passed", "Time played", "Current Biome", "Bow ammo", "Selected arrows" and "Health" for every environment element.
 
 **YOU HAVE TO DELETE YOUR CONFIG FILE IF YOU HAVE A VERSION BEFORE 2.0.0**
 
-The UI is separated in four blocks :
+The UI is separated in five blocks :
 - GameStats, that contains "FPS" and "Ping"
 - WorldStats, that contains "Days passed", "Time played" and "Current biome"
 - WorldClock, that contains "Clock"
 - ShipStats, that contains "Ship health", "Ship speed", "Wind speed", "Wind direction"
+- BowStats, that contains "Selected arrows" and "Bow ammo"
 
 For each block you can enable or disable it and you can also set :
 - Position
 - Margin 
 - Text color
 - Text size 
-- Text alignment (not for the Clock)
+- Text alignment (nor for WorldClock nor for BowStats)
+
+For the "BowStats" section, you can set :
+- Whether or not to show a bow charge bar instead of the vanilla circle that shrinks 
+- The color of the bow charge bar when fully charged
 
 For the "EnvStats" section, you can set :
 - The string format for the health of any environment element
@@ -35,7 +40,7 @@ In the config file you can also choose whether or not to show :
 > You can move the blocks in game with your mouse ! 
 > To enable the editing mode you just have to click the key chose in the config file (default: F9)
 > and move the blocks where you prefer ! To save your changes, you need to press again the key.
-> You can also reset all the positions and margins of the blocks with the button in the pause menu.
+> You can also reset all the positions and margins of the blocks with the button in the pause menu (if enabled).
 
 > Since the default day length declared in Valheim doesn't match the real one,
 > to successfully use the "Days passed" counter in the world selection panel you need to join in a world at least one time, 
@@ -52,6 +57,11 @@ In the config file you can also choose whether or not to show :
 - Rock name doesn't show for small rocks.
 
 ### Changelog
+
+**2.6.0**
+- Added a new block regarding the bow ammo and selected arrows
+- Added the possibility to show a bow charge bar instead of the vanilla one
+- Added new config values to match the new additions
 
 **2.5.0**
 - Added an health string for every environment element (rocks, minerocks, trees, bushes, ecc...)

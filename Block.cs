@@ -9,7 +9,7 @@ namespace AlweStats {
     public class Block {
         private readonly GameObject blockObj = null;
 
-        public Block(string name, string color, int size, string align, string position, string margin) {
+        public Block(string name, string color, int size, string position, string margin, string align = "") {
             blockObj = new GameObject(name);
             blockObj.transform.SetParent(Hud.instance.transform.Find("hudroot"));
             blockObj.AddComponent<RectTransform>();

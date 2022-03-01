@@ -15,9 +15,9 @@ namespace AlweStats {
                 "WorldStats",
                 Main.worldStatsColor.Value,
                 Main.worldStatsSize.Value,
-                Main.worldStatsAlign.Value,
                 Main.worldStatsPosition.Value,
-                Main.worldStatsMargin.Value
+                Main.worldStatsMargin.Value,
+                Main.worldStatsAlign.Value
             );
             return worldBlock;
         }
