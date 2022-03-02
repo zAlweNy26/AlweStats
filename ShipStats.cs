@@ -1,4 +1,5 @@
 ﻿using System;
+using HarmonyLib;
 using UnityEngine;
 
 namespace AlweStats {
@@ -43,7 +44,7 @@ namespace AlweStats {
                 //Debug.Log($"Wind angle : {windAngle}");
                 //Debug.Log($"Wind force : {windForce.x}, {windForce.y}, {windForce.z}");
                 //Debug.Log($"Wind intensity : {windIntensity}");
-                shipBlock.SetText($"Ship speed : {shipSpeed:0.0} kts{shipHealth}\nWind speed : {windSpeed:0.0} km/h\nWind direction : {windAngle}");
+                shipBlock.SetText($"Ship speed : {shipSpeed:0.#} kts{shipHealth}\nWind speed : {windSpeed:0.#} km/h\nWind direction : {windAngle}");
             }
         }
 
@@ -77,6 +78,12 @@ namespace AlweStats {
                     }
                 }
             }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Ship), "OnTriggerEnter")]
+        private static void PatchShipEnter() {
+            if (Main.enableShipStats.Value) Check();
         }
     }
 }

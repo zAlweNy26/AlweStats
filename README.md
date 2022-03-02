@@ -3,9 +3,7 @@
 You can find it here : https://valheim.thunderstore.io/package/Padank/AlweStats/
 
 Valheim Mod to easily see "FPS", "Ping", "Clock", "Ship health", "Ship speed", "Wind speed", "Wind direction", 
-"Days passed", "Time played", "Current Biome", "Bow ammo", "Selected arrows" and "Health" for every environment element.
-
-**YOU HAVE TO DELETE YOUR CONFIG FILE IF YOU HAVE A VERSION BEFORE 2.0.0**
+"Days passed", "Time played", "Current Biome", "Bow ammo", "Selected arrows", "Health" and "Growth" for every environment element.
 
 The UI is separated in five blocks :
 - GameStats, that contains "FPS" and "Ping"
@@ -27,7 +25,9 @@ For the "BowStats" section, you can set :
 
 For the "EnvStats" section, you can set :
 - The string format for the health of any environment element
-- Whether or not to show the health separately for rocks, bushes and trees
+- The string format for the growth of bushes and plants
+- Whether or not to show the health separately for rock and trees
+- Whether or not to show the growth for bushes and plants
 
 In the config file you can also choose whether or not to show :
 - A "Days passed" counter in the world selection panel
@@ -54,9 +54,19 @@ In the config file you can also choose whether or not to show :
 
 - Health starts showing from second hit for rocks and minerocks.
 - Environment element name doesn't show if you hit an element without aiming at it.
-- Rock name doesn't show for small rocks.
+- Name doesn't show for small elements.
 
 ### Changelog
+
+**3.0.0**
+- Added bushes and plants grow string in the EnvStats section
+- Fixed all values that could be rounded to integer when having 0 as digit after the decimal point
+- Added a new config value to match the new addition ("GrowStringFormat")
+- Renamed the config value "StringFormat" to "HealthStringFormat"
+- Renamed the config value "DaysInWorldList" to "DaysInWorldsList"
+- Renamed the config value "BushStatus" to "BushAndPlantStatus"
+- Now you will see the growth for bushes and not the health
+- Added the possibility to color the text based on the health/grow percentage in "HealthStringFormat" and "GrowStringFormat"
 
 **2.6.0**
 - Added a new block regarding the bow ammo and selected arrows

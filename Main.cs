@@ -14,8 +14,8 @@ namespace AlweStats {
         public static string statsFilePath;
         public static ConfigEntry<bool> 
             enableGameStats, enableWorldStats, enableWorldClock, enableShipStats, enableEnvStats, 
-            enableRockStatus, enableTreeStatus, enableBushStatus, enableBowStats, customBowCharge,
-            enableWorldStatsInSelection, twelveHourFormat, showResetButton, customShowBiome;
+            enableRockStatus, enableTreeStatus, enablePickableStatus, enableBowStats, customBowCharge,
+            daysInWorldsList, twelveHourFormat, showResetButton, customShowBiome, showGrowthString;
         public static ConfigEntry<int> gameStatsSize, worldStatsSize, worldClockSize, shipStatsSize, bowStatsSize;
         public static ConfigEntry<KeyCode> toggleEditMode, reloadPluginKey;
         public static ConfigEntry<string> 
@@ -24,7 +24,7 @@ namespace AlweStats {
             shipStatsColor, shipStatsAlign, shipStatsPosition, shipStatsMargin,
             bowStatsColor, bowStatsAlign, bowStatsPosition, bowStatsMargin,
             worldClockColor, worldClockPosition, worldClockMargin, 
-            envStatsStringFormat, bowChargeBarColor;
+            healthStringFormat, growStringFormat, bowChargeBarColor;
 
         public void Awake() {
             config = Config;
@@ -41,11 +41,11 @@ namespace AlweStats {
 
             enableRockStatus = Config.Bind("EnvStats", "RockStatus", true, "Whether or not to show the status for rocks");
             enableTreeStatus = Config.Bind("EnvStats", "TreeStatus", true, "Whether or not to show the status for trees");
-            enableBushStatus = Config.Bind("EnvStats", "BushStatus", true, "Whether or not to show the status for bushes");
+            enablePickableStatus = Config.Bind("EnvStats", "BushAndPlantStatus", true, "Whether or not to show the growth status for bushes and plants");
             twelveHourFormat = Config.Bind("WorldClock", "TwelveHourFormat", false, "Whether or not to show the clock in the 12h format with AM and PM");
             showResetButton = Config.Bind("General", "ShowResetButton", true, "Whether or not to show a button in the pause menu to reset the AlweStats values");
             customShowBiome = Config.Bind("WorldStats", "CustomShowBiome", true, "Whether or not to show the current biome in the WorldStats block instead of the top-left corner in minimap");
-            enableWorldStatsInSelection = Config.Bind("WorldStats", "DaysInWorldList", true, "Whether or not to show days passed counter in world selection");
+            daysInWorldsList = Config.Bind("WorldStats", "DaysInWorldsList", true, "Whether or not to show days passed counter in the world list panel");
             customBowCharge = Config.Bind("BowStats", "CustomBowCharge", true, "Whether or not to show a bow charge bar instead of the vanilla circle that shrinks");
 
             gameStatsColor = Config.Bind("GameStats", "Color", "255, 183, 92, 255", 
@@ -102,12 +102,19 @@ namespace AlweStats {
             bowChargeBarColor = Config.Bind("BowStats", "ChargeBarColor", "255, 183, 92, 255",
                 "The color of the bow charge bar\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
 
-            envStatsStringFormat = Config.Bind("EnvStats", "StringFormat", "{0:0.0} / {1} ({2} %)", 
+            healthStringFormat = Config.Bind("EnvStats", "HealthStringFormat", "{0} / {1} (<color>{2} %</color>)", 
                 "The format of the string when showing the health of the environment element" + 
-                "\n'{0}' stands for 'Current Health' value" +
-                "\n'{1}' stands for 'Total Health' value" +
-                "\n'{2}' stands for 'Health Percentage' value" +
-                "\n':0.0' means that the number is formatted to show only one digit after the point");
+                "\n'{0}' stands for the current health value" +
+                "\n'{1}' stands for the total health value" +
+                "\n'{2}' stands for the health Percentage value" +
+                "\n'<color>' and '</color>' mean that the text between them will be colored based on the health percentage");
+
+            growStringFormat = Config.Bind("EnvStats", "GrowStringFormat", "{0} (<color>{2} %</color>)\n{1}", 
+                "The format of the string when showing the grow percentage of the plant" + 
+                "\n'{0}' stands for the plant name" +
+                "\n'{1}' stands for the pickup string (showed only for bushes and not plants)" +
+                "\n'{2}' stands for the percentage" +
+                "\n'<color>' and '</color>' mean that the text between them will be colored based on the grow percentage");
 
             Logger.LogInfo($"{PluginInfo.PLUGIN_GUID} loaded successfully !");
 
@@ -124,7 +131,7 @@ namespace AlweStats {
         }
 
         [HarmonyPatch]
-        public static class PluginStartup {
+        public static class PluginPatches {
             [HarmonyPostfix]
             [HarmonyPatch(typeof(Hud), "Awake")]
             private static void PatchHudStart() {
@@ -166,34 +173,10 @@ namespace AlweStats {
                 if (enableShipStats.Value) ShipStats.Update();
             }
 
-            [HarmonyPostfix]
-            [HarmonyPatch(typeof(Ship), "OnTriggerEnter")]
-            private static void PatchShipEnter() {
-                if (enableShipStats.Value) ShipStats.Check();
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch(typeof(FejdStartup), "ShowStartGame")]
-            static void PatchWorldList(ref FejdStartup __instance) {
-                if (enableWorldStatsInSelection.Value) WorldStats.UpdateWorldsPanel();
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch(typeof(FejdStartup), "OnSelectWorld")]
-            static void PatchWorldSelection(ref FejdStartup __instance) {
-                if (enableWorldStatsInSelection.Value) WorldStats.UpdateWorldsPanel();
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch(typeof(FejdStartup), "OnButtonRemoveWorldYes")]
-            static void PatchWorldRemove(ref FejdStartup __instance) {
-                if (enableWorldStatsInSelection.Value) WorldStats.UpdateWorldsPanel();
-            }
-
             [HarmonyPrefix]
             [HarmonyPatch(typeof(ZNet), "OnDestroy")]
             static void PatchWorldEnd(ref ZNet __instance) {
-                if (enableWorldStatsInSelection.Value) WorldStats.UpdateWorldsFile();
+                if (daysInWorldsList.Value) WorldStats.UpdateWorldsFile();
                 EditingMode.Destroy();
             }
         }

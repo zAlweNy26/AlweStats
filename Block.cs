@@ -98,8 +98,8 @@ namespace AlweStats {
         }
 
         public string VectorToString(Vector2 v) {
-            string x = v.x.ToString("0.00", CultureInfo.InvariantCulture);
-            string y = v.y.ToString("0.00", CultureInfo.InvariantCulture);
+            string x = v.x.ToString("0.##", CultureInfo.InvariantCulture);
+            string y = v.y.ToString("0.##", CultureInfo.InvariantCulture);
             return $"{x}, {y}";
         }
 
