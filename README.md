@@ -3,7 +3,13 @@
 You can find it here : https://valheim.thunderstore.io/package/Padank/AlweStats/
 
 Valheim Mod to easily see "FPS", "Ping", "Clock", "Ship health", "Ship speed", "Wind speed", "Wind direction", 
-"Days passed", "Time played", "Current Biome", "Bow ammo", "Selected arrows", "Health" and "Growth" for every environment element.
+"Days passed", "Time played", "Current Biome", "Bow ammo", "Selected arrows" in the HUD.
+
+You can also see : 
+- Growth time/percentage for bush and/or plants
+- Health value/percentage for every environment element (rocks, trees, ecc...)
+- Process time/percentage for fermenters and beehives
+- Fill space/percentage for containers
 
 The UI is separated in five blocks :
 - GameStats, that contains "FPS" and "Ping"
@@ -25,9 +31,11 @@ For the "BowStats" section, you can set :
 
 For the "EnvStats" section, you can set :
 - The string format for the health of any environment element
-- The string format for the growth of bushes and plants
+- The string format for the process status of bushes, plants, beehives and fermenters
 - Whether or not to show the health separately for rock and trees
-- Whether or not to show the growth for bushes and plants
+- Whether or not to show the growth separately for bushes and plants
+- Whether or not to show the process status for beehives and fermenters
+- Whether or not to show the remaining slots for containers
 
 In the config file you can also choose whether or not to show :
 - A "Days passed" counter in the world selection panel
@@ -54,9 +62,19 @@ In the config file you can also choose whether or not to show :
 
 - Health starts showing from second hit for rocks and minerocks.
 - Environment element name doesn't show if you hit an element without aiming at it.
-- Name doesn't show for small elements.
+- Name doesn't show for small environment elements.
+- Remaining time doesn't work properly for bushes and beehives.
 
 ### Changelog
+
+**3.1.0**
+- Renamed the config value "GrowStringFormat" to "ProcessStringFormat"
+- Splitted the config value "BushAndPlantStatus" in "BushStatus" and "PlantStatus" to separate bushes and plants
+- Added status about fermenter when hovering it
+- Added status about beehive when hovering it
+- Added status about container when hovering it
+- Added the possibility to see remaining time in the "ProcessStringFormat" config value
+- Added new config values to match the new additions
 
 **3.0.0**
 - Added bushes and plants grow string in the EnvStats section

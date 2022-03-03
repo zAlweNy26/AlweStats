@@ -14,20 +14,22 @@ namespace AlweStats {
         public static string statsFilePath;
         public static ConfigEntry<bool> 
             enableGameStats, enableWorldStats, enableWorldClock, enableShipStats, enableEnvStats, 
-            enableRockStatus, enableTreeStatus, enablePickableStatus, enableBowStats, customBowCharge,
-            daysInWorldsList, twelveHourFormat, showResetButton, customShowBiome, showGrowthString;
+            enableRockStatus, enableTreeStatus, enableBushStatus, enablePlantStatus, enableFermenterStatus,
+            enableBeehiveStatus, enableBowStats, customBowCharge, daysInWorldsList, twelveHourFormat, 
+            showResetButton, customShowBiome, enableContainerStatus;
         public static ConfigEntry<int> gameStatsSize, worldStatsSize, worldClockSize, shipStatsSize, bowStatsSize;
         public static ConfigEntry<KeyCode> toggleEditMode, reloadPluginKey;
         public static ConfigEntry<string> 
             gameStatsColor, gameStatsAlign, gameStatsPosition, gameStatsMargin, 
             worldStatsColor, worldStatsAlign, worldStatsPosition, worldStatsMargin,
             shipStatsColor, shipStatsAlign, shipStatsPosition, shipStatsMargin,
-            bowStatsColor, bowStatsAlign, bowStatsPosition, bowStatsMargin,
+            bowStatsColor, bowStatsPosition, bowStatsMargin, bowChargeBarColor,
             worldClockColor, worldClockPosition, worldClockMargin, 
-            healthStringFormat, growStringFormat, bowChargeBarColor;
+            healthStringFormat, processStringFormat;
 
         public void Awake() {
             config = Config;
+            config.SaveOnConfigSet = true;
 
             reloadPluginKey = Config.Bind("General", "ReloadPluginKey", KeyCode.F9, "Key to reload the plugin config file");
             toggleEditMode = Config.Bind("General", "EditModeKey", KeyCode.F8, "Key to toggle hud editing mode, set it to None to disable it");
@@ -41,7 +43,11 @@ namespace AlweStats {
 
             enableRockStatus = Config.Bind("EnvStats", "RockStatus", true, "Whether or not to show the status for rocks");
             enableTreeStatus = Config.Bind("EnvStats", "TreeStatus", true, "Whether or not to show the status for trees");
-            enablePickableStatus = Config.Bind("EnvStats", "BushAndPlantStatus", true, "Whether or not to show the growth status for bushes and plants");
+            enableBushStatus = Config.Bind("EnvStats", "BushStatus", true, "Whether or not to show the growth status for bushes");
+            enablePlantStatus = Config.Bind("EnvStats", "PlantStatus", true, "Whether or not to show the growth status for plants");
+            enableFermenterStatus = Config.Bind("EnvStats", "FermenterStatus", true, "Whether or not to show status for fermenters");
+            enableBeehiveStatus = Config.Bind("EnvStats", "BeehiveStatus", true, "Whether or not to show the status for beehives");
+            enableContainerStatus = Config.Bind("EnvStats", "ContainerStatus", true, "Whether or not to show the status for containers");
             twelveHourFormat = Config.Bind("WorldClock", "TwelveHourFormat", false, "Whether or not to show the clock in the 12h format with AM and PM");
             showResetButton = Config.Bind("General", "ShowResetButton", true, "Whether or not to show a button in the pause menu to reset the AlweStats values");
             customShowBiome = Config.Bind("WorldStats", "CustomShowBiome", true, "Whether or not to show the current biome in the WorldStats block instead of the top-left corner in minimap");
@@ -109,12 +115,11 @@ namespace AlweStats {
                 "\n'{2}' stands for the health Percentage value" +
                 "\n'<color>' and '</color>' mean that the text between them will be colored based on the health percentage");
 
-            growStringFormat = Config.Bind("EnvStats", "GrowStringFormat", "{0} (<color>{2} %</color>)\n{1}", 
-                "The format of the string when showing the grow percentage of the plant" + 
-                "\n'{0}' stands for the plant name" +
-                "\n'{1}' stands for the pickup string (showed only for bushes and not plants)" +
-                "\n'{2}' stands for the percentage" +
-                "\n'<color>' and '</color>' mean that the text between them will be colored based on the grow percentage");
+            processStringFormat = Config.Bind("EnvStats", "ProcessStringFormat", "(<color>{0} %</color>)\n{1}", 
+                "The format of the string when showing the process status of plants/bushes/fermenters/beehives" + 
+                "\n'{0}' stands for the percentage" +
+                "\n'{1}' stands for the remaining time" +
+                "\n'<color>' and '</color>' mean that the text between them will be colored based on the process percentage");
 
             Logger.LogInfo($"{PluginInfo.PLUGIN_GUID} loaded successfully !");
 
@@ -126,8 +131,10 @@ namespace AlweStats {
         public void OnDestroy() { harmony.UnpatchSelf(); }
 
         public static void ReloadConfig() { 
-            Debug.Log($"The config file of {PluginInfo.PLUGIN_GUID} was reloaded successfully !");
-            config.Reload(); 
+            if (File.Exists(config.ConfigFilePath)) {
+                config.Reload(); 
+                Debug.Log($"The config file of {PluginInfo.PLUGIN_GUID} was reloaded successfully !");
+            } else Debug.Log($"The config file of {PluginInfo.PLUGIN_GUID} was not found !");
         }
 
         [HarmonyPatch]

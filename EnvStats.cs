@@ -12,6 +12,18 @@ namespace AlweStats {
         private static string initialText = "";
 
         [HarmonyPostfix]
+        [HarmonyPatch(typeof(Container), "GetHoverText")]
+        public static string PatchContainerHoverText(string __result, Container __instance) {
+            if (!Main.enableContainerStatus.Value) return __result;
+            if (__instance.m_checkGuardStone && !PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false))
+                return Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
+            int perc = (int) __instance.m_inventory.SlotsUsedPercentage();
+            string inventoryString = $"{__instance.m_inventory.NrOfItems()} / {__instance.m_inventory.GetWidth() * __instance.m_inventory.GetHeight()} (<color={GetColor(perc)}>{perc} %</color>)";
+            string notEmpty = __instance.m_inventory.NrOfItems() > 0 ? $"\n{inventoryString}" : " ( $piece_container_empty )";
+            return Localization.instance.Localize($"{__instance.m_name}{notEmpty}\n[<color=yellow><b>$KEY_Use</b></color>] $piece_container_open");
+        }
+
+        [HarmonyPostfix]
         [HarmonyPatch(typeof(Destructible), "RPC_Damage")]
         public static void OnDamage(Destructible __instance, HitData hit) {
             if (!Main.enableEnvStats.Value) return;
@@ -90,20 +102,75 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Plant), "GetHoverText")]
         public static string PatchPlantHoverText(string __result, Plant __instance) {
-            if (!Main.enablePickableStatus.Value) return __result;
+            if (!Main.enablePlantStatus.Value) return __result;
             if (__instance == null) return __result;
-            int growPercentage = (int) Mathf.Floor((float) __instance.TimeSincePlanted() / __instance.GetGrowTime() * 100);
-            return SetPickableText(growPercentage, __instance.GetHoverName(), "");
+            int growPercentage = Mathf.FloorToInt((float) __instance.TimeSincePlanted() / __instance.GetGrowTime() * 100);
+            growPercentage = growPercentage > 100 ? 100 : growPercentage;
+            return SetPickableText(growPercentage, __instance.GetHoverName(), (int) __instance.TimeSincePlanted(), (int) __instance.GetGrowTime());
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Pickable), "GetHoverText")]
         public static string PatchPickableHoverText(string __result, Pickable __instance) {
-            if (!Main.enablePickableStatus.Value || !__instance.name.ToLower().Contains("bush")) return __result;
+            if (!Main.enableBushStatus.Value || !__instance.name.ToLower().Contains("bush")) return __result;
             DateTime startTime = new DateTime(__instance.m_nview.GetZDO().GetLong("picked_time"));
-            int growPercentage = (int) Mathf.Floor((float) (ZNet.instance.GetTime() - startTime).TotalMinutes / __instance.m_respawnTimeMinutes * 100);
+            float currentGrowTime = (float) (ZNet.instance.GetTime() - startTime).TotalMinutes;
+            int growPercentage = Mathf.FloorToInt(currentGrowTime / __instance.m_respawnTimeMinutes * 100);
             growPercentage = growPercentage > 100 ? 100 : growPercentage;
-            return SetPickableText(growPercentage, __instance.GetHoverName(), "[<color=yellow><b>$KEY_Use</b></color>] $inventory_pickup");
+            return SetPickableText(growPercentage, __instance.GetHoverName(), (int) currentGrowTime, __instance.m_respawnTimeMinutes);
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Beehive), "GetHoverText")]
+        public static string PatchBeehiveHoverText(string __result, Beehive __instance) {
+            if (!Main.enableBeehiveStatus.Value) return __result;
+            if (!PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false))
+                return Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
+            int honeyLevel = __instance.GetHoneyLevel();
+            if (honeyLevel > 0) {
+                float current = __instance.GetTimeSinceLastUpdate() + __instance.m_nview.GetZDO().GetFloat("product", 0f);
+                int honeyPercentage = Mathf.FloorToInt(current / __instance.m_secPerUnit * 100);
+                honeyPercentage = honeyPercentage > 100 ? 100 : honeyPercentage;
+                string honey = SetPickableText(honeyPercentage, "", (int) current, (int) __instance.m_secPerUnit);
+                string itemName = __instance.m_honeyItem.m_itemData.m_shared.m_name;
+                return Localization.instance.Localize(
+                    $"{__instance.m_name} {honey}\n{itemName} x {honeyLevel}\n[<color=yellow><b>$KEY_Use</b></color>] $piece_beehive_extract"
+                );
+            } else return __result;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Fermenter), "GetHoverText")]
+        public static string PatchFermenterHoverText(string __result, Fermenter __instance) {
+            if (!Main.enableFermenterStatus.Value) return __result;
+            if (!PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false))
+                return Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
+            switch (__instance.GetStatus()) {
+                case Fermenter.Status.Empty: {
+                    if (__instance.m_exposed) {
+                        return Localization.instance.Localize(
+                            $"{__instance.m_name} ($piece_fermenter_exposed)\n$piece_container_empty"
+                        );
+                    } else return Localization.instance.Localize(
+                        $"{__instance.m_name} ($piece_container_empty)\n[<color=yellow><b>$KEY_Use</b></color>] $piece_fermenter_add"
+                    );
+                }
+                case Fermenter.Status.Fermenting: {
+                    string exposedString = __instance.m_exposed ? "\n($piece_fermenter_exposed)" : "";
+                    int fermentationPercentage = Mathf.FloorToInt((float) __instance.GetFermentationTime() / __instance.m_fermentationDuration * 100);
+                    fermentationPercentage = fermentationPercentage > 100 ? 100 : fermentationPercentage;
+                    string fermentation = SetPickableText(fermentationPercentage, "", (int) __instance.GetFermentationTime(), (int) __instance.m_fermentationDuration);
+                    return Localization.instance.Localize(
+                        $"{__instance.m_name} ($piece_fermenter_fermenting)\n{__instance.GetContentName()} {fermentation}{exposedString}"
+                    );
+                }
+                case Fermenter.Status.Ready: {
+                    return Localization.instance.Localize(
+                        $"{__instance.m_name} ($piece_fermenter_ready)\n{__instance.GetContentName()}\n[<color=yellow><b>$KEY_Use</b></color>] $piece_fermenter_tap"
+                    );
+                }
+            }
+            return __instance.m_name;
         }
 
         private static void SetHoverText(GameObject go, float current, float total) {
@@ -121,16 +188,18 @@ namespace AlweStats {
             //Chat.instance.SetNpcText(go, Vector3.up, 0, 5.0f, "", $"{current} / {total} ({perc} %)", false);
         }
 
-        private static string SetPickableText(int percentage, string name, string pickup) {
+        private static string SetPickableText(int percentage, string name, int current, int total) {
             string localizedName = Localization.instance.Localize(name);
-            string localizedPickUp = Localization.instance.Localize(pickup);
-            //Debug.Log($"Plant grow : {localizedName} ({percentage} %)");
-            return String.Format(
-                Main.growStringFormat.Value.Replace("<color>", $"<color={GetColor(percentage)}>"), 
-                localizedName, 
-                localizedPickUp,
-                percentage
-            );
+            string localizedPickUp = Localization.instance.Localize("\n[<color=yellow><b>$KEY_Use</b></color>] $inventory_pickup");
+            int remainingTime = current >= total ? 0 : total - current;
+            string time = TimeSpan.FromSeconds(remainingTime).ToString(@"hh\:mm\:ss");
+            string readyString = Localization.instance.Localize("$piece_fermenter_ready");
+            string ready = remainingTime == 0 ? readyString : time;
+            return localizedName + " " + String.Format(
+                Main.processStringFormat.Value.Replace("<color>", $"<color={GetColor(percentage)}>"),
+                percentage,
+                ready
+            ) + (remainingTime == 0 && name != "" ? localizedPickUp : "");
         }
 
         private static string GetColor(int percentage) {
