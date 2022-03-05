@@ -28,7 +28,7 @@ namespace AlweStats {
             Piece hoveringPiece = Player.m_localPlayer.GetHoveringPiece();
             if (hoveringPiece) {
                 WearNTear wnt = hoveringPiece.GetComponent<WearNTear>();
-                if (wnt) {
+                if (wnt && pieceObj != null) {
                     float currentHealth = wnt.m_nview.GetZDO().GetFloat("health", wnt.m_health);
                     float currentPercentage = wnt.GetHealthPercentage() * 100f;
                     pieceObj.SetActive(true);
@@ -158,7 +158,9 @@ namespace AlweStats {
                 float current = __instance.GetTimeSinceLastUpdate() + __instance.m_nview.GetZDO().GetFloat("product", 0f);
                 float honeyPercentage = current / __instance.m_secPerUnit * 100f;
                 honeyPercentage = honeyPercentage > 100f ? 100f : honeyPercentage;
-                string honey = SetPickableText(honeyPercentage, "", (int) current, (int) __instance.m_secPerUnit);
+                string honey = honeyLevel == __instance.m_maxHoney ? 
+                    SetPickableText(100f, "", 0, 0) : 
+                    SetPickableText(honeyPercentage, "", (int) current, (int) __instance.m_secPerUnit);
                 string itemName = __instance.m_honeyItem.m_itemData.m_shared.m_name;
                 return Localization.instance.Localize(
                     $"{__instance.m_name} {honey}\n{itemName} x {honeyLevel}\n[<color=yellow><b>$KEY_Use</b></color>] $piece_beehive_extract"

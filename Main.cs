@@ -110,10 +110,10 @@ namespace AlweStats {
                 "The color of the bow charge bar\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
 
             healthStringFormat = Config.Bind("EnvStats", "HealthStringFormat", "{0} / {1} (<color>{2} %</color>)", 
-                "The format of the string when showing the health of the environment element" + 
+                "The format of the string when showing the health of environment elements and construction pieces" + 
                 "\n'{0}' stands for the current health value" +
                 "\n'{1}' stands for the total health value" +
-                "\n'{2}' stands for the health Percentage value" +
+                "\n'{2}' stands for the health percentage value" +
                 "\n'<color>' and '</color>' mean that the text between them will be colored based on the health percentage");
 
             processStringFormat = Config.Bind("EnvStats", "ProcessStringFormat", "(<color>{0} %</color>)\n{1}", 

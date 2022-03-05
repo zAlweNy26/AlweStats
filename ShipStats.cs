@@ -85,5 +85,11 @@ namespace AlweStats {
         private static void PatchShipEnter() {
             if (Main.enableShipStats.Value) Check();
         }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Ship), "OnDestroyed")]
+        private static void PatchShipDestroyed() {
+            if (Main.enableShipStats.Value && shipBlock != null) shipBlock.SetActive(false);
+        }
     }
 }

@@ -7,7 +7,7 @@ Valheim Mod to easily see "FPS", "Ping", "Clock", "Ship health", "Ship speed", "
 
 You can also see : 
 - Growth time/percentage for bush and/or plants
-- Health value/percentage for every environment element (rocks, trees, ecc...)
+- Health value/percentage for every environment element (rocks, trees, ecc...) and construction pieces
 - Process time/percentage for fermenters and beehives
 - Fill space/percentage for containers
 
@@ -66,6 +66,10 @@ In the config file you can also choose whether or not to show :
 - Remaining time doesn't work properly for bushes and beehives.
 
 ### Changelog
+
+**3.2.1**
+- Fixed a bug that kept showing the ShipStats block even after the ship was demolished
+- Adjusted the text displayed when having the max honey in a beehive
 
 **3.2.0**
 - Fixed bug that didn't let show the ShipStats block
