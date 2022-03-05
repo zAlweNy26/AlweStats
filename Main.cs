@@ -16,7 +16,7 @@ namespace AlweStats {
             enableGameStats, enableWorldStats, enableWorldClock, enableShipStats, enableEnvStats, 
             enableRockStatus, enableTreeStatus, enableBushStatus, enablePlantStatus, enableFermenterStatus,
             enableBeehiveStatus, enableBowStats, customBowCharge, daysInWorldsList, twelveHourFormat, 
-            showResetButton, customShowBiome, enableContainerStatus;
+            showResetButton, customShowBiome, enableContainerStatus, enablePieceStatus;
         public static ConfigEntry<int> gameStatsSize, worldStatsSize, worldClockSize, shipStatsSize, bowStatsSize;
         public static ConfigEntry<KeyCode> toggleEditMode, reloadPluginKey;
         public static ConfigEntry<string> 
@@ -48,6 +48,7 @@ namespace AlweStats {
             enableFermenterStatus = Config.Bind("EnvStats", "FermenterStatus", true, "Whether or not to show status for fermenters");
             enableBeehiveStatus = Config.Bind("EnvStats", "BeehiveStatus", true, "Whether or not to show the status for beehives");
             enableContainerStatus = Config.Bind("EnvStats", "ContainerStatus", true, "Whether or not to show the status for containers");
+            enablePieceStatus = Config.Bind("EnvStats", "PieceStatus", true, "Whether or not to show the status for construction pieces");
             twelveHourFormat = Config.Bind("WorldClock", "TwelveHourFormat", false, "Whether or not to show the clock in the 12h format with AM and PM");
             showResetButton = Config.Bind("General", "ShowResetButton", true, "Whether or not to show a button in the pause menu to reset the AlweStats values");
             customShowBiome = Config.Bind("WorldStats", "CustomShowBiome", true, "Whether or not to show the current biome in the WorldStats block instead of the top-left corner in minimap");
@@ -143,6 +144,7 @@ namespace AlweStats {
             [HarmonyPatch(typeof(Hud), "Awake")]
             private static void PatchHudStart() {
                 List<Block> blocks = new();
+                if (enableEnvStats.Value) EnvStats.Start();
                 if (enableGameStats.Value) blocks.Add(GameStats.Start());
                 if (enableWorldStats.Value) blocks.Add(WorldStats.Start());
                 if (enableWorldClock.Value) blocks.Add(WorldClock.Start());
@@ -183,7 +185,7 @@ namespace AlweStats {
             [HarmonyPrefix]
             [HarmonyPatch(typeof(ZNet), "OnDestroy")]
             static void PatchWorldEnd(ref ZNet __instance) {
-                if (daysInWorldsList.Value) WorldStats.UpdateWorldsFile();
+                if (enableWorldStats.Value && daysInWorldsList.Value) WorldStats.UpdateWorldsFile();
                 EditingMode.Destroy();
             }
         }

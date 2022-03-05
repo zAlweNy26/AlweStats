@@ -3,18 +3,50 @@ using HarmonyLib;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using UnityEngine.UI;
 
 namespace AlweStats {
     [HarmonyPatch]
     public static class EnvStats {
+        private static GameObject pieceObj = null;
         private static readonly List<string> envObjs = new() { "stub", "shrub", "oldlog", "beech", "tree", "rock" };
         private static readonly List<string> treeObjs = new() { "stub", "shrub", "oldlog", "beech", "tree" };
         private static string initialText = "";
 
+        public static void Start() {
+            pieceObj = UnityEngine.Object.Instantiate(Hud.instance.m_hoverName.gameObject, Hud.instance.m_hoverName.transform);
+            pieceObj.name = "PieceHealthText";
+            pieceObj.transform.SetParent(Hud.instance.m_pieceHealthRoot);
+            pieceObj.transform.localPosition = new Vector3(0f, -10f, 0f);
+            pieceObj.SetActive(false);
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Hud), "UpdateCrosshair")]
+        public static void PatchHoveringPiece(Hud __instance) {
+            if (!Main.enableEnvStats.Value || !Main.enablePieceStatus.Value) return;
+            Piece hoveringPiece = Player.m_localPlayer.GetHoveringPiece();
+            if (hoveringPiece) {
+                WearNTear wnt = hoveringPiece.GetComponent<WearNTear>();
+                if (wnt) {
+                    float currentHealth = wnt.m_nview.GetZDO().GetFloat("health", wnt.m_health);
+                    float currentPercentage = wnt.GetHealthPercentage() * 100f;
+                    pieceObj.SetActive(true);
+                    pieceObj.GetComponent<Text>().text = String.Format(
+                        Main.healthStringFormat.Value.Replace("<color>", $"<color={GetColor(currentPercentage)}>"), 
+                        $"{currentHealth:0.#}", 
+                        wnt.m_health, 
+                        $"{currentPercentage:0.#}"
+                    );
+                    //Debug.Log($"{currentHealth:0.#} / {wnt.m_health} ({currentPercentage:0.#} %)");
+                } else pieceObj.SetActive(false);
+            } else pieceObj.SetActive(false);
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Container), "GetHoverText")]
         public static string PatchContainerHoverText(string __result, Container __instance) {
-            if (!Main.enableContainerStatus.Value) return __result;
+            if (!Main.enableEnvStats.Value || !Main.enableContainerStatus.Value) return __result;
             if (__instance.m_checkGuardStone && !PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false))
                 return Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
             int perc = (int) __instance.m_inventory.SlotsUsedPercentage();
@@ -44,8 +76,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(TreeBase), "RPC_Damage")]
         public static void OnDamage(TreeBase __instance, HitData hit) {
-            if (!Main.enableEnvStats.Value) return;
-            if (!Main.enableTreeStatus.Value) return;
+            if (!Main.enableEnvStats.Value || !Main.enableTreeStatus.Value) return;
             //Debug.Log($"TreeBase : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
@@ -58,8 +89,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(TreeLog), "RPC_Damage")]
         public static void OnDamage(TreeLog __instance, HitData hit) {
-            if (!Main.enableEnvStats.Value) return;
-            if (!Main.enableTreeStatus.Value) return;
+            if (!Main.enableEnvStats.Value || !Main.enableTreeStatus.Value) return;
             //Debug.Log($"TreeLog : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
@@ -72,8 +102,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MineRock), "RPC_Hit")]
         public static void OnDamage(MineRock __instance, HitData hit, int hitAreaIndex) {
-            if (!Main.enableEnvStats.Value) return;
-            if (!Main.enableRockStatus.Value) return;
+            if (!Main.enableEnvStats.Value || !Main.enableRockStatus.Value) return;
             //Debug.Log($"MineRock : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
@@ -87,8 +116,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MineRock5), "RPC_Damage")]
         public static void OnDamage(MineRock5 __instance, HitData hit) {
-            if (!Main.enableEnvStats.Value) return;
-            if (!Main.enableRockStatus.Value) return;
+            if (!Main.enableEnvStats.Value || !Main.enableRockStatus.Value) return;
             //Debug.Log($"MineRock piece : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
@@ -102,35 +130,34 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Plant), "GetHoverText")]
         public static string PatchPlantHoverText(string __result, Plant __instance) {
-            if (!Main.enablePlantStatus.Value) return __result;
-            if (__instance == null) return __result;
-            int growPercentage = Mathf.FloorToInt((float) __instance.TimeSincePlanted() / __instance.GetGrowTime() * 100);
-            growPercentage = growPercentage > 100 ? 100 : growPercentage;
+            if (!Main.enableEnvStats.Value || !Main.enablePlantStatus.Value || __instance == null) return __result;
+            float growPercentage = (float) __instance.TimeSincePlanted() / __instance.GetGrowTime() * 100f;
+            growPercentage = growPercentage > 100f ? 100f : growPercentage;
             return SetPickableText(growPercentage, __instance.GetHoverName(), (int) __instance.TimeSincePlanted(), (int) __instance.GetGrowTime());
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Pickable), "GetHoverText")]
         public static string PatchPickableHoverText(string __result, Pickable __instance) {
-            if (!Main.enableBushStatus.Value || !__instance.name.ToLower().Contains("bush")) return __result;
+            if (!Main.enableEnvStats.Value || !Main.enableBushStatus.Value || !__instance.name.ToLower().Contains("bush")) return __result;
             DateTime startTime = new DateTime(__instance.m_nview.GetZDO().GetLong("picked_time"));
             float currentGrowTime = (float) (ZNet.instance.GetTime() - startTime).TotalMinutes;
-            int growPercentage = Mathf.FloorToInt(currentGrowTime / __instance.m_respawnTimeMinutes * 100);
-            growPercentage = growPercentage > 100 ? 100 : growPercentage;
+            float growPercentage = currentGrowTime / __instance.m_respawnTimeMinutes * 100f;
+            growPercentage = growPercentage > 100f ? 100f : growPercentage;
             return SetPickableText(growPercentage, __instance.GetHoverName(), (int) currentGrowTime, __instance.m_respawnTimeMinutes);
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Beehive), "GetHoverText")]
         public static string PatchBeehiveHoverText(string __result, Beehive __instance) {
-            if (!Main.enableBeehiveStatus.Value) return __result;
+            if (!Main.enableEnvStats.Value || !Main.enableBeehiveStatus.Value) return __result;
             if (!PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false))
                 return Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
             int honeyLevel = __instance.GetHoneyLevel();
             if (honeyLevel > 0) {
                 float current = __instance.GetTimeSinceLastUpdate() + __instance.m_nview.GetZDO().GetFloat("product", 0f);
-                int honeyPercentage = Mathf.FloorToInt(current / __instance.m_secPerUnit * 100);
-                honeyPercentage = honeyPercentage > 100 ? 100 : honeyPercentage;
+                float honeyPercentage = current / __instance.m_secPerUnit * 100f;
+                honeyPercentage = honeyPercentage > 100f ? 100f : honeyPercentage;
                 string honey = SetPickableText(honeyPercentage, "", (int) current, (int) __instance.m_secPerUnit);
                 string itemName = __instance.m_honeyItem.m_itemData.m_shared.m_name;
                 return Localization.instance.Localize(
@@ -142,7 +169,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Fermenter), "GetHoverText")]
         public static string PatchFermenterHoverText(string __result, Fermenter __instance) {
-            if (!Main.enableFermenterStatus.Value) return __result;
+            if (!Main.enableEnvStats.Value || !Main.enableFermenterStatus.Value) return __result;
             if (!PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false))
                 return Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
             switch (__instance.GetStatus()) {
@@ -157,8 +184,8 @@ namespace AlweStats {
                 }
                 case Fermenter.Status.Fermenting: {
                     string exposedString = __instance.m_exposed ? "\n($piece_fermenter_exposed)" : "";
-                    int fermentationPercentage = Mathf.FloorToInt((float) __instance.GetFermentationTime() / __instance.m_fermentationDuration * 100);
-                    fermentationPercentage = fermentationPercentage > 100 ? 100 : fermentationPercentage;
+                    float fermentationPercentage = (float) __instance.GetFermentationTime() / __instance.m_fermentationDuration * 100f;
+                    fermentationPercentage = fermentationPercentage > 100f ? 100f : fermentationPercentage;
                     string fermentation = SetPickableText(fermentationPercentage, "", (int) __instance.GetFermentationTime(), (int) __instance.m_fermentationDuration);
                     return Localization.instance.Localize(
                         $"{__instance.m_name} ($piece_fermenter_fermenting)\n{__instance.GetContentName()} {fermentation}{exposedString}"
@@ -174,7 +201,7 @@ namespace AlweStats {
         }
 
         private static void SetHoverText(GameObject go, float current, float total) {
-            int percentage = Mathf.RoundToInt(current * 100 / total);
+            float percentage = current * 100f / total;
             //Debug.Log($"Health : {current} / {total} ({perc} %)");
             HoverText hoverText = go.GetComponent<HoverText>();
             if (hoverText == null) hoverText = go.AddComponent<HoverText>();
@@ -183,12 +210,12 @@ namespace AlweStats {
                 initialText + Main.healthStringFormat.Value.Replace("<color>", $"<color={GetColor(percentage)}>"), 
                 $"{current:0.#}", 
                 total, 
-                percentage
+                $"{percentage:0.#}"
             );
-            //Chat.instance.SetNpcText(go, Vector3.up, 0, 5.0f, "", $"{current} / {total} ({perc} %)", false);
+            //Chat.instance.SetNpcText(go, Vector3.up, 0, 5.0f, "", $"{current} / {total} ({percentage} %)", false);
         }
 
-        private static string SetPickableText(int percentage, string name, int current, int total) {
+        private static string SetPickableText(float percentage, string name, int current, int total) {
             string localizedName = Localization.instance.Localize(name);
             string localizedPickUp = Localization.instance.Localize("\n[<color=yellow><b>$KEY_Use</b></color>] $inventory_pickup");
             int remainingTime = current >= total ? 0 : total - current;
@@ -197,16 +224,16 @@ namespace AlweStats {
             string ready = remainingTime == 0 ? readyString : time;
             return localizedName + " " + String.Format(
                 Main.processStringFormat.Value.Replace("<color>", $"<color={GetColor(percentage)}>"),
-                percentage,
+                $"{percentage:0.#}",
                 ready
             ) + (remainingTime == 0 && name != "" ? localizedPickUp : "");
         }
 
-        private static string GetColor(int percentage) {
+        private static string GetColor(float percentage) {
             string color = "red";
-            if (percentage >= 25 && percentage <= 49) color = "orange";
-            if (percentage >= 50 && percentage <= 74) color = "yellow";
-            if (percentage >= 75 && percentage <= 100) color = "lime";
+            if (percentage >= 25f && percentage <= 49f) color = "orange";
+            if (percentage >= 50f && percentage <= 74f) color = "yellow";
+            if (percentage >= 75f && percentage <= 100f) color = "lime";
             return color;
         }
     }

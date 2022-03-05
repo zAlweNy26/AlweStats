@@ -33,7 +33,7 @@ namespace AlweStats {
                 string currentBiome = "";
                 if (Main.customShowBiome.Value) {
                     currentBiome = $"\nCurrent biome : {Minimap.instance.m_biomeNameSmall.text}";
-                    Minimap.instance.m_smallRoot.transform.Find("biome").gameObject.SetActive(false);
+                    Minimap.instance.m_biomeNameSmall.gameObject.SetActive(false);
                 }
                 if (hoursPlayed < 1) worldBlock.SetText($"Days passed : {daysPlayed}\nTime played : {minutesPlayed:0.##} m{currentBiome}");
                 else worldBlock.SetText($"Days passed : {daysPlayed}\nTime played : {hoursPlayed:0.##} h{currentBiome}");
@@ -73,7 +73,7 @@ namespace AlweStats {
         }
 
         public static void UpdateWorldsFile() {
-            if (!Main.daysInWorldsList.Value || !ZNet.instance.IsServer()) return;
+            if (!ZNet.instance.IsServer()) return;
             string worldName = ZNet.instance.GetWorldName();
             if (File.Exists(Main.statsFilePath)) {
                 statsFileLines = File.ReadAllLines(Main.statsFilePath);
@@ -81,7 +81,7 @@ namespace AlweStats {
                 if (str != null) {
                     statsFileLines[Array.IndexOf(statsFileLines, str)] = $"{worldName}:{EnvMan.instance.m_dayLengthSec}";
                     File.WriteAllLines(Main.statsFilePath, statsFileLines);
-                } else File.AppendAllText(Main.statsFilePath, $"{Environment.NewLine}{worldName}:{EnvMan.instance.m_dayLengthSec}");
+                } else File.AppendAllText(Main.statsFilePath, $"\n{worldName}:{EnvMan.instance.m_dayLengthSec}");
             } else File.AppendAllText(Main.statsFilePath, $"{worldName}:{EnvMan.instance.m_dayLengthSec}");
         }
 

@@ -67,6 +67,12 @@ In the config file you can also choose whether or not to show :
 
 ### Changelog
 
+**3.2.0**
+- Fixed bug that didn't let show the ShipStats block
+- Now percentages are decimal values with eventually one decimal digit
+- Added status for construction pieces when hovering it
+- Adde a new config value to match the new addition
+
 **3.1.0**
 - Renamed the config value "GrowStringFormat" to "ProcessStringFormat"
 - Splitted the config value "BushAndPlantStatus" in "BushStatus" and "PlantStatus" to separate bushes and plants

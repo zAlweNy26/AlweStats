@@ -3,6 +3,7 @@ using HarmonyLib;
 using UnityEngine;
 
 namespace AlweStats {
+    [HarmonyPatch]
     public static class ShipStats {
         private static Block shipBlock = null;
         private static Ship nearestShip = null;
@@ -35,9 +36,8 @@ namespace AlweStats {
                 float windSpeed = EnvMan.instance.GetWindIntensity() * 100f; // 100 (max km/h I decided) / 1 (maximum speed in game)
                 float shipSpeed = Mathf.Abs(nearestShip.GetSpeed() * 3f); // 30 (max kts I decided) / 10 (maximum speed in game)
                 if (wnt && znv?.IsValid() == true) {
-                    int currentHealth = Mathf.RoundToInt(znv.GetZDO().GetFloat("health", wnt.m_health));
-                    int totalHealth = Mathf.RoundToInt(wnt.m_health);
-                    shipHealth = $"\nShip health : {currentHealth} / {totalHealth}";
+                    float currentHealth = znv.GetZDO().GetFloat("health", wnt.m_health);
+                    shipHealth = $"\nShip health : {currentHealth:0.#} / {wnt.m_health}";
                 }
                 //Debug.Log($"Ship speed : {shipSpeed}");
                 //Debug.Log($"Ship health : {shipHealth}");
