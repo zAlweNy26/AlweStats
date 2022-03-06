@@ -33,6 +33,10 @@ namespace AlweStats {
                     if (bow == null) return;
                     ItemDrop.ItemData ammoItem = localPlayer.m_ammoItem;
                     if (ammoItem == null) ammoItem = localPlayer.GetInventory().GetAmmoItem(bow.m_shared.m_ammoType);
+                    if (ammoItem == null) {
+                        bowBlock.SetActive(false);
+                        return;
+                    }
                     foreach (ItemDrop.ItemData i in inventoryItems) {
                         var ish = i.m_shared;
                         if ((ish.m_itemType == ItemDrop.ItemData.ItemType.Ammo || ish.m_itemType == ItemDrop.ItemData.ItemType.Consumable)

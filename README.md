@@ -2,8 +2,8 @@
 
 You can find it here : https://valheim.thunderstore.io/package/Padank/AlweStats/
 
-Valheim Mod to easily see "FPS", "Ping", "Clock", "Ship health", "Ship speed", "Wind speed", "Wind direction", 
-"Days passed", "Time played", "Current Biome", "Bow ammo", "Selected arrows" in the HUD.
+Valheim Mod to easily see "FPS", "Ping", "Total players", "Clock", "Ship health", "Ship speed", "Wind speed", 
+"Wind direction", "Days passed", "Time played", "Current Biome", "Bow ammo", "Selected arrows" in the HUD.
 
 You can also see : 
 - Growth time/percentage for bush and/or plants
@@ -12,7 +12,7 @@ You can also see :
 - Fill space/percentage for containers
 
 The UI is separated in five blocks :
-- GameStats, that contains "FPS" and "Ping"
+- GameStats, that contains "FPS", "Ping" and "Total players"
 - WorldStats, that contains "Days passed", "Time played" and "Current biome"
 - WorldClock, that contains "Clock"
 - ShipStats, that contains "Ship health", "Ship speed", "Wind speed", "Wind direction"
@@ -66,6 +66,11 @@ In the config file you can also choose whether or not to show :
 - Remaining time doesn't work properly for bushes and beehives.
 
 ### Changelog
+
+**3.2.2**
+- Fixed an error showed when you had no arrows in the inventory
+- Added total players string in GameStats block when there is more than 1
+- Overall adjustments
 
 **3.2.1**
 - Fixed a bug that kept showing the ShipStats block even after the ship was demolished

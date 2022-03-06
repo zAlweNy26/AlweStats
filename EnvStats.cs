@@ -25,7 +25,10 @@ namespace AlweStats {
         [HarmonyPatch(typeof(Hud), "UpdateCrosshair")]
         public static void PatchHoveringPiece(Hud __instance) {
             if (!Main.enableEnvStats.Value || !Main.enablePieceStatus.Value) return;
-            Piece hoveringPiece = Player.m_localPlayer.GetHoveringPiece();
+            Player localPlayer = Player.m_localPlayer;
+            if (localPlayer == null) return;
+            if (pieceObj == null) Start();
+            Piece hoveringPiece = localPlayer.GetHoveringPiece();
             if (hoveringPiece) {
                 WearNTear wnt = hoveringPiece.GetComponent<WearNTear>();
                 if (wnt && pieceObj != null) {
@@ -49,8 +52,9 @@ namespace AlweStats {
             if (!Main.enableEnvStats.Value || !Main.enableContainerStatus.Value) return __result;
             if (__instance.m_checkGuardStone && !PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false))
                 return Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
-            int perc = (int) __instance.m_inventory.SlotsUsedPercentage();
-            string inventoryString = $"{__instance.m_inventory.NrOfItems()} / {__instance.m_inventory.GetWidth() * __instance.m_inventory.GetHeight()} (<color={GetColor(perc)}>{perc} %</color>)";
+            float perc = __instance.m_inventory.SlotsUsedPercentage();
+            int totalSpace = __instance.m_inventory.GetWidth() * __instance.m_inventory.GetHeight();
+            string inventoryString = $"{__instance.m_inventory.NrOfItems()} / {totalSpace} (<color={GetColor(perc)}>{perc:0.#} %</color>)";
             string notEmpty = __instance.m_inventory.NrOfItems() > 0 ? $"\n{inventoryString}" : " ( $piece_container_empty )";
             return Localization.instance.Localize($"{__instance.m_name}{notEmpty}\n[<color=yellow><b>$KEY_Use</b></color>] $piece_container_open");
         }
@@ -66,9 +70,8 @@ namespace AlweStats {
                 //Debug.Log($"Destructible : {__instance.gameObject.name}");
                 ZNetView znv = __instance.m_nview;
                 if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
-                    float totalHealth = Mathf.RoundToInt(__instance.m_health);
                     float currentHealth = Mathf.RoundToInt(znv.GetZDO().GetFloat("health", __instance.m_health));
-                    SetHoverText(__instance.gameObject, currentHealth, totalHealth);
+                    SetHoverText(__instance.gameObject, currentHealth, __instance.m_health);
                 }
             }
         }
@@ -80,9 +83,8 @@ namespace AlweStats {
             //Debug.Log($"TreeBase : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
-                float totalHealth = Mathf.RoundToInt(__instance.m_health);
                 float currentHealth = Mathf.RoundToInt(znv.GetZDO().GetFloat("health", __instance.m_health));
-                SetHoverText(__instance.gameObject, currentHealth, totalHealth);
+                SetHoverText(__instance.gameObject, currentHealth, __instance.m_health);
             }
         }
 
@@ -93,9 +95,8 @@ namespace AlweStats {
             //Debug.Log($"TreeLog : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
-                float totalHealth = Mathf.RoundToInt(__instance.m_health);
                 float currentHealth = Mathf.RoundToInt(znv.GetZDO().GetFloat("health", __instance.m_health));
-                SetHoverText(__instance.gameObject, currentHealth, totalHealth);
+                SetHoverText(__instance.gameObject, currentHealth, __instance.m_health);
             }
         }
 
@@ -106,8 +107,7 @@ namespace AlweStats {
             //Debug.Log($"MineRock : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
-                float initialPieceHealth = Mathf.RoundToInt(__instance.m_health);
-                float initialTotalHealth = initialPieceHealth * __instance.m_hitAreas.Length;
+                float initialTotalHealth = __instance.m_health * __instance.m_hitAreas.Length;
                 float currentTotalHealth = __instance.m_hitAreas.Select((a, i) => Math.Max(0, znv.GetZDO().GetFloat($"Health{i}", __instance.m_health))).Sum();
                 foreach (Transform t in __instance.transform) SetHoverText(t.gameObject, currentTotalHealth, initialTotalHealth);
             }
@@ -120,8 +120,7 @@ namespace AlweStats {
             //Debug.Log($"MineRock piece : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
-                float initialPieceHealth = Mathf.RoundToInt(__instance.m_health);
-                float initialTotalHealth = initialPieceHealth * __instance.m_hitAreas.Count;
+                float initialTotalHealth = __instance.m_health * __instance.m_hitAreas.Count;
                 float currentTotalHealth = __instance.m_hitAreas.Sum(a => Math.Max(0, a.m_health));
                 foreach (Transform t in __instance.transform) SetHoverText(t.gameObject, currentTotalHealth, initialTotalHealth);
             }
@@ -207,7 +206,8 @@ namespace AlweStats {
             //Debug.Log($"Health : {current} / {total} ({perc} %)");
             HoverText hoverText = go.GetComponent<HoverText>();
             if (hoverText == null) hoverText = go.AddComponent<HoverText>();
-            if (hoverText.m_text.Split('\n').Length == 1) initialText = $"{Hud.instance.m_hoverName.text}\n";
+            Hoverable hoverable = go ? go.GetComponentInParent<Hoverable>() : null;
+            if (hoverText.m_text.Split('\n').Length == 1) initialText = $"{hoverable.GetHoverText()}\n";
             hoverText.m_text = String.Format(
                 initialText + Main.healthStringFormat.Value.Replace("<color>", $"<color={GetColor(percentage)}>"), 
                 $"{current:0.#}", 

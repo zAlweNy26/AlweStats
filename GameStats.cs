@@ -4,8 +4,6 @@ using UnityEngine;
 namespace AlweStats {
     public static class GameStats {
         private static Block gameBlock = null;
-        private static float frameTimer;
-        private static int frameSamples;
 
         public static Block Start() {
             gameBlock = new Block(
@@ -21,26 +19,19 @@ namespace AlweStats {
 
         public static void Update() {
             if (gameBlock != null) {
-                string fps = GetFPS();
-                ZNet.instance.GetNetStats(out var localQuality, out var remoteQuality, out var ping, out var outByteSec, out var inByteSec);
-                if (fps != "0") {
-                    //Debug.Log($"FPS : {fps} | Ping : {ping:0} ms");
-                    if (ping != 0) gameBlock.SetText($"Ping : {ping:0} ms\nFPS : {fps}");
-                    else gameBlock.SetText($"FPS : {fps}");
+                ConnectPanel.instance.UpdateFps();
+                float fps = float.Parse(ConnectPanel.instance.m_fps.text);
+                if (fps != 9999f) {
+                    ZNet.instance.GetNetStats(out var lq, out var rq, out var ping, out var obs, out var ibs);
+                    int totalPlayers = ZNet.instance.GetNrOfPlayers();
+                    gameBlock.SetText(
+                        $"FPS : {fps:0}" +
+                        (ping != 0 ? $"\nPing : {ping:0} ms" : "") +
+                        (totalPlayers > 1 ? $"\nTotal players : {totalPlayers}" : "")
+                    );
+                    //Debug.Log($"FPS : {fps} | Ping : {ping:0} ms | Total players : {totalPlayers}");
                 }
             }
-        }
-
-        private static string GetFPS() {
-            string fpsCalculated = "0";
-            frameTimer += Time.deltaTime;
-            frameSamples++;
-            if (frameTimer > 1f) {
-                fpsCalculated = Math.Round(1f / (frameTimer / frameSamples)).ToString();
-                frameSamples = 0;
-                frameTimer = 0f;
-            }
-            return fpsCalculated;
         }
     }
 }
