@@ -2,46 +2,35 @@
 
 You can find it here : https://valheim.thunderstore.io/package/Padank/AlweStats/
 
-Valheim Mod to easily see "FPS", "Ping", "Total players", "Clock", "Ship health", "Ship speed", "Wind speed", 
-"Wind direction", "Days passed", "Time played", "Current Biome", "Bow ammo", "Selected arrows" in the HUD.
-
-You can also see : 
-- Growth time/percentage for bush and/or plants
-- Health value/percentage for every environment element (rocks, trees, ecc...) and construction pieces
-- Process time/percentage for fermenters and beehives
-- Fill space/percentage for containers
-
-The UI is separated in five blocks :
+The UI is separated in 6 blocks :
 - GameStats, that contains "FPS", "Ping" and "Total players"
 - WorldStats, that contains "Days passed", "Time played" and "Current biome"
 - WorldClock, that contains "Clock"
 - ShipStats, that contains "Ship health", "Ship speed", "Wind speed", "Wind direction"
 - BowStats, that contains "Selected arrows" and "Bow ammo"
+- MapStats, that contains "Player coordinates"
 
 For each block you can enable or disable it and you can also set :
 - Position
 - Margin 
 - Text color
 - Text size 
-- Text alignment (nor for WorldClock nor for BowStats)
+- Text alignment (nor for WorldClock nor for the MapStats)
 
-For the "BowStats" section, you can set :
-- Whether or not to show a bow charge bar instead of the vanilla circle that shrinks 
-- The color of the bow charge bar when fully charged
+There are also "EntityStats" and "EnvStats" which aren't UI blocks but can let you choose different things.
 
-For the "EnvStats" section, you can set :
-- The string format for the health of any environment element
-- The string format for the process status of bushes, plants, beehives and fermenters
-- Whether or not to show the health separately for rock and trees
-- Whether or not to show the growth separately for bushes and plants
-- Whether or not to show the process status for beehives and fermenters
-- Whether or not to show the remaining slots for containers
-
-In the config file you can also choose whether or not to show :
-- A "Days passed" counter in the world selection panel
-- A reset button in the pause menu to reset the positions of all four blocks with their default values
-- The clock in 12h or 24h format
-- The current biome in the WorldStats block instead of the top-left corner in minimap 
+In the config file you can also :
+- Toggle a "Days passed" counter in the world selection panel
+- Toggle a reset button in the pause menu to reset the positions of all the blocks with their default values
+- Choose the clock format (12h or 24h)
+- Toggle the current biome text in the WorldStats block instead of the top-left corner in minimap 
+- Set the string format for the health of environment elements, construction pieces and entities
+- Set the string format for the process status of bushes, plants, beehives and fermenters
+- Set the string format for the player coordinates string
+- Set the string format for the cursor coordinates string
+- Toggle the status separately for rock, trees, bushes, plants, beehives fermenters and containers
+- Toggle the custom bow charge bar instead of the vanilla circle that shrinks 
+- Set the color of the bow charge bar when fully charged
 
 **If you have an idea for smoething to add or any suggestion regarding the implemented features, feel free to create an issue on the GitHub repository !**
 
@@ -58,14 +47,35 @@ In the config file you can also choose whether or not to show :
 > I have established that the maximum **ship speed** is equal to **30 kts** and the maximum **wind speed** is equal to **100 km/h**,
 > so the values ​​are proportioned according to this.
 
+### Things I hope to add as soon as possible
+
+- Crosshair pointing coordinates
+- Custom rotating minimap
+- Possibility to add padding for blocks
+- Detailed item informations
+- A compass
+
 ### Known bugs
 
+- The player coordinates string is a bit buggy when its values change
 - Health starts showing from second hit for rocks and minerocks.
 - Environment element name doesn't show if you hit an element without aiming at it.
 - Name doesn't show for small environment elements.
 - Remaining time doesn't work properly for bushes and beehives.
 
 ### Changelog
+
+**3.3.0**
+- Added a new config value regarding the text alignment for the BowStats block
+- Added a new config value regarding the background color for all the blocks (under General > BlocksBackgroundColor)
+- Fixed an error showed when deleting a construction piece
+- Fixed an error that didn't make editing mode work best
+- Moved "HealthStringFormat" and "ProcessStringFormat" to the "General" section 
+- Added a new block called EntityStats that shows health as text in the healthbar when hovering living entities
+- Added a new block called MapStats that shows coordinates of player
+- Added a text that show the world coordinates of where the cursor is pointing on the large map
+- Added new config values to match the new additions
+- Moved the position of the health text for construction pieces
 
 **3.2.2**
 - Fixed an error showed when you had no arrows in the inventory
@@ -80,7 +90,7 @@ In the config file you can also choose whether or not to show :
 - Fixed bug that didn't let show the ShipStats block
 - Now percentages are decimal values with eventually one decimal digit
 - Added status for construction pieces when hovering it
-- Adde a new config value to match the new addition
+- Added a new config value to match the new addition
 
 **3.1.0**
 - Renamed the config value "GrowStringFormat" to "ProcessStringFormat"

@@ -7,18 +7,23 @@ namespace AlweStats {
         private static GuiBar bowCharge = null;
 
         public static Block Start() {
-            bowBlock = new Block(
-                "BowStats",
-                Main.bowStatsColor.Value,
-                Main.bowStatsSize.Value,
-                Main.bowStatsPosition.Value,
-                Main.bowStatsMargin.Value
-            );
-            bowBlock.SetActive(false);
-            bowCharge = UnityEngine.Object.Instantiate(Hud.instance.m_stealthBar, Hud.instance.m_stealthBar.transform);
-            bowCharge.name = "BowChargeBar";
-            bowCharge.transform.SetParent(Hud.instance.m_stealthBar.transform.parent);
-            bowCharge.gameObject.SetActive(false);
+            if (Main.enableBowStats.Value) {
+                bowBlock = new Block(
+                    "BowStats",
+                    Main.bowStatsColor.Value,
+                    Main.bowStatsSize.Value,
+                    Main.bowStatsPosition.Value,
+                    Main.bowStatsMargin.Value,
+                    Main.bowStatsAlign.Value
+                );
+                bowBlock.SetActive(false);   
+            }
+            if (Main.customBowCharge.Value) {
+                bowCharge = UnityEngine.Object.Instantiate(Hud.instance.m_stealthBar, Hud.instance.m_stealthBar.transform);
+                bowCharge.name = "BowChargeBar";
+                bowCharge.transform.SetParent(Hud.instance.m_stealthBar.transform.parent);
+                bowCharge.gameObject.SetActive(false);
+            }
             return bowBlock;
         }
 

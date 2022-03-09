@@ -17,7 +17,7 @@ namespace AlweStats {
             pieceObj = UnityEngine.Object.Instantiate(Hud.instance.m_hoverName.gameObject, Hud.instance.m_hoverName.transform);
             pieceObj.name = "PieceHealthText";
             pieceObj.transform.SetParent(Hud.instance.m_pieceHealthRoot);
-            pieceObj.transform.localPosition = new Vector3(0f, -10f, 0f);
+            pieceObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(-5f, 70f);
             pieceObj.SetActive(false);
         }
 
@@ -26,13 +26,13 @@ namespace AlweStats {
         public static void PatchHoveringPiece(Hud __instance) {
             if (!Main.enableEnvStats.Value || !Main.enablePieceStatus.Value) return;
             Player localPlayer = Player.m_localPlayer;
-            if (localPlayer == null) return;
-            if (pieceObj == null) Start();
+            if (localPlayer == null || pieceObj == null) return;
             Piece hoveringPiece = localPlayer.GetHoveringPiece();
             if (hoveringPiece) {
                 WearNTear wnt = hoveringPiece.GetComponent<WearNTear>();
-                if (wnt && pieceObj != null) {
-                    float currentHealth = wnt.m_nview.GetZDO().GetFloat("health", wnt.m_health);
+                ZNetView znv = hoveringPiece.GetComponent<ZNetView>();
+                if (wnt && znv?.IsValid() == true) {
+                    float currentHealth = znv.GetZDO().GetFloat("health", wnt.m_health);
                     float currentPercentage = wnt.GetHealthPercentage() * 100f;
                     pieceObj.SetActive(true);
                     pieceObj.GetComponent<Text>().text = String.Format(

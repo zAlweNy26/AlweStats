@@ -13,21 +13,33 @@ namespace AlweStats {
             blockObj = new GameObject(name);
             blockObj.transform.SetParent(Hud.instance.m_rootObject.transform);
             blockObj.AddComponent<RectTransform>();
-            ContentSizeFitter contentFitter = blockObj.AddComponent<ContentSizeFitter>();
-            contentFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-            contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            Text gameText = blockObj.AddComponent<Text>();
-            gameText.color = StringToColor(color);
-            gameText.font = MessageHud.instance.m_messageCenterText.font;
-            gameText.fontSize = size;
-            gameText.enabled = true;
-            if (align != "") {
-                Enum.TryParse(align, out TextAnchor textAlignment);
-                gameText.alignment = textAlignment;
-            }
             RectTransform statsRect = blockObj.GetComponent<RectTransform>();
             statsRect.anchorMax = statsRect.anchorMin = statsRect.pivot = StringToVector(position);
-            statsRect.anchoredPosition = StringToVector(margin);
+            statsRect.anchoredPosition = new Vector2(0f, 0f);
+
+            Canvas canvas = blockObj.AddComponent<Canvas>();
+            GameObject backgroundObj = new("Background");
+            backgroundObj.transform.SetParent(canvas.transform);
+            backgroundObj.AddComponent<Image>().color = StringToColor(Main.blocksBackgroundColor.Value);
+            RectTransform backgroundRect = backgroundObj.GetComponent<RectTransform>();
+            backgroundRect.anchorMax = backgroundRect.anchorMin = backgroundRect.pivot = StringToVector(position);
+            backgroundRect.anchoredPosition = StringToVector(margin);
+
+            GameObject textObj = new("Content");
+            textObj.transform.SetParent(canvas.transform);
+            Text blockText = textObj.AddComponent<Text>();
+            blockText.color = StringToColor(color);
+            blockText.font = MessageHud.instance.m_messageCenterText.font;
+            blockText.fontSize = size;
+            blockText.enabled = true;
+            if (align != "") {
+                Enum.TryParse(align, out TextAnchor textAlignment);
+                blockText.alignment = textAlignment;
+            }
+            RectTransform textRect = textObj.GetComponent<RectTransform>();
+            textRect.anchorMax = textRect.anchorMin = textRect.pivot = StringToVector(position);
+            textRect.anchoredPosition = StringToVector(margin);
+
             blockObj.SetActive(true);
         }
 
@@ -52,38 +64,58 @@ namespace AlweStats {
         }
 
         public string GetText() {
-            return blockObj.GetComponent<Text>().text;
+            return blockObj.GetComponentInChildren<Text>().text;
         }
 
         public void SetText(string text) {
-            blockObj.GetComponent<Text>().text = text;
+            blockObj.GetComponentInChildren<Text>().text = text;
         }
 
-        public RectTransform GetRect() {
-            return blockObj.GetComponent<RectTransform>();
+        public GameObject GetGameObject() {
+            return blockObj;
+        }
+
+        public Transform GetTransform() {
+            return blockObj.transform;
+        }
+
+        public RectTransform GetBackgroundRect() {
+            return blockObj.transform.Find("Background").GetComponent<RectTransform>();
+        }
+
+        public RectTransform GetContentRect() {
+            return blockObj.transform.Find("Content").GetComponent<RectTransform>();
         }
 
         public void SetPosition(string position) {
-            RectTransform blockRect = blockObj.GetComponent<RectTransform>();
-            blockRect.anchorMax = blockRect.anchorMin = blockRect.pivot = StringToVector(position);
+            RectTransform bgRect = GetBackgroundRect();
+            bgRect.anchorMax = bgRect.anchorMin = bgRect.pivot = StringToVector(position);
+            RectTransform ctRect = GetContentRect();
+            ctRect.anchorMax = ctRect.anchorMin = ctRect.pivot = StringToVector(position);
             SetConfigValue(GetName(), "Position", position);
         }
 
         public void SetPosition(Vector2 position) {
-            RectTransform blockRect = blockObj.GetComponent<RectTransform>();
-            blockRect.anchorMax = blockRect.anchorMin = blockRect.pivot = position;
+            RectTransform bgRect = GetBackgroundRect();
+            bgRect.anchorMax = bgRect.anchorMin = bgRect.pivot = position;
+            RectTransform ctRect = GetContentRect();
+            ctRect.anchorMax = ctRect.anchorMin = ctRect.pivot = position;
             SetConfigValue(GetName(), "Position", VectorToString(position));
         }
 
         public void SetMargin(string margin) {
-            RectTransform blockRect = blockObj.GetComponent<RectTransform>();
-            blockRect.anchoredPosition = StringToVector(margin);
+            RectTransform bgRect = GetBackgroundRect();
+            bgRect.anchoredPosition = StringToVector(margin);
+            RectTransform ctRect = GetContentRect();
+            ctRect.anchoredPosition = StringToVector(margin);
             SetConfigValue(GetName(), "Margin", margin);
         }
 
         public void SetMargin(Vector2 margin) {
-            RectTransform blockRect = blockObj.GetComponent<RectTransform>();
-            blockRect.anchoredPosition = margin;
+            RectTransform bgRect = GetBackgroundRect();
+            bgRect.anchoredPosition = margin;
+            RectTransform ctRect = GetContentRect();
+            ctRect.anchoredPosition = margin;
             SetConfigValue(GetName(), "Margin", VectorToString(margin));
         }
 

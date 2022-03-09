@@ -4,6 +4,7 @@ using HarmonyLib;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace AlweStats {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
@@ -16,16 +17,21 @@ namespace AlweStats {
             enableGameStats, enableWorldStats, enableWorldClock, enableShipStats, enableEnvStats, 
             enableRockStatus, enableTreeStatus, enableBushStatus, enablePlantStatus, enableFermenterStatus,
             enableBeehiveStatus, enableBowStats, customBowCharge, daysInWorldsList, twelveHourFormat, 
-            showResetButton, customShowBiome, enableContainerStatus, enablePieceStatus;
-        public static ConfigEntry<int> gameStatsSize, worldStatsSize, worldClockSize, shipStatsSize, bowStatsSize;
+            showResetButton, customShowBiome, enableContainerStatus, enablePieceStatus, enableEntityStats,
+            enableMapStats, showCustomMinimap, showPlayerCoordinates, showCursorCoordinates;
+        public static ConfigEntry<int> 
+            gameStatsSize, worldStatsSize, worldClockSize, 
+            shipStatsSize, bowStatsSize, mapStatsSize;
         public static ConfigEntry<KeyCode> toggleEditMode, reloadPluginKey;
         public static ConfigEntry<string> 
             gameStatsColor, gameStatsAlign, gameStatsPosition, gameStatsMargin, 
             worldStatsColor, worldStatsAlign, worldStatsPosition, worldStatsMargin,
             shipStatsColor, shipStatsAlign, shipStatsPosition, shipStatsMargin,
-            bowStatsColor, bowStatsPosition, bowStatsMargin, bowChargeBarColor,
+            bowStatsColor, bowStatsPosition, bowStatsMargin, bowStatsAlign,
+            mapStatsColor, mapStatsPosition, mapStatsMargin, mapStatsAlign,
             worldClockColor, worldClockPosition, worldClockMargin, 
-            healthStringFormat, processStringFormat;
+            healthStringFormat, processStringFormat, bowChargeBarColor, blocksBackgroundColor,
+            playerCoordinatesStringFormat, cursorCoordinatesStringFormat;
 
         public void Awake() {
             config = Config;
@@ -34,12 +40,14 @@ namespace AlweStats {
             reloadPluginKey = Config.Bind("General", "ReloadPluginKey", KeyCode.F9, "Key to reload the plugin config file");
             toggleEditMode = Config.Bind("General", "EditModeKey", KeyCode.F8, "Key to toggle hud editing mode, set it to None to disable it");
 
-            enableGameStats = Config.Bind("GameStats", "Enable", true, "Whether or not to show fps and ping counters in game");
-            enableWorldStats = Config.Bind("WorldStats", "Enable", true, "Whether or not to show days passed and time played counters in game");
-            enableWorldClock = Config.Bind("WorldClock", "Enable", true, "Whether or not to show a clock in game");
-            enableShipStats = Config.Bind("ShipStats", "Enable", true, "Whether or not to show wind speed, wind direction and ship health when on board");
-            enableEnvStats = Config.Bind("EnvStats", "Enable", true, "Whether or not to show the status about every environment element");
-            enableBowStats = Config.Bind("BowStats", "Enable", true, "Whether or not to show the current and total ammo in a text block in the hud");
+            enableGameStats = Config.Bind("GameStats", "Enable", true, "Toggle the GameStats section");
+            enableWorldStats = Config.Bind("WorldStats", "Enable", true, "Toggle the WorldStats section");
+            enableWorldClock = Config.Bind("WorldClock", "Enable", true, "Toggle the WorldClock section");
+            enableShipStats = Config.Bind("ShipStats", "Enable", true, "Toggle the ShipStats section");
+            enableEnvStats = Config.Bind("EnvStats", "Enable", true, "Toggle the EnvStats section");
+            enableBowStats = Config.Bind("BowStats", "Enable", true, "Toggle the BowStats section");
+            enableEntityStats = Config.Bind("EntityStats", "Enable", true, "Toggle the EntityStats section");
+            enableMapStats = Config.Bind("MapStats", "Enable", true, "Toggle the MapStats section");
 
             enableRockStatus = Config.Bind("EnvStats", "RockStatus", true, "Whether or not to show the status for rocks");
             enableTreeStatus = Config.Bind("EnvStats", "TreeStatus", true, "Whether or not to show the status for trees");
@@ -54,6 +62,9 @@ namespace AlweStats {
             customShowBiome = Config.Bind("WorldStats", "CustomShowBiome", true, "Whether or not to show the current biome in the WorldStats block instead of the top-left corner in minimap");
             daysInWorldsList = Config.Bind("WorldStats", "DaysInWorldsList", true, "Whether or not to show days passed counter in the world list panel");
             customBowCharge = Config.Bind("BowStats", "CustomBowCharge", true, "Whether or not to show a bow charge bar instead of the vanilla circle that shrinks");
+            //showCustomMinimap = Config.Bind("MapStats", "ShowCustomMinimap", true, "Whether or not to show the a custom circular and rotating minimap instead of the default one");
+            showPlayerCoordinates = Config.Bind("MapStats", "ShowPlayerCoordinates", true, "Whether or not to show the player coordinates");
+            showCursorCoordinates = Config.Bind("MapStats", "ShowCursorCoordinates", true, "Whether or not to show the cursor coordinates");
 
             gameStatsColor = Config.Bind("GameStats", "Color", "255, 183, 92, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
@@ -94,29 +105,57 @@ namespace AlweStats {
                 "The size of the text showed\nThe range of possible values is from 0 to the amount of your blindness");
             worldClockPosition = Config.Bind("WorldClock", "Position", "0.5, 1", 
                 "The position of the text showed\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between");
-            worldClockMargin = Config.Bind("WorldClock", "Margin", "0, 0", 
+            worldClockMargin = Config.Bind("WorldClock", "Margin", "0, -5", 
                 "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
 
             bowStatsColor = Config.Bind("BowStats", "Color", "255, 183, 92, 255",
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
             bowStatsSize = Config.Bind("BowStats", "Size", 14,
                 "The size of the text showed\nThe range of possible values is from 0 to the amount of your blindness");
-            bowStatsPosition = Config.Bind("BowStats", "Position", "0, 0.5",
+            bowStatsAlign = Config.Bind("BowStats", "Align", "MiddleLeft",
+                "The alignment of the text showed\nPossible values : LowerLeft, LowerCenter, LowerRight, MiddleLeft, MiddleCenter, MiddleRight, UpperLeft, UpperCenter, UpperRight");
+            bowStatsPosition = Config.Bind("BowStats", "Position", "0, 0.25",
                 "The position of the text showed\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between");
             bowStatsMargin = Config.Bind("BowStats", "Margin", "5, 0",
+                "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
+
+            mapStatsColor = Config.Bind("MapStats", "Color", "255, 183, 92, 255",
+                "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
+            mapStatsSize = Config.Bind("MapStats", "Size", 14,
+                "The size of the text showed\nThe range of possible values is from 0 to the amount of your blindness");
+            //mapStatsAlign = Config.Bind("MapStats", "Align", "MiddleRight",
+            //    "The alignment of the text showed\nPossible values : LowerLeft, LowerCenter, LowerRight, MiddleLeft, MiddleCenter, MiddleRight, UpperLeft, UpperCenter, UpperRight");
+            mapStatsPosition = Config.Bind("MapStats", "Position", "1, 1",
+                "The position of the text showed\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between");
+            mapStatsMargin = Config.Bind("MapStats", "Margin", "-5, -5",
                 "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
 
             bowChargeBarColor = Config.Bind("BowStats", "ChargeBarColor", "255, 183, 92, 255",
                 "The color of the bow charge bar\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
 
-            healthStringFormat = Config.Bind("EnvStats", "HealthStringFormat", "{0} / {1} (<color>{2} %</color>)", 
-                "The format of the string when showing the health of environment elements and construction pieces" + 
+            blocksBackgroundColor = Config.Bind("General", "BlocksBackgroundColor", "0, 0, 0, 0",
+                "The color of the background color for all the blocks\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
+
+            healthStringFormat = Config.Bind("General", "HealthStringFormat", "{0} / {1} (<color>{2} %</color>)", 
+                "The format of the string when showing the health of environment elements, construction pieces and living entities" + 
+                "\nThis string is also used for the stamina of mountable creatures" +
                 "\n'{0}' stands for the current health value" +
                 "\n'{1}' stands for the total health value" +
                 "\n'{2}' stands for the health percentage value" +
                 "\n'<color>' and '</color>' mean that the text between them will be colored based on the health percentage");
 
-            processStringFormat = Config.Bind("EnvStats", "ProcessStringFormat", "(<color>{0} %</color>)\n{1}", 
+            playerCoordinatesStringFormat = Config.Bind("General", "PlayerCoordinatesStringFormat", "Player (x: {0} | y: {1} | z: {2})", 
+                "The format of the string when showing the player coordinates" + 
+                "\n'{0}' stands for the x value" +
+                "\n'{1}' stands for the y value" +
+                "\n'{2}' stands for the z value");
+
+            cursorCoordinatesStringFormat = Config.Bind("General", "CursorCoordinatesStringFormat", "Cursor (x: {0} | z: {1})", 
+                "The format of the string when showing the cursor coordinates in the large map" + 
+                "\n'{0}' stands for the x value" +
+                "\n'{1}' stands for the z value");
+
+            processStringFormat = Config.Bind("General", "ProcessStringFormat", "(<color>{0} %</color>)\n{1}", 
                 "The format of the string when showing the process status of plants/bushes/fermenters/beehives" + 
                 "\n'{0}' stands for the percentage" +
                 "\n'{1}' stands for the remaining time" +
@@ -140,23 +179,41 @@ namespace AlweStats {
 
         [HarmonyPatch]
         public static class PluginPatches {
+            private static List<Block> blocks;
+
             [HarmonyPostfix]
             [HarmonyPatch(typeof(Hud), "Awake")]
             private static void PatchHudStart() {
-                List<Block> blocks = new();
+                blocks = new();
+
+                if (enableEntityStats.Value) EntityStats.Start();
                 if (enableEnvStats.Value) EnvStats.Start();
+
                 if (enableGameStats.Value) blocks.Add(GameStats.Start());
                 if (enableWorldStats.Value) blocks.Add(WorldStats.Start());
                 if (enableWorldClock.Value) blocks.Add(WorldClock.Start());
                 if (enableShipStats.Value) blocks.Add(ShipStats.Start());
+
+                if (enableMapStats.Value) blocks.Add(MapStats.Start());
+                //else if (showCustomMinimap.Value) MapStats.Start();
+
                 if (enableBowStats.Value) blocks.Add(BowStats.Start());
                 else if (customBowCharge.Value) BowStats.Start();
+
                 EditingMode.Start(blocks);
             }
 
             [HarmonyPostfix]
             [HarmonyPatch(typeof(Hud), "Update")]
             private static void PatchHudUpdate() {
+                foreach (Block b in blocks) {
+                    RectTransform brt = b.GetBackgroundRect();
+                    RectTransform crt = b.GetContentRect();
+                    Text text = b.GetContentRect().transform.GetComponent<Text>();
+                    brt.sizeDelta = crt.sizeDelta = new Vector2(text.preferredWidth, text.preferredHeight);
+                }
+
+                if (enableMapStats.Value) MapStats.Update();
                 if (enableBowStats.Value || customBowCharge.Value) BowStats.Update();
                 if (Input.GetKeyDown(reloadPluginKey.Value)) ReloadConfig();    
                 EditingMode.Update();
@@ -185,8 +242,8 @@ namespace AlweStats {
             [HarmonyPrefix]
             [HarmonyPatch(typeof(ZNet), "OnDestroy")]
             static void PatchWorldEnd(ref ZNet __instance) {
+                EditingMode.Destroy(blocks);
                 if (enableWorldStats.Value && daysInWorldsList.Value) WorldStats.UpdateWorldsFile();
-                EditingMode.Destroy();
             }
         }
     }

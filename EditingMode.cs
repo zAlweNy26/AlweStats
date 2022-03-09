@@ -4,29 +4,24 @@ using UnityEngine.UI;
 
 namespace AlweStats {
     public static class EditingMode {
-        private static GameObject editObj = null;
+        private static GameObject resetObj = null;
         private static bool isEditing = false;
-        private static readonly List<GameObject> templateObjs = new();
-        private static List<Block> blockObjs = new();
+        private static List<GameObject> templateObjs;
+        private static List<Block> blockObjs;
         private static Vector3 lastMousePos = Vector3.zero;
         private static string currentlyDragging = "";
 
         public static void Start(List<Block> blocks) {
+            templateObjs = new();
             blockObjs = blocks;
             foreach (Block b in blocks) {
-                GameObject templateObj = new($"{b.GetName()}Template");
+                GameObject templateObj = UnityEngine.Object.Instantiate(b.GetGameObject(), b.GetTransform());
+                templateObj.name = $"{b.GetName()}Template";
                 templateObj.transform.SetParent(b.GetParent());
-                templateObj.AddComponent<RectTransform>();
-                Canvas canvas = templateObj.AddComponent<Canvas>();
-                GameObject backgroundObj = new("Background");
-                backgroundObj.transform.SetParent(canvas.transform);
-                backgroundObj.AddComponent<Image>().color = new Color(0.25f, 0.25f, 0.25f, 0.5f);
-                GameObject textObj = new("Title");
-                textObj.transform.SetParent(canvas.transform);
-                Text templateText = textObj.AddComponent<Text>();
+                templateObj.GetComponentInChildren<Image>().color = new Color(0.25f, 0.25f, 0.25f, 1f);
+                Text templateText = templateObj.GetComponentInChildren<Text>();
                 templateText.text = b.GetName();
-                templateText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-                templateText.fontSize = 24;
+                templateText.color = Color.white;
                 templateText.alignment = TextAnchor.MiddleCenter;
                 templateText.resizeTextForBestFit = true;
                 templateObj.SetActive(false);
@@ -42,12 +37,16 @@ namespace AlweStats {
             if (lastMousePos == Vector3.zero) lastMousePos = mousePos;
             if (Input.GetKey(KeyCode.Mouse0)) {
                 if (currentlyDragging != "") {
-                    Transform current = Hud.instance.transform.Find($"hudroot/{currentlyDragging}");
-                    current.position = lastMousePos / gameScale;
+                    Transform current = Hud.instance.m_rootObject.transform.Find(currentlyDragging);
+                    if (current != null) {
+                        current.Find("Background").position = lastMousePos / gameScale;
+                        current.Find("Content").position = lastMousePos / gameScale;
+                    }
                 } else {
                     foreach (GameObject g in templateObjs) {
-                        if (RectTransformUtility.RectangleContainsScreenPoint(g.GetComponent<RectTransform>(), mousePos)) {
-                            g.transform.position = lastMousePos / gameScale;
+                        if (RectTransformUtility.RectangleContainsScreenPoint(g.transform.Find("Content").GetComponent<RectTransform>(), mousePos)) {
+                            g.transform.Find("Background").position = mousePos / gameScale;
+                            g.transform.Find("Content").position = mousePos / gameScale;
                             currentlyDragging = g.name;
                             break;
                         }
@@ -62,49 +61,37 @@ namespace AlweStats {
             if (isEditing) {
                 //Debug.Log("Editing mode : ON !");
                 foreach (GameObject g in templateObjs) {
-                    RectTransform originalRT = blockObjs.Find(b => b.GetName() == g.name.Replace("Template", "")).GetRect();
-                    RectTransform templateRT = g.GetComponent<RectTransform>();
-                    templateRT.pivot = originalRT.pivot;
-                    templateRT.anchorMin = originalRT.anchorMin;
-                    templateRT.anchorMax = originalRT.anchorMax;
-                    templateRT.offsetMin = originalRT.offsetMin;
-                    templateRT.offsetMax = originalRT.offsetMax;
-                    templateRT.sizeDelta = originalRT.sizeDelta;
-                    templateRT.anchoredPosition = originalRT.anchoredPosition;
-                    templateRT.position = originalRT.position;
-                    templateRT.localEulerAngles = originalRT.localEulerAngles;
+                    Transform original = blockObjs.Find(b => b.GetName() == g.name.Replace("Template", "")).GetTransform();
                     foreach (Transform t in g.transform) {
+                        RectTransform childRT = original.Find(t.name).GetComponent<RectTransform>();
                         RectTransform rt = t.GetComponent<RectTransform>();
-                        rt.pivot = originalRT.pivot;
-                        rt.anchorMin = originalRT.anchorMin;
-                        rt.anchorMax = originalRT.anchorMax;
-                        rt.offsetMin = originalRT.offsetMin;
-                        rt.offsetMax = originalRT.offsetMax;
-                        rt.sizeDelta = originalRT.sizeDelta;
-                        rt.anchoredPosition = originalRT.anchoredPosition;
-                        rt.position = originalRT.position;
-                        rt.localEulerAngles = originalRT.localEulerAngles;
+                        rt.pivot = rt.anchorMin = rt.anchorMax = childRT.pivot;
+                        rt.sizeDelta = childRT.sizeDelta;
+                        rt.anchoredPosition = childRT.anchoredPosition;
+                        rt.position = childRT.position;
                     }
                     g.SetActive(true);
                 }
             } else if (!isEditing) {
                 //Debug.Log("Editing mode : OFF !");
                 foreach (GameObject g in templateObjs) {
-                    RectTransform gameOriginal = blockObjs.Find(b => b.GetName() == g.name.Replace("Template", "")).GetRect();
-                    gameOriginal.position = g.transform.position;
+                    Transform original = blockObjs.Find(b => b.GetName() == g.name.Replace("Template", "")).GetTransform();
+                    foreach (Transform t in g.transform) {
+                        RectTransform childRT = original.Find(t.name).GetComponent<RectTransform>();
+                        RectTransform rt = t.GetComponent<RectTransform>();
+                        childRT.position = rt.position;
+                    }
                     g.SetActive(false);
                 }
             }
         }
 
-        public static void Destroy() {
-            foreach (GameObject g in templateObjs) Object.Destroy(g);
-            templateObjs.Clear();
-            foreach (Block b in blockObjs) {
-                b.SetPosition(b.GetRect().pivot);
-                b.SetMargin(b.GetRect().anchoredPosition);
+        public static void Destroy(List<Block> blocks) {
+            foreach (Block b in blocks) {
+                b.SetPosition(b.GetContentRect().pivot);
+                b.SetMargin(b.GetContentRect().anchoredPosition);
             }
-            blockObjs.Clear();
+            Main.config.Save();
             Main.ReloadConfig();
         }
 
@@ -114,22 +101,22 @@ namespace AlweStats {
                 b.SetPosition(b.GetConfigValue<string>(b.GetName(), "Position").DefaultValue.ToString());
                 b.SetMargin(b.GetConfigValue<string>(b.GetName(), "Margin").DefaultValue.ToString());
             }
-            Destroy();
+            Main.config.Save();
         }
 
         public static void ShowButton() {
-            if (editObj == null) {
+            if (resetObj == null) {
                 GameObject originalObj = Menu.instance.m_menuDialog.Find("Close").gameObject;
-                editObj = Object.Instantiate(originalObj, originalObj.transform);
-                editObj.name = "ResetAlweStats";
-                editObj.transform.SetParent(originalObj.transform.parent);
-                editObj.transform.localPosition = new Vector3(0, originalObj.transform.localPosition.y - 40f, 0f);
-                editObj.GetComponentInChildren<Text>().text = "Reset AlweStats";
-                editObj.transform.Find("LeftKnot").localPosition = new Vector3(-110f, 0f, 0f);
-                editObj.transform.Find("RightKnot").localPosition = new Vector3(110f, 0f, 0f);
-                editObj.GetComponent<Button>().onClick.RemoveAllListeners();
-                editObj.GetComponent<Button>().onClick.AddListener(Reset);
-                editObj.SetActive(true);
+                resetObj = Object.Instantiate(originalObj, originalObj.transform);
+                resetObj.name = "ResetAlweStats";
+                resetObj.transform.SetParent(originalObj.transform.parent);
+                resetObj.transform.localPosition = new Vector3(0, originalObj.transform.localPosition.y - 40f, 0f);
+                resetObj.GetComponentInChildren<Text>().text = "Reset AlweStats";
+                resetObj.transform.Find("LeftKnot").localPosition = new Vector3(-110f, 0f, 0f);
+                resetObj.transform.Find("RightKnot").localPosition = new Vector3(110f, 0f, 0f);
+                resetObj.GetComponent<Button>().onClick.RemoveAllListeners();
+                resetObj.GetComponent<Button>().onClick.AddListener(Reset);
+                resetObj.SetActive(true);
             }
         }
     }
