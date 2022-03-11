@@ -87,7 +87,7 @@ namespace AlweStats {
                         int currentStamina = Mathf.CeilToInt(sadle.GetStamina());
                         int totalStamina = Mathf.CeilToInt(sadle.GetMaxStamina());
                         value.m_staminaText.text = String.Format(
-                            Main.healthStringFormat.Value.Replace("<color>", $"<color={GetColor(staminaPercentage)}>"), 
+                            Main.healthFormat.Value.Replace("<color>", $"<color={GetColor(staminaPercentage)}>"), 
                             currentStamina, 
                             totalStamina, 
                             $"{staminaPercentage:0.#}"
@@ -97,7 +97,7 @@ namespace AlweStats {
                     int currentHealth = Mathf.CeilToInt(value.m_character.GetHealth());
                     int totalHealth = Mathf.CeilToInt(value.m_character.GetMaxHealth());
                     value.m_healthText.text = String.Format(
-                        Main.healthStringFormat.Value.Replace("<color>", $"<color={GetColor(healthPercentage)}>"), 
+                        Main.healthFormat.Value.Replace("<color>", $"<color={GetColor(healthPercentage)}>"), 
                         currentHealth, 
                         totalHealth, 
                         $"{healthPercentage:0.#}"

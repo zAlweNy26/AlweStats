@@ -13,42 +13,34 @@ namespace AlweStats {
             blockObj = new GameObject(name);
             blockObj.transform.SetParent(Hud.instance.m_rootObject.transform);
             blockObj.AddComponent<RectTransform>();
+            blockObj.AddComponent<Image>().color = StringToColor(Main.blocksBackgroundColor.Value);
             RectTransform statsRect = blockObj.GetComponent<RectTransform>();
             statsRect.anchorMax = statsRect.anchorMin = statsRect.pivot = StringToVector(position);
-            statsRect.anchoredPosition = new Vector2(0f, 0f);
+            statsRect.anchoredPosition = StringToVector(margin);
 
-            Canvas canvas = blockObj.AddComponent<Canvas>();
-            GameObject backgroundObj = new("Background");
-            backgroundObj.transform.SetParent(canvas.transform);
-            backgroundObj.AddComponent<Image>().color = StringToColor(Main.blocksBackgroundColor.Value);
-            RectTransform backgroundRect = backgroundObj.GetComponent<RectTransform>();
-            backgroundRect.anchorMax = backgroundRect.anchorMin = backgroundRect.pivot = StringToVector(position);
-            backgroundRect.anchoredPosition = StringToVector(margin);
+            VerticalLayoutGroup group = blockObj.AddComponent<VerticalLayoutGroup>();
+            group.padding = StringToPadding(Main.blocksPadding.Value);
+            ContentSizeFitter contentFitter = blockObj.AddComponent<ContentSizeFitter>();
+            contentFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
             GameObject textObj = new("Content");
-            textObj.transform.SetParent(canvas.transform);
+            textObj.transform.SetParent(group.transform);
             Text blockText = textObj.AddComponent<Text>();
             blockText.color = StringToColor(color);
             blockText.font = MessageHud.instance.m_messageCenterText.font;
             blockText.fontSize = size;
             blockText.enabled = true;
-            if (align != "") {
-                Enum.TryParse(align, out TextAnchor textAlignment);
-                blockText.alignment = textAlignment;
-            }
-            RectTransform textRect = textObj.GetComponent<RectTransform>();
-            textRect.anchorMax = textRect.anchorMin = textRect.pivot = StringToVector(position);
-            textRect.anchoredPosition = StringToVector(margin);
+            TextAnchor textAlignment;
+            if (Enum.TryParse(align, out textAlignment)) blockText.alignment = textAlignment;
+            else blockText.alignment = TextAnchor.MiddleCenter;
+            textObj.AddComponent<Outline>();
 
             blockObj.SetActive(true);
         }
 
         public bool IsActive() {
             return blockObj.activeSelf;
-        }
-
-        public bool IsActiveAndAlsoParents() {
-            return blockObj.activeInHierarchy;
         }
 
         public void SetActive(bool active) {
@@ -79,43 +71,31 @@ namespace AlweStats {
             return blockObj.transform;
         }
 
-        public RectTransform GetBackgroundRect() {
-            return blockObj.transform.Find("Background").GetComponent<RectTransform>();
-        }
-
-        public RectTransform GetContentRect() {
-            return blockObj.transform.Find("Content").GetComponent<RectTransform>();
+        public RectTransform GetRect() {
+            return blockObj.GetComponent<RectTransform>();
         }
 
         public void SetPosition(string position) {
-            RectTransform bgRect = GetBackgroundRect();
-            bgRect.anchorMax = bgRect.anchorMin = bgRect.pivot = StringToVector(position);
-            RectTransform ctRect = GetContentRect();
-            ctRect.anchorMax = ctRect.anchorMin = ctRect.pivot = StringToVector(position);
+            RectTransform statsRect = blockObj.GetComponent<RectTransform>();
+            statsRect.anchorMax = statsRect.anchorMin = statsRect.pivot = StringToVector(position);
             SetConfigValue(GetName(), "Position", position);
         }
 
         public void SetPosition(Vector2 position) {
-            RectTransform bgRect = GetBackgroundRect();
-            bgRect.anchorMax = bgRect.anchorMin = bgRect.pivot = position;
-            RectTransform ctRect = GetContentRect();
-            ctRect.anchorMax = ctRect.anchorMin = ctRect.pivot = position;
+            RectTransform statsRect = blockObj.GetComponent<RectTransform>();
+            statsRect.anchorMax = statsRect.anchorMin = statsRect.pivot = position;
             SetConfigValue(GetName(), "Position", VectorToString(position));
         }
 
         public void SetMargin(string margin) {
-            RectTransform bgRect = GetBackgroundRect();
-            bgRect.anchoredPosition = StringToVector(margin);
-            RectTransform ctRect = GetContentRect();
-            ctRect.anchoredPosition = StringToVector(margin);
+            RectTransform statsRect = blockObj.GetComponent<RectTransform>();
+            statsRect.anchoredPosition = StringToVector(margin);
             SetConfigValue(GetName(), "Margin", margin);
         }
 
         public void SetMargin(Vector2 margin) {
-            RectTransform bgRect = GetBackgroundRect();
-            bgRect.anchoredPosition = margin;
-            RectTransform ctRect = GetContentRect();
-            ctRect.anchoredPosition = margin;
+            RectTransform statsRect = blockObj.GetComponent<RectTransform>();
+            statsRect.anchoredPosition = margin;
             SetConfigValue(GetName(), "Margin", VectorToString(margin));
         }
 
@@ -140,6 +120,15 @@ namespace AlweStats {
             float x = float.Parse(values[0], CultureInfo.InvariantCulture);
             float y = float.Parse(values[1], CultureInfo.InvariantCulture);
             return new Vector2(x, y);
+        }
+
+        public RectOffset StringToPadding(string s) {
+            string[] values = Regex.Replace(s, @"\s+", "").Split(',');
+            int left = int.Parse(values[0]);
+            int right = int.Parse(values[1]);
+            int top = int.Parse(values[2]);
+            int bottom = int.Parse(values[3]);
+            return new RectOffset(left, right, top, bottom);
         }
 
         public Color StringToColor(string s) {

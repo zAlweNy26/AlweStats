@@ -17,11 +17,12 @@ namespace AlweStats {
                 Main.shipStatsMargin.Value,
                 Main.shipStatsAlign.Value
             );
+            shipBlock.SetActive(false);
             return shipBlock;
         }
 
         public static void Update() {
-            if (shipBlock != null && shipBlock.IsActiveAndAlsoParents() && nearestShip != null) {
+            if (shipBlock != null && nearestShip != null) {
                 if (!nearestShip.IsPlayerInBoat(Player.m_localPlayer)) {
                     shipBlock.SetActive(false);
                     return;
@@ -29,9 +30,6 @@ namespace AlweStats {
                 WearNTear wnt = nearestShip.GetComponent<WearNTear>();
                 ZNetView znv = nearestShip.GetComponent<ZNetView>();
                 string shipHealth = "";
-                //Vector3 windDirection = EnvMan.instance.GetWindDir();
-                //Vector3 windForce = EnvMan.instance.GetWindForce();
-                //float windIntensity = EnvMan.instance.GetWindIntensity();
                 string windAngle = GetWindAngle(nearestShip.GetWindAngle());
                 float windSpeed = EnvMan.instance.GetWindIntensity() * 100f; // 100 (max km/h I decided) / 1 (maximum speed in game)
                 float shipSpeed = Mathf.Abs(nearestShip.GetSpeed() * 3f); // 30 (max kts I decided) / 10 (maximum speed in game)
@@ -42,9 +40,9 @@ namespace AlweStats {
                 //Debug.Log($"Ship speed : {shipSpeed}");
                 //Debug.Log($"Ship health : {shipHealth}");
                 //Debug.Log($"Wind angle : {windAngle}");
-                //Debug.Log($"Wind force : {windForce.x}, {windForce.y}, {windForce.z}");
-                //Debug.Log($"Wind intensity : {windIntensity}");
+                //Debug.Log($"Wind speed : {windSpeed}");
                 shipBlock.SetText($"Ship speed : {shipSpeed:0.#} kts{shipHealth}\nWind speed : {windSpeed:0.#} km/h\nWind direction : {windAngle}");
+                shipBlock.SetActive(true);
             }
         }
 

@@ -16,8 +16,11 @@ namespace AlweStats {
         public static void Start() {
             pieceObj = UnityEngine.Object.Instantiate(Hud.instance.m_hoverName.gameObject, Hud.instance.m_hoverName.transform);
             pieceObj.name = "PieceHealthText";
+            Hud.instance.m_pieceHealthRoot.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, 20f);
+            Hud.instance.m_pieceHealthRoot.GetComponent<RectTransform>().rotation = Quaternion.identity;
             pieceObj.transform.SetParent(Hud.instance.m_pieceHealthRoot);
-            pieceObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(-5f, 70f);
+            pieceObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(-50f, 25f);
+            pieceObj.GetComponent<RectTransform>().rotation = Quaternion.identity;
             pieceObj.SetActive(false);
         }
 
@@ -35,8 +38,10 @@ namespace AlweStats {
                     float currentHealth = znv.GetZDO().GetFloat("health", wnt.m_health);
                     float currentPercentage = wnt.GetHealthPercentage() * 100f;
                     pieceObj.SetActive(true);
+                    __instance.m_pieceHealthBar.SetValue(currentPercentage / 100f);
+                    __instance.m_pieceHealthBar.SetColor(Color.Lerp(new Color(1f, 0f, 0f, 1f), new Color(0f, 1f, 0f, 1f), currentPercentage / 100f));
                     pieceObj.GetComponent<Text>().text = String.Format(
-                        Main.healthStringFormat.Value.Replace("<color>", $"<color={GetColor(currentPercentage)}>"), 
+                        Main.healthFormat.Value.Replace("<color>", $"<color={GetColor(currentPercentage)}>"), 
                         $"{currentHealth:0.#}", 
                         wnt.m_health, 
                         $"{currentPercentage:0.#}"
@@ -69,9 +74,12 @@ namespace AlweStats {
             if (canBeElements.Any(e => __instance.gameObject.name.ToLower().Contains(e))) {
                 //Debug.Log($"Destructible : {__instance.gameObject.name}");
                 ZNetView znv = __instance.m_nview;
+                Hoverable hoverable = __instance.gameObject.GetComponentInParent<Hoverable>();
+                string name = "";
+                if (hoverable != null) name = hoverable.GetHoverText();
                 if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
                     float currentHealth = Mathf.RoundToInt(znv.GetZDO().GetFloat("health", __instance.m_health));
-                    SetHoverText(__instance.gameObject, currentHealth, __instance.m_health);
+                    SetHoverText(__instance.gameObject, name, currentHealth, __instance.m_health);
                 }
             }
         }
@@ -82,9 +90,10 @@ namespace AlweStats {
             if (!Main.enableEnvStats.Value || !Main.enableTreeStatus.Value) return;
             //Debug.Log($"TreeBase : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
-            if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
+            Hoverable hoverable = __instance.gameObject ? __instance.gameObject.GetComponentInParent<Hoverable>() : null;
+            if (znv.IsValid() && hit.GetTotalDamage() > 0f && hoverable != null) {
                 float currentHealth = Mathf.RoundToInt(znv.GetZDO().GetFloat("health", __instance.m_health));
-                SetHoverText(__instance.gameObject, currentHealth, __instance.m_health);
+                SetHoverText(__instance.gameObject, hoverable.GetHoverText(), currentHealth, __instance.m_health);
             }
         }
 
@@ -94,9 +103,10 @@ namespace AlweStats {
             if (!Main.enableEnvStats.Value || !Main.enableTreeStatus.Value) return;
             //Debug.Log($"TreeLog : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
-            if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
+            Hoverable hoverable = __instance.gameObject ? __instance.gameObject.GetComponentInParent<Hoverable>() : null;
+            if (znv.IsValid() && hit.GetTotalDamage() > 0f && hoverable != null) {
                 float currentHealth = Mathf.RoundToInt(znv.GetZDO().GetFloat("health", __instance.m_health));
-                SetHoverText(__instance.gameObject, currentHealth, __instance.m_health);
+                SetHoverText(__instance.gameObject, hoverable.GetHoverText(), currentHealth, __instance.m_health);
             }
         }
 
@@ -109,7 +119,7 @@ namespace AlweStats {
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
                 float initialTotalHealth = __instance.m_health * __instance.m_hitAreas.Length;
                 float currentTotalHealth = __instance.m_hitAreas.Select((a, i) => Math.Max(0, znv.GetZDO().GetFloat($"Health{i}", __instance.m_health))).Sum();
-                foreach (Transform t in __instance.transform) SetHoverText(t.gameObject, currentTotalHealth, initialTotalHealth);
+                foreach (Transform t in __instance.transform) SetHoverText(t.gameObject, __instance.m_name, currentTotalHealth, initialTotalHealth);
             }
         }
 
@@ -122,7 +132,7 @@ namespace AlweStats {
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
                 float initialTotalHealth = __instance.m_health * __instance.m_hitAreas.Count;
                 float currentTotalHealth = __instance.m_hitAreas.Sum(a => Math.Max(0, a.m_health));
-                foreach (Transform t in __instance.transform) SetHoverText(t.gameObject, currentTotalHealth, initialTotalHealth);
+                foreach (Transform t in __instance.transform) SetHoverText(t.gameObject, __instance.m_name, currentTotalHealth, initialTotalHealth);
             }
         }
 
@@ -201,15 +211,14 @@ namespace AlweStats {
             return __instance.m_name;
         }
 
-        private static void SetHoverText(GameObject go, float current, float total) {
+        private static void SetHoverText(GameObject go, string name, float current, float total) {
             float percentage = current * 100f / total;
             //Debug.Log($"Health : {current} / {total} ({perc} %)");
             HoverText hoverText = go.GetComponent<HoverText>();
             if (hoverText == null) hoverText = go.AddComponent<HoverText>();
-            Hoverable hoverable = go ? go.GetComponentInParent<Hoverable>() : null;
-            if (hoverText.m_text.Split('\n').Length == 1) initialText = $"{hoverable.GetHoverText()}\n";
+            if (hoverText.m_text.Split('\n').Length == 1) initialText = $"{name}\n";
             hoverText.m_text = String.Format(
-                initialText + Main.healthStringFormat.Value.Replace("<color>", $"<color={GetColor(percentage)}>"), 
+                initialText + Main.healthFormat.Value.Replace("<color>", $"<color={GetColor(percentage)}>"), 
                 $"{current:0.#}", 
                 total, 
                 $"{percentage:0.#}"
@@ -225,7 +234,7 @@ namespace AlweStats {
             string readyString = Localization.instance.Localize("$piece_fermenter_ready");
             string ready = remainingTime == 0 ? readyString : time;
             return localizedName + " " + String.Format(
-                Main.processStringFormat.Value.Replace("<color>", $"<color={GetColor(percentage)}>"),
+                Main.processFormat.Value.Replace("<color>", $"<color={GetColor(percentage)}>"),
                 $"{percentage:0.#}",
                 ready
             ) + (remainingTime == 0 && name != "" ? localizedPickUp : "");

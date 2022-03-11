@@ -2,20 +2,28 @@
 
 You can find it here : https://valheim.thunderstore.io/package/Padank/AlweStats/
 
+**Give a thumbs up if you like the mod and you have a GitHub account !**
+
+**You may encounter incompatibilities in case there are other mods that modify the UI, 
+be sure to enable either one or the other equivalent section so they don't conflict in the same function**
+
+**If you have an idea for smoething to add or any suggestion regarding the implemented features, 
+feel free to create an issue on the GitHub repository !**
+
 The UI is separated in 6 blocks :
 - GameStats, that contains "FPS", "Ping" and "Total players"
 - WorldStats, that contains "Days passed", "Time played" and "Current biome"
 - WorldClock, that contains "Clock"
 - ShipStats, that contains "Ship health", "Ship speed", "Wind speed", "Wind direction"
 - BowStats, that contains "Selected arrows" and "Bow ammo"
-- MapStats, that contains "Player coordinates"
+- MapStats, that contains "Player coordinates" and "Focus coordinates"
 
 For each block you can enable or disable it and you can also set :
 - Position
 - Margin 
 - Text color
 - Text size 
-- Text alignment (nor for WorldClock nor for the MapStats)
+- Text alignment (not for WorldClock)
 
 There are also "EntityStats" and "EnvStats" which aren't UI blocks but can let you choose different things.
 
@@ -32,8 +40,6 @@ In the config file you can also :
 - Toggle the custom bow charge bar instead of the vanilla circle that shrinks 
 - Set the color of the bow charge bar when fully charged
 
-**If you have an idea for smoething to add or any suggestion regarding the implemented features, feel free to create an issue on the GitHub repository !**
-
 > You can move the blocks in game with your mouse ! 
 > To enable the editing mode you just have to click the key chose in the config file (default: F9)
 > and move the blocks where you prefer ! To save your changes, you need to press again the key.
@@ -49,21 +55,35 @@ In the config file you can also :
 
 ### Things I hope to add as soon as possible
 
-- Crosshair pointing coordinates
-- Custom rotating minimap
-- Possibility to add padding for blocks
+- Optimize the movement of blocks with the editing mode
 - Detailed item informations
 - A compass
 
 ### Known bugs
 
-- The player coordinates string is a bit buggy when its values change
+- The player and focus coordinates string is a bit buggy when its values change
 - Health starts showing from second hit for rocks and minerocks.
-- Environment element name doesn't show if you hit an element without aiming at it.
 - Name doesn't show for small environment elements.
 - Remaining time doesn't work properly for bushes and beehives.
 
 ### Changelog
+
+**3.4.0**
+- Added a new config value regarding the padding for all the blocks
+- Fixed the flicker when the value of blocks change
+- Now the environment element name will be shown even if you hit an element without aiming at it.
+- Now the health bar color of construction pieces is based on the health percentage
+- Moved the position of the health text and bar for construction pieces
+- Added outline to the text of all the blocks
+- Now you can reload the config file also in the main menu
+- Added a string in the MapStats block that shows the world coordinates of where the crosshair is pointing at
+- Added a new config value regarding the text alignment for the MapStats block
+- Removed the "ShowPlayerCoordinates" config value
+- Renamed the config value "ShowCursorCoordinates" to "ShowCursorCoordinatesInMap"
+- Renamed the config value "HealthStringFormat" to "HealthFormat"
+- Renamed the config value "ProcessStringFormat" to "ProcessFormat"
+- Renamed the config value "PlayerCoordinatesStringFormat" to "WorldCoordinatesFormat"
+- Renamed the config value "CursorCoordinatesStringFormat" to "MapCoordinatesFormat"
 
 **3.3.0**
 - Added a new config value regarding the text alignment for the BowStats block
