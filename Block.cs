@@ -10,7 +10,7 @@ namespace AlweStats {
         private readonly GameObject blockObj = null;
 
         public Block(string name, string color, int size, string position, string margin, string align = "") {
-            blockObj = new GameObject(name);
+            blockObj = new(name);
             blockObj.transform.SetParent(Hud.instance.m_rootObject.transform);
             blockObj.AddComponent<RectTransform>();
             blockObj.AddComponent<Image>().color = StringToColor(Main.blocksBackgroundColor.Value);

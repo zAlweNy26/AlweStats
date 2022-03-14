@@ -58,15 +58,25 @@ In the config file you can also :
 - Optimize the movement of blocks with the editing mode
 - Detailed item informations
 - A compass
+- A custom minimap
+- Custom pins
 
 ### Known bugs
 
-- The player and focus coordinates string is a bit buggy when its values change
 - Health starts showing from second hit for rocks and minerocks.
 - Name doesn't show for small environment elements.
-- Remaining time doesn't work properly for bushes and beehives.
+- Remaining time doesn't work properly for beehives.
 
 ### Changelog
+
+**3.5.0**
+- Added the possibility to enable a rotating minimap that follows the player camera rotation
+- Added remaining time and percentage for fireplaces
+- Added explored percentage in the top-left corner on the large map
+- Fixed remaining time for bushes
+- Reduced the text length for the WorldStats block
+- Added new config values to match the new additions
+- Added config setting for the font size of the cursor coordinates and explored percentage text in the large map
 
 **3.4.0**
 - Added a new config value regarding the padding for all the blocks

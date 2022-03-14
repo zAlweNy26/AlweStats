@@ -32,11 +32,11 @@ namespace AlweStats {
                 double hoursPlayed = minutesPlayed / 60;
                 string currentBiome = "";
                 if (Main.customShowBiome.Value) {
-                    currentBiome = $"\nCurrent biome : {Minimap.instance.m_biomeNameSmall.text}";
+                    currentBiome = $"\nBiome : {Minimap.instance.m_biomeNameSmall.text}";
                     Minimap.instance.m_biomeNameSmall.gameObject.SetActive(false);
                 }
-                if (hoursPlayed < 1) worldBlock.SetText($"Days passed : {daysPlayed}\nTime played : {minutesPlayed:0.##} m{currentBiome}");
-                else worldBlock.SetText($"Days passed : {daysPlayed}\nTime played : {hoursPlayed:0.##} h{currentBiome}");
+                if (hoursPlayed < 1) worldBlock.SetText($"Days : {daysPlayed}\nPlay time : {minutesPlayed:0.##} m{currentBiome}");
+                else worldBlock.SetText($"Days : {daysPlayed}\nPlay time : {hoursPlayed:0.##} h{currentBiome}");
                 //Debug.Log($"Days : {days} | Hours played : {hoursPlayed:0.##} | Current biome : {currentBiome}");
             }
         }

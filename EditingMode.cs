@@ -96,7 +96,7 @@ namespace AlweStats {
         }
 
         public static void ShowButton() {
-            if (resetObj == null) {
+            if (resetObj == null && Menu.instance.m_menuDialog.Find("ResetAlweStats") == null) {
                 GameObject originalObj = Menu.instance.m_menuDialog.Find("Close").gameObject;
                 resetObj = Object.Instantiate(originalObj, originalObj.transform);
                 resetObj.name = "ResetAlweStats";

@@ -142,7 +142,7 @@ namespace AlweStats {
             if (!Main.enableEnvStats.Value || !Main.enablePlantStatus.Value || __instance == null) return __result;
             float growPercentage = (float) __instance.TimeSincePlanted() / __instance.GetGrowTime() * 100f;
             growPercentage = growPercentage > 100f ? 100f : growPercentage;
-            return SetPickableText(growPercentage, __instance.GetHoverName(), (int) __instance.TimeSincePlanted(), (int) __instance.GetGrowTime());
+            return SetPickableText(growPercentage, __instance.GetHoverName(), __instance.GetGrowTime() - __instance.TimeSincePlanted());
         }
 
         [HarmonyPostfix]
@@ -150,10 +150,11 @@ namespace AlweStats {
         public static string PatchPickableHoverText(string __result, Pickable __instance) {
             if (!Main.enableEnvStats.Value || !Main.enableBushStatus.Value || !__instance.name.ToLower().Contains("bush")) return __result;
             DateTime startTime = new DateTime(__instance.m_nview.GetZDO().GetLong("picked_time"));
-            float currentGrowTime = (float) (ZNet.instance.GetTime() - startTime).TotalMinutes;
-            float growPercentage = currentGrowTime / __instance.m_respawnTimeMinutes * 100f;
+            float currentGrowTime = (float) (ZNet.instance.GetTime() - startTime).TotalSeconds;
+            float totalGrowTime = (float) __instance.m_respawnTimeMinutes * 60f;
+            float growPercentage = currentGrowTime / totalGrowTime * 100f;
             growPercentage = growPercentage > 100f ? 100f : growPercentage;
-            return SetPickableText(growPercentage, __instance.GetHoverName(), (int) currentGrowTime, __instance.m_respawnTimeMinutes);
+            return SetPickableText(growPercentage, __instance.GetHoverName(), totalGrowTime - currentGrowTime);
         }
 
         [HarmonyPostfix]
@@ -164,17 +165,37 @@ namespace AlweStats {
                 return Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
             int honeyLevel = __instance.GetHoneyLevel();
             if (honeyLevel > 0) {
-                float current = __instance.GetTimeSinceLastUpdate() + __instance.m_nview.GetZDO().GetFloat("product", 0f);
-                float honeyPercentage = current / __instance.m_secPerUnit * 100f;
-                honeyPercentage = honeyPercentage > 100f ? 100f : honeyPercentage;
+                float currentHoneyTime = __instance.GetTimeSinceLastUpdate() + __instance.m_nview.GetZDO().GetFloat("product", 0f);
+                float totalHoneyTime = __instance.m_maxHoney * __instance.m_secPerUnit;
+                float honeyTimePercentage = (float) honeyLevel / (float) __instance.m_maxHoney * 100f;
+                honeyTimePercentage = honeyTimePercentage > 100f ? 100f : honeyTimePercentage;
                 string honey = honeyLevel == __instance.m_maxHoney ? 
-                    SetPickableText(100f, "", 0, 0) : 
-                    SetPickableText(honeyPercentage, "", (int) current, (int) __instance.m_secPerUnit);
+                    SetPickableText(100f, "", 0f) : SetPickableText(honeyTimePercentage, "", totalHoneyTime - currentHoneyTime);
                 string itemName = __instance.m_honeyItem.m_itemData.m_shared.m_name;
                 return Localization.instance.Localize(
                     $"{__instance.m_name} {honey}\n{itemName} x {honeyLevel}\n[<color=yellow><b>$KEY_Use</b></color>] $piece_beehive_extract"
                 );
             } else return __result;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Fireplace), "GetHoverText")]
+        public static string PatchFireplaceHoverText(string __result, Fireplace __instance) {
+            if (!Main.enableEnvStats.Value || !Main.enableFireStatus.Value) return __result;
+            if (!__instance.m_nview.IsValid()) return "";
+            float currentFuel = __instance.m_nview.GetZDO().GetFloat("fuel", 0f);
+            if (currentFuel == 0) return __result;
+            float currentFuelTime = currentFuel * __instance.m_secPerFuel;
+            float totalFuelTime = __instance.m_maxFuel * __instance.m_secPerFuel;
+            float fuelTimePercentage = currentFuelTime / totalFuelTime * 100f;
+            fuelTimePercentage = fuelTimePercentage > 100f ? 100f : fuelTimePercentage;
+            string fuelTime = currentFuel == __instance.m_maxFuel ? 
+                SetPickableText(100f, "", 0f) : SetPickableText(fuelTimePercentage, "", currentFuelTime);
+            string itemName = __instance.m_fuelItem.m_itemData.m_shared.m_name;
+            return Localization.instance.Localize(
+                $"{__instance.m_name} ( $piece_fire_fuel {Mathf.Ceil(currentFuel)} / {__instance.m_maxFuel:0} )\n{fuelTime}\n" +
+                $"[<color=yellow><b>$KEY_Use</b></color>] $piece_use {itemName}\n[<color=yellow><b>1-8</b></color>] $piece_useitem"
+            );
         }
 
         [HarmonyPostfix]
@@ -197,7 +218,7 @@ namespace AlweStats {
                     string exposedString = __instance.m_exposed ? "\n($piece_fermenter_exposed)" : "";
                     float fermentationPercentage = (float) __instance.GetFermentationTime() / __instance.m_fermentationDuration * 100f;
                     fermentationPercentage = fermentationPercentage > 100f ? 100f : fermentationPercentage;
-                    string fermentation = SetPickableText(fermentationPercentage, "", (int) __instance.GetFermentationTime(), (int) __instance.m_fermentationDuration);
+                    string fermentation = SetPickableText(fermentationPercentage, "", __instance.m_fermentationDuration - __instance.GetFermentationTime());
                     return Localization.instance.Localize(
                         $"{__instance.m_name} ($piece_fermenter_fermenting)\n{__instance.GetContentName()} {fermentation}{exposedString}"
                     );
@@ -226,18 +247,17 @@ namespace AlweStats {
             //Chat.instance.SetNpcText(go, Vector3.up, 0, 5.0f, "", $"{current} / {total} ({percentage} %)", false);
         }
 
-        private static string SetPickableText(float percentage, string name, int current, int total) {
+        private static string SetPickableText(float percentage, string name, double remainingTime) {
             string localizedName = Localization.instance.Localize(name);
             string localizedPickUp = Localization.instance.Localize("\n[<color=yellow><b>$KEY_Use</b></color>] $inventory_pickup");
-            int remainingTime = current >= total ? 0 : total - current;
             string time = TimeSpan.FromSeconds(remainingTime).ToString(@"hh\:mm\:ss");
             string readyString = Localization.instance.Localize("$piece_fermenter_ready");
-            string ready = remainingTime == 0 ? readyString : time;
+            string ready = (int) percentage == 100 ? readyString : time;
             return localizedName + " " + String.Format(
                 Main.processFormat.Value.Replace("<color>", $"<color={GetColor(percentage)}>"),
                 $"{percentage:0.#}",
                 ready
-            ) + (remainingTime == 0 && name != "" ? localizedPickUp : "");
+            ) + ((int) percentage == 100 && name != "" ? localizedPickUp : "");
         }
 
         private static string GetColor(float percentage) {
