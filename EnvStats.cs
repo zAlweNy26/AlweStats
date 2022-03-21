@@ -41,7 +41,7 @@ namespace AlweStats {
                     __instance.m_pieceHealthBar.SetValue(currentPercentage / 100f);
                     __instance.m_pieceHealthBar.SetColor(Color.Lerp(new Color(1f, 0f, 0f, 1f), new Color(0f, 1f, 0f, 1f), currentPercentage / 100f));
                     pieceObj.GetComponent<Text>().text = String.Format(
-                        Main.healthFormat.Value.Replace("<color>", $"<color={GetColor(currentPercentage)}>"), 
+                        Main.healthFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(currentPercentage)}>"), 
                         $"{currentHealth:0.#}", 
                         wnt.m_health, 
                         $"{currentPercentage:0.#}"
@@ -59,7 +59,7 @@ namespace AlweStats {
                 return Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
             float perc = __instance.m_inventory.SlotsUsedPercentage();
             int totalSpace = __instance.m_inventory.GetWidth() * __instance.m_inventory.GetHeight();
-            string inventoryString = $"{__instance.m_inventory.NrOfItems()} / {totalSpace} (<color={GetColor(perc)}>{perc:0.#} %</color>)";
+            string inventoryString = $"{__instance.m_inventory.NrOfItems()} / {totalSpace} (<color={Utilities.GetColorString(perc)}>{perc:0.#} %</color>)";
             string notEmpty = __instance.m_inventory.NrOfItems() > 0 ? $"\n{inventoryString}" : " ( $piece_container_empty )";
             return Localization.instance.Localize($"{__instance.m_name}{notEmpty}\n[<color=yellow><b>$KEY_Use</b></color>] $piece_container_open");
         }
@@ -239,7 +239,7 @@ namespace AlweStats {
             if (hoverText == null) hoverText = go.AddComponent<HoverText>();
             if (hoverText.m_text.Split('\n').Length == 1) initialText = $"{name}\n";
             hoverText.m_text = String.Format(
-                initialText + Main.healthFormat.Value.Replace("<color>", $"<color={GetColor(percentage)}>"), 
+                initialText + Main.healthFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(percentage)}>"), 
                 $"{current:0.#}", 
                 total, 
                 $"{percentage:0.#}"
@@ -254,18 +254,10 @@ namespace AlweStats {
             string readyString = Localization.instance.Localize("$piece_fermenter_ready");
             string ready = (int) percentage == 100 ? readyString : time;
             return localizedName + " " + String.Format(
-                Main.processFormat.Value.Replace("<color>", $"<color={GetColor(percentage)}>"),
+                Main.processFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(percentage)}>"),
                 $"{percentage:0.#}",
                 ready
             ) + ((int) percentage == 100 && name != "" ? localizedPickUp : "");
-        }
-
-        private static string GetColor(float percentage) {
-            string color = "red";
-            if (percentage >= 25f && percentage <= 49f) color = "orange";
-            if (percentage >= 50f && percentage <= 74f) color = "yellow";
-            if (percentage >= 75f && percentage <= 100f) color = "lime";
-            return color;
         }
     }
 }

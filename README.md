@@ -22,21 +22,26 @@ For each block you can enable or disable it and you can also set :
 - Position
 - Margin 
 - Text color
-- Text size 
+- Text size (also for the cursor coordinates and the explored percentage)
 - Text alignment (not for WorldClock)
 
 There are also "EntityStats" and "EnvStats" which aren't UI blocks but can let you choose different things.
 
 In the config file you can also :
+- Set background color for all the blocks
+- Set padding for all the blocks
 - Toggle a "Days passed" counter in the world selection panel
 - Toggle a reset button in the pause menu to reset the positions of all the blocks with their default values
 - Choose the clock format (12h or 24h)
 - Toggle the current biome text in the WorldStats block instead of the top-left corner in minimap 
 - Set the string format for the health of environment elements, construction pieces and entities
-- Set the string format for the process status of bushes, plants, beehives and fermenters
-- Set the string format for the player coordinates string
+- Set the string format for the process status of bushes, plants, fireplaces, beehives and fermenters
+- Set the string format for the player and focus coordinates string
 - Set the string format for the cursor coordinates string
-- Toggle the status separately for rock, trees, bushes, plants, beehives fermenters and containers
+- Toggle the hover status separately for rock, trees, bushes, plants, beehives, fireplaces, fermenters and containers
+- Toggle the cursor coordinates and the explored percentage in the large map
+- Toggle the rotation of the minimap that follows the player camera rotation
+- Toggle the distance and direction from claimed bed and closer portal shown as elements in the status effects list
 - Toggle the custom bow charge bar instead of the vanilla circle that shrinks 
 - Set the color of the bow charge bar when fully charged
 
@@ -53,21 +58,28 @@ In the config file you can also :
 > I have established that the maximum **ship speed** is equal to **30 kts** and the maximum **wind speed** is equal to **100 km/h**,
 > so the values ​​are proportioned according to this.
 
-### Things I hope to add as soon as possible
+### Things I want to do as soon as possible
 
 - Optimize the movement of blocks with the editing mode
-- Detailed item informations
-- A compass
-- A custom minimap
-- Custom pins
+- Add detailed item informations
+- Add a compass
+- Add a custom minimap
+- Fix the known issues
 
-### Known bugs
+### Known issues
 
 - Health starts showing from second hit for rocks and minerocks.
 - Name doesn't show for small environment elements.
 - Remaining time doesn't work properly for beehives.
 
 ### Changelog
+
+**3.6.0**
+- Added distance and direction from closer portal as element in the status effect list
+- Added distance and direction from claimed bed as element in the status effect list
+- Fixed the percentage color
+- Centered the mouse position when moving block while in editing mode
+- Added new config values to match the new additions
 
 **3.5.0**
 - Added the possibility to enable a rotating minimap that follows the player camera rotation

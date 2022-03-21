@@ -87,7 +87,7 @@ namespace AlweStats {
                         int currentStamina = Mathf.CeilToInt(sadle.GetStamina());
                         int totalStamina = Mathf.CeilToInt(sadle.GetMaxStamina());
                         value.m_staminaText.text = String.Format(
-                            Main.healthFormat.Value.Replace("<color>", $"<color={GetColor(staminaPercentage)}>"), 
+                            Main.healthFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(staminaPercentage)}>"), 
                             currentStamina, 
                             totalStamina, 
                             $"{staminaPercentage:0.#}"
@@ -97,7 +97,7 @@ namespace AlweStats {
                     int currentHealth = Mathf.CeilToInt(value.m_character.GetHealth());
                     int totalHealth = Mathf.CeilToInt(value.m_character.GetMaxHealth());
                     value.m_healthText.text = String.Format(
-                        Main.healthFormat.Value.Replace("<color>", $"<color={GetColor(healthPercentage)}>"), 
+                        Main.healthFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(healthPercentage)}>"), 
                         currentHealth, 
                         totalHealth, 
                         $"{healthPercentage:0.#}"
@@ -116,14 +116,6 @@ namespace AlweStats {
                 }
             }
             if (character != null) __instance.m_huds.Remove(character);
-        }
-
-        private static string GetColor(float percentage) {
-            string color = "red";
-            if (percentage >= 25f && percentage <= 49f) color = "orange";
-            if (percentage >= 50f && percentage <= 74f) color = "yellow";
-            if (percentage >= 75f && percentage <= 100f) color = "lime";
-            return color;
         }
     }
 }

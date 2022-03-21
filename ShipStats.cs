@@ -61,20 +61,17 @@ namespace AlweStats {
         }
 
         public static void Check() {
-            if (shipBlock != null) {
+            Player localPlayer = Player.m_localPlayer;
+            if (shipBlock != null && localPlayer != null) {
                 try {
                     Ship[] ships = UnityEngine.Object.FindObjectsOfType<Ship>();
                     float pieceDistance = 0f;
                     foreach (Ship s in ships) {
-                        float lastDistance = Vector3.Distance(s.transform.position, Player.m_localPlayer.transform.position);
+                        float lastDistance = Vector3.Distance(s.transform.position, localPlayer.transform.position);
                         if (nearestShip == null || lastDistance < pieceDistance) nearestShip = s;
                         pieceDistance = lastDistance;
                     }
-                } catch (Exception) {} finally {
-                    if (nearestShip != null) {
-                        shipBlock.SetActive(true);
-                    }
-                }
+                } catch (Exception) {}
             }
         }
 

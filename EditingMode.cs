@@ -38,11 +38,15 @@ namespace AlweStats {
             if (Input.GetKey(KeyCode.Mouse0)) {
                 if (currentlyDragging != "") {
                     Transform current = Hud.instance.m_rootObject.transform.Find(currentlyDragging);
-                    if (current != null) current.position = lastMousePos;
+                    if (current != null) {
+                        RectTransform currentRect = current.GetComponent<RectTransform>();
+                        current.position = mousePos - new Vector3(currentRect.sizeDelta.x / 2f, currentRect.sizeDelta.y / 8f, 0f);
+                    }
                 } else {
                     foreach (GameObject g in templateObjs) {
                         if (RectTransformUtility.RectangleContainsScreenPoint(g.GetComponent<RectTransform>(), mousePos)) {
-                            g.transform.position = mousePos;
+                            RectTransform currentRect = g.GetComponent<RectTransform>();
+                            g.transform.position = mousePos - new Vector3(currentRect.sizeDelta.x / 2f, currentRect.sizeDelta.y / 8f, 0f);
                             currentlyDragging = g.name;
                             break;
                         }

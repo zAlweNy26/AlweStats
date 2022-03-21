@@ -1,7 +1,4 @@
-﻿using System;
-using UnityEngine;
-
-namespace AlweStats {
+﻿namespace AlweStats {
     public static class GameStats {
         private static Block gameBlock = null;
 

@@ -18,7 +18,8 @@ namespace AlweStats {
             enableRockStatus, enableTreeStatus, enableBushStatus, enablePlantStatus, enableFermenterStatus,
             enableBeehiveStatus, enableBowStats, customBowCharge, daysInWorldsList, twelveHourFormat, 
             showResetButton, customShowBiome, enableContainerStatus, enablePieceStatus, enableEntityStats, enableFireStatus,
-            enableMapStats, showCursorCoordinatesInMap, /*showCustomMinimap,*/ enableRotatingMinimap, showExploredPercentage;
+            enableMapStats, showCursorCoordinatesInMap, /*showCustomMinimap,*/ enableRotatingMinimap, showExploredPercentage,
+            enableBedStatus, enablePortalStatus;
         public static ConfigEntry<int> 
             gameStatsSize, worldStatsSize, worldClockSize, 
             shipStatsSize, bowStatsSize, mapStatsSize, largeMapInfoSize;
@@ -67,6 +68,8 @@ namespace AlweStats {
             enableRotatingMinimap = Config.Bind("MapStats", "RotatingMinimap", true, "Toggle the rotation for the minimap (prettier when custom minimap is enabled)");
             showCursorCoordinatesInMap = Config.Bind("MapStats", "ShowCursorCoordinatesInMap", true, "Toggle the cursor coordinates in the bottom-left corner of the large map");
             showExploredPercentage = Config.Bind("MapStats", "ShowExploredPercentage", true, "Toggle the explored percentage in the top-left corner of the large map");
+            enableBedStatus = Config.Bind("MapStats", "BedStatus", true, "Toggle the status that shows the distance from the claimed bed");
+            enablePortalStatus = Config.Bind("MapStats", "PortalStatus", true, "Toggle the status that shows the distance from the closer portal");
 
             gameStatsColor = Config.Bind("GameStats", "Color", "255, 183, 92, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
@@ -163,7 +166,7 @@ namespace AlweStats {
                 "\n'{1}' stands for the z value");
 
             processFormat = Config.Bind("General", "ProcessFormat", "(<color>{0} %</color>)\n{1}", 
-                "The format of the string when showing the process status of plants/bushes/fermenters/beehives" + 
+                "The format of the string when showing the process status of plants/bushes/fermenters/beehives/fireplaces" + 
                 "\n'{0}' stands for the percentage" +
                 "\n'{1}' stands for the remaining time" +
                 "\n'<color>' and '</color>' mean that the text between them will be colored based on the process percentage");
@@ -210,8 +213,8 @@ namespace AlweStats {
             private static void PatchHudUpdate() {
                 if (Input.GetKeyDown(reloadPluginKey.Value)) ReloadConfig();  
                 if (Input.GetKeyDown(Main.toggleEditMode.Value)) EditingMode.OnPress();  
-                if (enableMapStats.Value) MapStats.Update();
-                if (enableBowStats.Value || customBowCharge.Value) BowStats.Update();
+                MapStats.Update();
+                BowStats.Update();
                 EditingMode.Update();
             }
 
