@@ -60,7 +60,7 @@ namespace AlweStats {
             return angleString;
         }
 
-        public static void Check() {
+        private static void Check() {
             Player localPlayer = Player.m_localPlayer;
             if (shipBlock != null && localPlayer != null) {
                 try {
@@ -77,13 +77,13 @@ namespace AlweStats {
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Ship), "OnTriggerEnter")]
-        private static void PatchShipEnter() {
+        static void PatchShipEnter() {
             if (Main.enableShipStats.Value) Check();
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Ship), "OnDestroyed")]
-        private static void PatchShipDestroyed() {
+        static void PatchShipDestroyed() {
             if (Main.enableShipStats.Value && shipBlock != null) shipBlock.SetActive(false);
         }
     }

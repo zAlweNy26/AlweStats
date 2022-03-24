@@ -48,7 +48,7 @@ namespace AlweStats {
                 Transform days = UnityEngine.Object.Instantiate(t.Find("name"));
                 days.name = "days";
                 days.SetParent(t.Find("name").parent);
-                days.GetComponent<RectTransform>().localPosition = new(325f, -14f, 0f);
+                days.GetComponent<RectTransform>().localPosition = new(320f, -14f, 0f);
                 string worldName = t.Find("name").GetComponent<Text>().text;
                 string dBPath = $"{Utils.GetSaveDataPath()}/worlds/{worldName}.db";
                 if (File.Exists(dBPath)) {
@@ -87,19 +87,25 @@ namespace AlweStats {
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(FejdStartup), "ShowStartGame")]
-        static void PatchWorldList(ref FejdStartup __instance) {
+        static void PatchWorldList(FejdStartup __instance) {
             if (Main.daysInWorldsList.Value) UpdateWorldsPanel();
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(FejdStartup), "OnSelectWorld")]
-        static void PatchWorldSelection(ref FejdStartup __instance) {
+        static void PatchWorldSelection(FejdStartup __instance) {
+            if (Main.daysInWorldsList.Value) UpdateWorldsPanel();
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(FejdStartup), "OnSelectWorldTab")]
+        static void PatchWorldSelectionTab(FejdStartup __instance) {
             if (Main.daysInWorldsList.Value) UpdateWorldsPanel();
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(FejdStartup), "OnButtonRemoveWorldYes")]
-        static void PatchWorldRemove(ref FejdStartup __instance) {
+        static void PatchWorldRemove(FejdStartup __instance) {
             if (Main.daysInWorldsList.Value) UpdateWorldsPanel();
         }
     }

@@ -29,7 +29,7 @@ namespace AlweStats {
 
         public static void Update() {
             Player localPlayer = Player.m_localPlayer;
-            if (Main.enableBowStats.Value && bowBlock != null && localPlayer != null) {
+            if (Main.enableBowStats.Value && bowBlock != null && localPlayer) {
                 int currentAmmo = 0, totalAmmo = 0;
                 List<ItemDrop.ItemData> inventoryItems = localPlayer.GetInventory().GetAllItems();
                 ItemDrop.ItemData bow = inventoryItems.Find(i => i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Bow);
@@ -52,7 +52,7 @@ namespace AlweStats {
                     } else bowBlock.SetActive(false);
                 }
             }
-            if (Main.customBowCharge.Value && bowCharge != null && localPlayer != null) {
+            if (Main.customBowCharge.Value && bowCharge != null && localPlayer) {
                 float bowPerc = localPlayer.GetAttackDrawPercentage();
                 Hud.instance.m_crosshairBow.gameObject.SetActive(false);
                 bowCharge.gameObject.SetActive(bowPerc != 0f);

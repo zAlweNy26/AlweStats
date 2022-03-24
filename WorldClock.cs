@@ -16,9 +16,10 @@ namespace AlweStats {
         }
 
         public static void Update() {
-            if (clockBlock != null) {
+            EnvMan envMan = EnvMan.instance;
+            if (clockBlock != null && envMan) {
                 string format12h = "";
-                float minuteFraction = Mathf.Lerp(0f, 24f, EnvMan.instance.GetDayFraction());
+                float minuteFraction = Mathf.Lerp(0f, 24f, envMan.GetDayFraction());
                 float floor24h = Mathf.Floor(minuteFraction);
                 int hours = Mathf.FloorToInt(floor24h);
                 int minutes = Mathf.FloorToInt(Mathf.Lerp(0f, 60f, minuteFraction - floor24h));

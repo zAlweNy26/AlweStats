@@ -16,13 +16,14 @@ namespace AlweStats {
         public static ConfigEntry<bool> 
             enableGameStats, enableWorldStats, enableWorldClock, enableShipStats, enableEnvStats, 
             enableRockStatus, enableTreeStatus, enableBushStatus, enablePlantStatus, enableFermenterStatus,
-            enableBeehiveStatus, enableBowStats, customBowCharge, daysInWorldsList, twelveHourFormat, 
-            showResetButton, customShowBiome, enableContainerStatus, enablePieceStatus, enableEntityStats, enableFireStatus,
-            enableMapStats, showCursorCoordinatesInMap, /*showCustomMinimap,*/ enableRotatingMinimap, showExploredPercentage,
-            enableBedStatus, enablePortalStatus;
+            enableBeehiveStatus, enableBowStats, customBowCharge, daysInWorldsList, twelveHourFormat, enableShipStatus, 
+            showResetButton, customShowBiome, enableContainerStatus, enablePieceStatus, enableEntityStats,
+            enableMapStats, showCursorCoordinatesInMap, enableRotatingMinimap, showExploredPercentage, enableFireStatus,
+            enableBedStatus, enablePortalStatus, enablePlayerStats, showEntityDistance/*, showCustomMinimap*/;
         public static ConfigEntry<int> 
             gameStatsSize, worldStatsSize, worldClockSize, 
             shipStatsSize, bowStatsSize, mapStatsSize, largeMapInfoSize;
+        public static ConfigEntry<float> playerMarkerScale;
         public static ConfigEntry<KeyCode> toggleEditMode, reloadPluginKey;
         public static ConfigEntry<string> 
             gameStatsColor, gameStatsAlign, gameStatsPosition, gameStatsMargin, 
@@ -31,8 +32,8 @@ namespace AlweStats {
             bowStatsColor, bowStatsPosition, bowStatsMargin, bowStatsAlign,
             mapStatsColor, mapStatsPosition, mapStatsMargin, mapStatsAlign,
             worldClockColor, worldClockPosition, worldClockMargin, 
-            healthFormat, processFormat, bowChargeBarColor, blocksBackgroundColor,
-            worldCoordinatesFormat, mapCoordinatesFormat, blocksPadding;
+            healthFormat, processFormat, bowChargeBarColor, blocksBackgroundColor, tamedBarColor,
+            worldCoordinatesFormat, mapCoordinatesFormat, blocksPadding, showCustomPins, showPinsTitles, biggerPins;
 
         public void Awake() {
             config = Config;
@@ -49,6 +50,7 @@ namespace AlweStats {
             enableMapStats = Config.Bind("MapStats", "Enable", true, "Toggle the MapStats block");
             enableEntityStats = Config.Bind("EntityStats", "Enable", true, "Toggle the EntityStats section");
             enableEnvStats = Config.Bind("EnvStats", "Enable", true, "Toggle the EnvStats section");
+            enablePlayerStats = Config.Bind("PlayerStats", "Enable", true, "Toggle the PlayerStats section");
 
             enableRockStatus = Config.Bind("EnvStats", "RockStatus", true, "Toggle the status for rocks");
             enableTreeStatus = Config.Bind("EnvStats", "TreeStatus", true, "Toggle the status for trees");
@@ -59,6 +61,7 @@ namespace AlweStats {
             enableBeehiveStatus = Config.Bind("EnvStats", "BeehiveStatus", true, "Toggle the status for beehives");
             enableContainerStatus = Config.Bind("EnvStats", "ContainerStatus", true, "Toggle the status for containers");
             enablePieceStatus = Config.Bind("EnvStats", "PieceStatus", true, "Toggle the status for construction pieces");
+            showEntityDistance = Config.Bind("EntityStats", "EntityDistance", true, "Toggle the text about the distance from the player and the hovering entity");
             twelveHourFormat = Config.Bind("WorldClock", "TwelveHourFormat", false, "Toggle the clock in the 12h format with AM and PM");
             showResetButton = Config.Bind("General", "ShowResetButton", true, "Toggle a button in the pause menu to reset the AlweStats values");
             customShowBiome = Config.Bind("WorldStats", "CustomShowBiome", true, "Toggle the current biome in the WorldStats block instead of the top-left corner in minimap");
@@ -70,6 +73,7 @@ namespace AlweStats {
             showExploredPercentage = Config.Bind("MapStats", "ShowExploredPercentage", true, "Toggle the explored percentage in the top-left corner of the large map");
             enableBedStatus = Config.Bind("MapStats", "BedStatus", true, "Toggle the status that shows the distance from the claimed bed");
             enablePortalStatus = Config.Bind("MapStats", "PortalStatus", true, "Toggle the status that shows the distance from the closer portal");
+            enableShipStatus = Config.Bind("MapStats", "ShipStatus", true, "Toggle the status that shows the distance from the closer ship");
 
             gameStatsColor = Config.Bind("GameStats", "Color", "255, 183, 92, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
@@ -143,8 +147,39 @@ namespace AlweStats {
             blocksBackgroundColor = Config.Bind("General", "BlocksBackgroundColor", "0, 0, 0, 125",
                 "The color of the background color for all the blocks\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
 
+            tamedBarColor = Config.Bind("EntityStats", "TamedBarColor", "0, 0, 255, 255",
+                "The color of the background color for all the blocks\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
             largeMapInfoSize = Config.Bind("MapStats", "LargeMapInfoSize", 16,
                 "The size of the text that show the cursor coordinates and explored percentage in the large map\nThe range of possible values is from 0 to the amount of your blindness");
+            playerMarkerScale = Config.Bind("MapStats", "PlayerMarkerScale", 1.5f,
+                "The multiplier for the scale of the player marker icon in both small and large map");
+            showCustomPins = Config.Bind("MapStats", "ShowCustomPins", "1, 2, 3, 4, 5, 6", 
+                "Toggle specific custom pins, separate them with a comma (,)" +
+                "\n0 = disable all custom pins" +
+                "\n1 = troll caves pins" +
+                "\n2 = crypts pins" +
+                "\n3 = fire holes pins" +
+                "\n4 = portals pins" +
+                "\n5 = ships pins" +
+                "\n6 = carts pins");
+            showPinsTitles = Config.Bind("MapStats", "ShowPinsTitles", "4", 
+                "Toggle the title for specific custom pins, separate them with a comma (,)" +
+                "\n0 = disable for all custom pins" +
+                "\n1 = troll caves pins" +
+                "\n2 = crypts pins" +
+                "\n3 = fire holes pins" +
+                "\n4 = portals pins" +
+                "\n5 = ships pins" +
+                "\n6 = carts pins");
+            biggerPins = Config.Bind("MapStats", "BiggerPins", "4, 5, 6", 
+                "Double or not the size of specific custom pins, separate them with a comma (,)" +
+                "\n0 = disable for all custom pins" +
+                "\n1 = troll caves pins" +
+                "\n2 = crypts pins" +
+                "\n3 = fire holes pins" +
+                "\n4 = portals pins" +
+                "\n5 = ships pins" +
+                "\n6 = carts pins");
 
             healthFormat = Config.Bind("General", "HealthFormat", "{0} / {1} (<color>{2} %</color>)", 
                 "The format of the string when showing the health of environment elements, construction pieces and living entities" + 
@@ -190,7 +225,7 @@ namespace AlweStats {
         [HarmonyPatch]
         public static class PluginPatches {
             private static List<Block> blocks = null;
-
+            
             [HarmonyPostfix]
             [HarmonyPatch(typeof(Hud), "Awake")]
             private static void PatchHudStart() {
@@ -212,10 +247,14 @@ namespace AlweStats {
             [HarmonyPatch(typeof(Hud), "Update")]
             private static void PatchHudUpdate() {
                 if (Input.GetKeyDown(reloadPluginKey.Value)) ReloadConfig();  
-                if (Input.GetKeyDown(Main.toggleEditMode.Value)) EditingMode.OnPress();  
-                MapStats.Update();
-                BowStats.Update();
+                if (Input.GetKeyDown(Main.toggleEditMode.Value)) EditingMode.OnPress();
                 EditingMode.Update();
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(Hud), "UpdateCrosshair")]
+            private static void PatchHudCrosshair() {
+                if (Main.enableEnvStats.Value && Main.enablePieceStatus.Value) EnvStats.PatchHoveringPiece();
             }
 
             [HarmonyPostfix]
@@ -233,20 +272,17 @@ namespace AlweStats {
             [HarmonyPostfix]
             [HarmonyPatch(typeof(ZNetScene), "Update")]
             private static void PatchGame() {
-                if (enableGameStats.Value) GameStats.Update();
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch(typeof(EnvMan), "FixedUpdate")]
-            private static void PatchWorld() {
+                MapStats.Update();
+                BowStats.Update();
                 if (enableWorldStats.Value) WorldStats.Update();
                 if (enableWorldClock.Value) WorldClock.Update();
                 if (enableShipStats.Value) ShipStats.Update();
+                if (enableGameStats.Value) GameStats.Update();
             }
 
             [HarmonyPrefix]
             [HarmonyPatch(typeof(ZNet), "OnDestroy")]
-            static void PatchWorldEnd(ref ZNet __instance) {
+            static void PatchWorldEnd() {
                 if (blocks != null) EditingMode.Destroy(blocks);
                 if (enableWorldStats.Value && daysInWorldsList.Value) WorldStats.UpdateWorldsFile();
             }

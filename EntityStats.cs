@@ -9,35 +9,47 @@ namespace AlweStats {
     public static class EntityStats {
         public static void Start() {
             Transform originalHealthText = EnemyHud.instance.m_baseHudMount.transform.Find("Health/HealthText");
+            Transform originalName = EnemyHud.instance.m_baseHudMount.transform.Find("Name");
             foreach (Transform t in EnemyHud.instance.m_hudRoot.transform) {
-                Transform child = t.Find("Health");
-                if (child != null) {
-                    if (child.Find("HealthText")) return;
+                Transform healthTransform = t.Find("Health");
+                Transform nameTransform = t.Find("Name");   
+                if (healthTransform) {
+                    if (healthTransform.Find("HealthText")) return;
                     GameObject healthObj = UnityEngine.Object.Instantiate(originalHealthText.gameObject, originalHealthText);
                     healthObj.name = "HealthText";
-                    healthObj.transform.SetParent(child);
-                    healthObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, 1f);
+                    healthObj.transform.SetParent(healthTransform);
+                    healthObj.GetComponent<RectTransform>().anchoredPosition = Vector2.up;
                     healthObj.SetActive(true);
-                    Transform darken = child.Find("darken");
-                    Transform background = child.Find("bkg");
-                    Transform slow = child.Find("health_slow/bar");
-                    Transform fast = child.Find("health_fast/bar");
-                    if (slow != null) {
+                    Transform darken = healthTransform.Find("darken");
+                    Transform background = healthTransform.Find("bkg");
+                    Transform slow = healthTransform.Find("health_slow/bar");
+                    Transform fast = healthTransform.Find("health_fast/bar");
+                    if (slow) {
                         if (slow.GetComponent<RectTransform>().sizeDelta.y < 12) {
-                            slow.GetComponent<RectTransform>().sizeDelta = new Vector2(100f, 12f);
-                            if (fast != null) fast.GetComponent<RectTransform>().sizeDelta = new Vector2(100f, 12f);
-                            if (darken != null) darken.GetComponent<RectTransform>().sizeDelta = new Vector2(15f, 15f);
-                            if (background != null) background.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, 8f);
+                            slow.GetComponent<RectTransform>().sizeDelta = new(100f, 12f);
+                            if (fast) fast.GetComponent<RectTransform>().sizeDelta = new(100f, 12f);
+                            if (darken) darken.GetComponent<RectTransform>().sizeDelta = new(15f, 15f);
+                            if (background) background.GetComponent<RectTransform>().sizeDelta = new(0f, 8f);
                         }
                         healthObj.GetComponent<Text>().fontSize = (int) slow.GetComponent<RectTransform>().sizeDelta.y;
                     }
+                }
+                if (Main.showEntityDistance.Value && nameTransform) {
+                    GameObject distanceObj = UnityEngine.Object.Instantiate(originalName.gameObject, originalName);
+                    distanceObj.name = "Distance";
+                    distanceObj.transform.SetParent(nameTransform.parent);
+                    Vector2 originalNamePos = nameTransform.GetComponent<RectTransform>().anchoredPosition;
+                    distanceObj.GetComponent<Text>().fontSize = 14;
+                    distanceObj.GetComponent<Text>().text = "0 m";
+                    distanceObj.GetComponent<RectTransform>().anchoredPosition = new(originalNamePos.x, -(originalNamePos.y / 2));
+                    distanceObj.SetActive(false);
                 }
             }
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(EnemyHud), "ShowHud")]
-        public static bool ShowHud(ref EnemyHud __instance, Character c, bool isMount) {
+        static bool ShowHud(ref EnemyHud __instance, Character c, bool isMount) {
             if (!Main.enableEntityStats.Value) return true;
             EnemyHud.HudData hudData;
 	        if (__instance.m_huds.TryGetValue(c, out hudData)) return false;
@@ -71,7 +83,7 @@ namespace AlweStats {
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(EnemyHud), "UpdateHuds")]
-        private static void UpdateHuds(ref EnemyHud __instance, Player player, Sadle sadle, float dt) {
+        static void UpdateHuds(ref EnemyHud __instance, Player player, Sadle sadle, float dt) {
             if (!Main.enableEntityStats.Value) return;
             Character character = null;
             foreach (KeyValuePair<Character, EnemyHud.HudData> keyValuePair in __instance.m_huds) {
@@ -102,6 +114,19 @@ namespace AlweStats {
                         totalHealth, 
                         $"{healthPercentage:0.#}"
                     );
+                    if (Main.showEntityDistance.Value && player) {
+                        Character hoverCreature = player.GetHoverCreature();
+                        if (hoverCreature) {
+                            float distance = Vector3.Distance(player.transform.position, hoverCreature.transform.position);
+                            //Debug.Log($"{hoverCreature.GetHoverName()} distance : {distance:0.#} m");
+                            value.m_gui.transform.Find("Distance").GetComponent<Text>().text = $"{distance:0.#} m";
+                            value.m_gui.transform.Find("Distance").gameObject.SetActive(true);
+                        } else value.m_gui.transform.Find("Distance").gameObject.SetActive(false);
+                    }
+                    if (value.m_character.IsTamed()) {
+                        value.m_gui.transform.Find("Health/health_fast").GetComponent<GuiBar>().SetColor(Utilities.StringToColor(Main.tamedBarColor.Value));
+                        value.m_gui.transform.Find("Health/health_slow").GetComponent<GuiBar>().SetColor(Utilities.StringToColor(Main.tamedBarColor.Value));
+                    }
                     /*
                     Player player = (Player) c;
                     float carryWeightPercentage = player.GetInventory().GetTotalWeight() / player.GetMaxCarryWeight() * 100f;
@@ -115,7 +140,7 @@ namespace AlweStats {
                     //Debug.Log($"Health : {currentHealth:0.#} / {totalHealth} ({healthPercentage:0.#} %)");
                 }
             }
-            if (character != null) __instance.m_huds.Remove(character);
+            if (character) __instance.m_huds.Remove(character);
         }
     }
 }

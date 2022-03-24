@@ -7,7 +7,7 @@ You can find it here : https://valheim.thunderstore.io/package/Padank/AlweStats/
 **You may encounter incompatibilities in case there are other mods that modify the UI, 
 be sure to enable either one or the other equivalent section so they don't conflict in the same function**
 
-**If you have an idea for smoething to add or any suggestion regarding the implemented features, 
+**If you have an idea for something to add or any suggestion regarding the implemented features, 
 feel free to create an issue on the GitHub repository !**
 
 The UI is separated in 6 blocks :
@@ -25,12 +25,19 @@ For each block you can enable or disable it and you can also set :
 - Text size (also for the cursor coordinates and the explored percentage)
 - Text alignment (not for WorldClock)
 
-There are also "EntityStats" and "EnvStats" which aren't UI blocks but can let you choose different things.
+Each block is also movable with your mouse while in game thanks to the integrated editing mode (default key : F8).
+
+You can reload the configuration file (default key : F9) while in game to see changes.
+
+There are also "EntityStats", "EnvStats" and "PlayerStats" which aren't UI blocks but can let you choose different things.
 
 In the config file you can also :
+- Change key for plugin reload and editing mode
 - Set background color for all the blocks
 - Set padding for all the blocks
-- Toggle a "Days passed" counter in the world selection panel
+- Toggle each section (blocks and not)
+- Toggle a "Days" counter in the world selection panel
+- Toggle the player stats in the character selection
 - Toggle a reset button in the pause menu to reset the positions of all the blocks with their default values
 - Choose the clock format (12h or 24h)
 - Toggle the current biome text in the WorldStats block instead of the top-left corner in minimap 
@@ -41,22 +48,23 @@ In the config file you can also :
 - Toggle the hover status separately for rock, trees, bushes, plants, beehives, fireplaces, fermenters and containers
 - Toggle the cursor coordinates and the explored percentage in the large map
 - Toggle the rotation of the minimap that follows the player camera rotation
-- Toggle the distance and direction from claimed bed and closer portal shown as elements in the status effects list
-- Toggle the custom bow charge bar instead of the vanilla circle that shrinks 
+- Toggle the distance and direction from claimed bed, closer portal and closer ship shown as elements in the status effects list
+- Toggle the custom bow charge bar instead of the vanilla circle that shrinks
+- Toggle pins for ships, dungeons (troll caves, crypts and fire holes), carts and portals
+- Toggle the title of the custom pins
 - Set the color of the bow charge bar when fully charged
 
-> You can move the blocks in game with your mouse ! 
-> To enable the editing mode you just have to click the key chose in the config file (default: F9)
-> and move the blocks where you prefer ! To save your changes, you need to press again the key.
-> You can also reset all the positions and margins of the blocks with the button in the pause menu (if enabled).
-
-> Since the default day length declared in Valheim doesn't match the real one,
-> to successfully use the "Days passed" counter in the world selection panel you need to join in a world at least one time, 
-> The mod will then get the day length in that world and save it in the "Alwe.stats" file (you have to do it for each world).
+> For reasons inherent to the optimal functioning of the mod, 
+> everything related to the pins and elements in the status effects list (BedStatus, PortalStatus and ShipStatus) 
+> could cause a lowering of fps if the computer running the game is not very powerful.
 
 > As I don't know the proportions that the game uses, 
 > I have established that the maximum **ship speed** is equal to **30 kts** and the maximum **wind speed** is equal to **100 km/h**,
 > so the values ​​are proportioned according to this.
+
+> Since the default day length declared in Valheim doesn't match the real one,
+> to successfully use the "Days passed" counter in the world selection panel you need to join in a world at least one time, 
+> The mod will then get the day length in that world and save it in the "Alwe.stats" file (you have to do it for each world).
 
 ### Things I want to do as soon as possible
 
@@ -68,15 +76,30 @@ In the config file you can also :
 
 ### Known issues
 
-- Health starts showing from second hit for rocks and minerocks.
-- Name doesn't show for small environment elements.
-- Remaining time doesn't work properly for beehives.
+- Health starts showing from second hit for rocks and minerocks
+- Name doesn't show for small environment elements
+- Remaining time doesn't work properly for beehives
 
 ### Changelog
 
+**3.7.0**
+- Updated game version reference to 0.207.20
+- You can change the color of the health bar for tamed animals
+- Added player stats when choosing the character (kills, deaths, crafts, builds)
+- Fixed world days text in world selection panel not showing when changing tab
+- Fixed position of closer portal element showing too much spaced from others status effects when a bed wasn't claimed
+- Added direction and distance from closer ship as element in the status effect list
+- Now the distance calculation for closer portal, closer ship and claimed bed ignores the height
+- You can see the distance between you and the entity you are hovering, below the health bar
+- Toggle pins for portals, ships, carts and dungeons (troll caves, crypts and fire holes)
+- Toggle the title for the custom pins
+- You can set the scale of the player marker icon
+- You can choose to double or not the size of the custom pins
+- Added new config values to match the new additions
+
 **3.6.0**
-- Added distance and direction from closer portal as element in the status effect list
-- Added distance and direction from claimed bed as element in the status effect list
+- Added direction and distance from closer portal as element in the status effect list
+- Added direction and distance from claimed bed as element in the status effect list
 - Fixed the percentage color
 - Centered the mouse position when moving block while in editing mode
 - Added new config values to match the new additions

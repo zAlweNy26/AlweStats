@@ -38,7 +38,7 @@ namespace AlweStats {
             if (Input.GetKey(KeyCode.Mouse0)) {
                 if (currentlyDragging != "") {
                     Transform current = Hud.instance.m_rootObject.transform.Find(currentlyDragging);
-                    if (current != null) {
+                    if (current) {
                         RectTransform currentRect = current.GetComponent<RectTransform>();
                         current.position = mousePos - new Vector3(currentRect.sizeDelta.x / 2f, currentRect.sizeDelta.y / 8f, 0f);
                     }
