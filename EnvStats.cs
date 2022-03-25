@@ -9,19 +9,27 @@ namespace AlweStats {
     [HarmonyPatch]
     public static class EnvStats {
         private static GameObject pieceObj = null;
-        private static readonly List<string> envObjs = new() { "stub", "shrub", "oldlog", "beech", "tree", "rock" };
-        private static readonly List<string> treeObjs = new() { "stub", "shrub", "oldlog", "beech", "tree" };
+        private static readonly List<string> 
+            envObjs = new() { "stub", "shrub", "oldlog", "beech", "tree", "rock" },
+            treeObjs = new() { "stub", "shrub", "oldlog", "beech", "tree" };
+
+        private static List<string> envObjsNew = new();
         private static string initialText = "";
 
         public static void Start() {
-            pieceObj = UnityEngine.Object.Instantiate(Hud.instance.m_hoverName.gameObject, Hud.instance.m_hoverName.transform);
-            pieceObj.name = "PieceHealthText";
-            Hud.instance.m_pieceHealthRoot.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, 20f);
-            Hud.instance.m_pieceHealthRoot.GetComponent<RectTransform>().rotation = Quaternion.identity;
-            pieceObj.transform.SetParent(Hud.instance.m_pieceHealthRoot);
-            pieceObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(-50f, 25f);
-            pieceObj.GetComponent<RectTransform>().rotation = Quaternion.identity;
-            pieceObj.SetActive(false);
+            envObjsNew = envObjs.Select(i => (string) i.Clone()).ToList();
+            if (!Utilities.CheckForValue("1", Main.showEnvStatus.Value)) envObjsNew.Remove("rock");
+            if (!Utilities.CheckForValue("2", Main.showEnvStatus.Value)) envObjsNew = envObjsNew.Except(treeObjs).ToList();
+            if (Utilities.CheckForValue("7", Main.showEnvStatus.Value)) {
+                pieceObj = UnityEngine.Object.Instantiate(Hud.instance.m_hoverName.gameObject, Hud.instance.m_hoverName.transform);
+                pieceObj.name = "PieceHealthText";
+                Hud.instance.m_pieceHealthRoot.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, 20f);
+                Hud.instance.m_pieceHealthRoot.GetComponent<RectTransform>().rotation = Quaternion.identity;
+                pieceObj.transform.SetParent(Hud.instance.m_pieceHealthRoot);
+                pieceObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(-50f, 25f);
+                pieceObj.GetComponent<RectTransform>().rotation = Quaternion.identity;
+                pieceObj.SetActive(false);
+            }
         }
         public static void PatchHoveringPiece() {
             Player localPlayer = Player.m_localPlayer;
@@ -49,25 +57,24 @@ namespace AlweStats {
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Container), "GetHoverText")]
-        static string PatchContainerHoverText(string __result, Container __instance) {
-            if (!Main.enableEnvStats.Value || !Main.enableContainerStatus.Value) return __result;
-            if (__instance.m_checkGuardStone && !PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false))
-                return Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
+        static void PatchContainerHoverText(ref string __result, Container __instance) {
+            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("9", Main.showEnvStatus.Value)) return;
+            if (__instance.m_checkGuardStone && !PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false)) {
+                __result = Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
+                return;
+            }
             float perc = __instance.m_inventory.SlotsUsedPercentage();
             int totalSpace = __instance.m_inventory.GetWidth() * __instance.m_inventory.GetHeight();
             string inventoryString = $"{__instance.m_inventory.NrOfItems()} / {totalSpace} (<color={Utilities.GetColorString(perc)}>{perc:0.#} %</color>)";
             string notEmpty = __instance.m_inventory.NrOfItems() > 0 ? $"\n{inventoryString}" : " ( $piece_container_empty )";
-            return Localization.instance.Localize($"{__instance.m_name}{notEmpty}\n[<color=yellow><b>$KEY_Use</b></color>] $piece_container_open");
+            __result = Localization.instance.Localize($"{__instance.m_name}{notEmpty}\n[<color=yellow><b>$KEY_Use</b></color>] $piece_container_open");
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Destructible), "RPC_Damage")]
         static void OnDamage(Destructible __instance, HitData hit) {
-            if (!Main.enableEnvStats.Value) return;
-            List<string> canBeElements = envObjs;
-            if (!Main.enableRockStatus.Value) canBeElements.Remove("rock");
-            if (!Main.enableTreeStatus.Value) canBeElements = canBeElements.Except(treeObjs).ToList();
-            if (canBeElements.Any(e => __instance.gameObject.name.ToLower().Contains(e))) {
+            if (!Main.enableEnvStats.Value || __instance == null) return;
+            if (envObjsNew.Any(e => __instance.gameObject.name.ToLower().Contains(e))) {
                 //Debug.Log($"Destructible : {__instance.gameObject.name}");
                 ZNetView znv = __instance.m_nview;
                 Hoverable hoverable = __instance.gameObject.GetComponentInParent<Hoverable>();
@@ -83,7 +90,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(TreeBase), "RPC_Damage")]
         static void OnDamage(TreeBase __instance, HitData hit) {
-            if (!Main.enableEnvStats.Value || !Main.enableTreeStatus.Value) return;
+            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("2", Main.showEnvStatus.Value)) return;
             //Debug.Log($"TreeBase : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             Hoverable hoverable = __instance.gameObject ? __instance.gameObject.GetComponentInParent<Hoverable>() : null;
@@ -96,7 +103,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(TreeLog), "RPC_Damage")]
         static void OnDamage(TreeLog __instance, HitData hit) {
-            if (!Main.enableEnvStats.Value || !Main.enableTreeStatus.Value) return;
+            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("2", Main.showEnvStatus.Value)) return;
             //Debug.Log($"TreeLog : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             Hoverable hoverable = __instance.gameObject ? __instance.gameObject.GetComponentInParent<Hoverable>() : null;
@@ -109,7 +116,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MineRock), "RPC_Hit")]
         static void OnDamage(MineRock __instance, HitData hit, int hitAreaIndex) {
-            if (!Main.enableEnvStats.Value || !Main.enableRockStatus.Value) return;
+            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("1", Main.showEnvStatus.Value)) return;
             //Debug.Log($"MineRock : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
@@ -122,7 +129,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MineRock5), "RPC_Damage")]
         static void OnDamage(MineRock5 __instance, HitData hit) {
-            if (!Main.enableEnvStats.Value || !Main.enableRockStatus.Value) return;
+            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("1", Main.showEnvStatus.Value)) return;
             //Debug.Log($"MineRock piece : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
@@ -134,31 +141,34 @@ namespace AlweStats {
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Plant), "GetHoverText")]
-        static string PatchPlantHoverText(string __result, Plant __instance) {
-            if (!Main.enableEnvStats.Value || !Main.enablePlantStatus.Value || __instance == null) return __result;
+        static void PatchPlantHoverText(ref string __result, Plant __instance) {
+            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("4", Main.showEnvStatus.Value) || __instance == null) return;
             float growPercentage = (float) __instance.TimeSincePlanted() / __instance.GetGrowTime() * 100f;
             growPercentage = growPercentage > 100f ? 100f : growPercentage;
-            return SetPickableText(growPercentage, __instance.GetHoverName(), __instance.GetGrowTime() - __instance.TimeSincePlanted());
+            __result = SetPickableText(growPercentage, __instance.GetHoverName(), __instance.GetGrowTime() - __instance.TimeSincePlanted());
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Pickable), "GetHoverText")]
-        static string PatchPickableHoverText(string __result, Pickable __instance) {
-            if (!Main.enableEnvStats.Value || !Main.enableBushStatus.Value || !__instance.name.ToLower().Contains("bush")) return __result;
+        static void PatchPickableHoverText(ref string __result, Pickable __instance) {
+            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("3", Main.showEnvStatus.Value) 
+                || !__instance.name.ToLower().Contains("bush")) return;
             DateTime startTime = new DateTime(__instance.m_nview.GetZDO().GetLong("picked_time"));
             float currentGrowTime = (float) (ZNet.instance.GetTime() - startTime).TotalSeconds;
             float totalGrowTime = (float) __instance.m_respawnTimeMinutes * 60f;
             float growPercentage = currentGrowTime / totalGrowTime * 100f;
             growPercentage = growPercentage > 100f ? 100f : growPercentage;
-            return SetPickableText(growPercentage, __instance.GetHoverName(), totalGrowTime - currentGrowTime);
+            __result = SetPickableText(growPercentage, __instance.GetHoverName(), totalGrowTime - currentGrowTime);
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Beehive), "GetHoverText")]
-        static string PatchBeehiveHoverText(string __result, Beehive __instance) {
-            if (!Main.enableEnvStats.Value || !Main.enableBeehiveStatus.Value) return __result;
-            if (!PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false))
-                return Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
+        static void PatchBeehiveHoverText(ref string __result, Beehive __instance) {
+            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("5", Main.showEnvStatus.Value)) return;
+            if (!PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false)) {
+                __result = Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
+                return;
+            }
             int honeyLevel = __instance.GetHoneyLevel();
             if (honeyLevel > 0) {
                 float currentHoneyTime = __instance.GetTimeSinceLastUpdate() + __instance.m_nview.GetZDO().GetFloat("product", 0f);
@@ -168,19 +178,22 @@ namespace AlweStats {
                 string honey = honeyLevel == __instance.m_maxHoney ? 
                     SetPickableText(100f, "", 0f) : SetPickableText(honeyTimePercentage, "", totalHoneyTime - currentHoneyTime);
                 string itemName = __instance.m_honeyItem.m_itemData.m_shared.m_name;
-                return Localization.instance.Localize(
+                __result = Localization.instance.Localize(
                     $"{__instance.m_name} {honey}\n{itemName} x {honeyLevel}\n[<color=yellow><b>$KEY_Use</b></color>] $piece_beehive_extract"
                 );
-            } else return __result;
+            }
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Fireplace), "GetHoverText")]
-        static string PatchFireplaceHoverText(string __result, Fireplace __instance) {
-            if (!Main.enableEnvStats.Value || !Main.enableFireStatus.Value) return __result;
-            if (!__instance.m_nview.IsValid()) return "";
+        static void PatchFireplaceHoverText(ref string __result, Fireplace __instance) {
+            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("8", Main.showEnvStatus.Value)) return;
+            if (!__instance.m_nview.IsValid()) {
+                __result = "";
+                return;
+            }
             float currentFuel = __instance.m_nview.GetZDO().GetFloat("fuel", 0f);
-            if (currentFuel == 0) return __result;
+            if (currentFuel == 0) return;
             float currentFuelTime = currentFuel * __instance.m_secPerFuel;
             float totalFuelTime = __instance.m_maxFuel * __instance.m_secPerFuel;
             float fuelTimePercentage = currentFuelTime / totalFuelTime * 100f;
@@ -188,7 +201,7 @@ namespace AlweStats {
             string fuelTime = currentFuel == __instance.m_maxFuel ? 
                 SetPickableText(100f, "", 0f) : SetPickableText(fuelTimePercentage, "", currentFuelTime);
             string itemName = __instance.m_fuelItem.m_itemData.m_shared.m_name;
-            return Localization.instance.Localize(
+            __result = Localization.instance.Localize(
                 $"{__instance.m_name} ( $piece_fire_fuel {Mathf.Ceil(currentFuel)} / {__instance.m_maxFuel:0} )\n{fuelTime}\n" +
                 $"[<color=yellow><b>$KEY_Use</b></color>] $piece_use {itemName}\n[<color=yellow><b>1-8</b></color>] $piece_useitem"
             );
@@ -196,36 +209,38 @@ namespace AlweStats {
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Fermenter), "GetHoverText")]
-        static string PatchFermenterHoverText(string __result, Fermenter __instance) {
-            if (!Main.enableEnvStats.Value || !Main.enableFermenterStatus.Value) return __result;
+        static void PatchFermenterHoverText(ref string __result, Fermenter __instance) {
+            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("6", Main.showEnvStatus.Value)) return;
             if (!PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false))
-                return Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
+                __result = Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
             switch (__instance.GetStatus()) {
                 case Fermenter.Status.Empty: {
-                    if (__instance.m_exposed) {
-                        return Localization.instance.Localize(
+                    if (__instance.m_exposed) __result = Localization.instance.Localize(
                             $"{__instance.m_name} ($piece_fermenter_exposed)\n$piece_container_empty"
                         );
-                    } else return Localization.instance.Localize(
+                    else __result = Localization.instance.Localize(
                         $"{__instance.m_name} ($piece_container_empty)\n[<color=yellow><b>$KEY_Use</b></color>] $piece_fermenter_add"
                     );
+                    return;
                 }
                 case Fermenter.Status.Fermenting: {
                     string exposedString = __instance.m_exposed ? "\n($piece_fermenter_exposed)" : "";
                     float fermentationPercentage = (float) __instance.GetFermentationTime() / __instance.m_fermentationDuration * 100f;
                     fermentationPercentage = fermentationPercentage > 100f ? 100f : fermentationPercentage;
                     string fermentation = SetPickableText(fermentationPercentage, "", __instance.m_fermentationDuration - __instance.GetFermentationTime());
-                    return Localization.instance.Localize(
+                    __result = Localization.instance.Localize(
                         $"{__instance.m_name} ($piece_fermenter_fermenting)\n{__instance.GetContentName()} {fermentation}{exposedString}"
                     );
+                    return;
                 }
                 case Fermenter.Status.Ready: {
-                    return Localization.instance.Localize(
+                    __result = Localization.instance.Localize(
                         $"{__instance.m_name} ($piece_fermenter_ready)\n{__instance.GetContentName()}\n[<color=yellow><b>$KEY_Use</b></color>] $piece_fermenter_tap"
                     );
+                    return;
                 }
             }
-            return __instance.m_name;
+            __result = __instance.m_name;
         }
 
         private static void SetHoverText(GameObject go, string name, float current, float total) {

@@ -10,11 +10,13 @@ namespace AlweStats {
     [HarmonyPatch]
     public static class MapStats {
         private static Block mapBlock = null;
-        private static readonly Dictionary<string, int> pinsObjs = new() {
+        private static readonly Dictionary<string, int> locObjsReal = new() {
             { "SunkenCrypt", "TrophySkeletonPoison".GetStableHashCode() },
             { "TrollCave", "TrophyFrostTroll".GetStableHashCode() },
             { "FireHole", "TrophySurtling".GetStableHashCode() },
-            { "Crypt", "TrophySkeleton".GetStableHashCode() },
+            { "Crypt", "TrophySkeleton".GetStableHashCode() }
+        };
+        private static readonly Dictionary<string, int> zdoObjsReal = new() {
             { "Cart", "Cart".GetStableHashCode() },
             { "Raft", "Raft".GetStableHashCode() },
             { "Karve", "Karve".GetStableHashCode() },
@@ -22,10 +24,13 @@ namespace AlweStats {
             { "Wood Portal", "portal_wood".GetStableHashCode() },
             { "Stone Portal", "portal".GetStableHashCode() }
         };
-        private static GameObject cursorObj = null, exploredObj = null, bedObj = null, portalObj = null, shipObj = null;
+        private static Dictionary<string, int> zdoObjs = new(), locObjs = new();
+        private static GameObject cursorObj = null, exploredObj = null, bedObj = null, shipObj = null, portalObj = null;
         private static Dictionary<ZDO, Minimap.PinData> zdoPins = new();
         private static Dictionary<Vector3, Minimap.PinData> locPins = new();
-        private static Dictionary<int, List<ZDO>> foundPrefabs = new();
+        private static List<ZDO> shipsFound = new(), portalsFound = new();
+        private static long exploredTotal = 0, mapSize = 0;
+        private static bool zdoCheck;
 
         public static Block Start() {
             Minimap map = Minimap.instance;
@@ -40,7 +45,7 @@ namespace AlweStats {
                     Main.mapStatsAlign.Value
                 );
             }
-            if (Main.showCursorCoordinatesInMap.Value) {
+            if (Main.showCursorCoordinates.Value) {
                 GameObject original = map.m_biomeNameLarge.gameObject;
                 cursorObj = UnityEngine.Object.Instantiate(original, original.transform);
                 cursorObj.name = "CursorCoordinates";
@@ -94,291 +99,8 @@ namespace AlweStats {
             return mapBlock;
         }
 
-        public static void Update() {
-            Minimap map = Minimap.instance;
-            Player localPlayer = Player.m_localPlayer;
-            Vector2 mousePos = Input.mousePosition;
-            if (localPlayer == null || map == null) return;
-            RectTransform mapRect = map.m_largeRoot.GetComponent<RectTransform>();
-            int totEffects = Hud.instance.m_statusEffects.Count;
-            Vector3 playerPos3 = localPlayer.transform.position;
-            Vector2 playerPos = new(playerPos3.x, playerPos3.z);
-            Transform cameraTransform = Utils.GetMainCamera().transform;
-            //Vector2 cameraPos = new(cameraTransform.position.x, cameraTransform.position.z);
-            Vector3 cameraAngles = cameraTransform.rotation.eulerAngles;
-
-            if ((CheckForPin(1) || CheckForPin(2) || CheckForPin(3)) && locPins.Count == 0) {
-                if (!CheckForPin(1)) pinsObjs.Remove("TrollCave");
-                if (!CheckForPin(3)) pinsObjs.Remove("FireHole");
-                if (!CheckForPin(2)) {
-                    pinsObjs.Remove("SunkenCrypt");
-                    pinsObjs.Remove("Crypt");
-                }
-                List<ZoneSystem.LocationInstance> locations = Enumerable.ToList<ZoneSystem.LocationInstance>(ZoneSystem.instance.GetLocationList());
-                foreach (ZoneSystem.LocationInstance loc in locations.Where(l => l.m_placed == true)) {
-                    //Debug.Log($"Location {loc.m_location.m_prefabName} | {loc.m_position} | {loc.m_placed}");
-                    string prefabName = loc.m_location.m_prefabName.ToLower();
-                    if (!locPins.ContainsKey(loc.m_position) && pinsObjs.Any(p => prefabName.Contains(p.Key.ToLower()))) {
-                        KeyValuePair<string, int> pair = pinsObjs.Where(p => prefabName.Contains(p.Key.ToLower())).FirstOrDefault();
-                        int dungeonType = pair.Key.Contains("Crypt") ? 2 : (pair.Key.Contains("TrollCave") ? 1 : 3);
-                        string pinTitle = CheckForPinTitle(dungeonType) ? Regex.Replace(pair.Key, "([a-z])([A-Z])", "$1 $2") : "";
-                        Minimap.PinData customPin = map.AddPin(loc.m_position, Minimap.PinType.Death, pinTitle, false, false);
-                        customPin.m_icon = GetSprite(pair.Value, false);
-                        customPin.m_doubleSize = CheckForPinSize(dungeonType);
-                        locPins.Add(loc.m_position, customPin);
-                    }
-                }
-            }
-
-            foreach (int prefab in foundPrefabs.Keys.ToList()) {
-                if (CheckForPin(6) && foundPrefabs.ContainsKey("Cart".GetStableHashCode())) {
-                    foreach (ZDO zdo in foundPrefabs["Cart".GetStableHashCode()]) {
-                        Minimap.PinData customPin;
-                        bool pinWasFound = zdoPins.TryGetValue(zdo, out customPin);
-                        if (!pinWasFound) {
-                            string pinTitle = CheckForPinTitle(6) ? "Cart" : "";
-                            customPin = map.AddPin(zdo.m_position, Minimap.PinType.Death, pinTitle, false, false);
-                            customPin.m_icon = GetSprite(zdo.m_prefab, true);
-                            customPin.m_doubleSize = CheckForPinSize(6);
-                            zdoPins.Add(zdo, customPin);
-                        } else customPin.m_pos = zdo.m_position;
-                    }
-                }
-                if (Main.enableShipStatus.Value || CheckForPin(5)) {
-                    List<ZDO> shipsFound = new(), raftsList = new(), karvesList = new(), vikingsList = new();
-                    foundPrefabs.TryGetValue("Raft".GetStableHashCode(), out raftsList);
-                    foundPrefabs.TryGetValue("Karve".GetStableHashCode(), out karvesList);
-                    foundPrefabs.TryGetValue("VikingShip".GetStableHashCode(), out vikingsList);
-                    if (raftsList != null) shipsFound = shipsFound.Concat(raftsList).ToList();
-                    if (karvesList != null) shipsFound = shipsFound.Concat(karvesList).ToList();
-                    if (vikingsList != null) shipsFound = shipsFound.Concat(vikingsList).ToList();
-                    if (Main.enableShipStatus.Value && shipObj != null) {
-                        int space = totEffects + (bedObj != null ? (bedObj.activeSelf ? 1 : 0) : 0);
-                        if (shipsFound.Count > 0) {
-                            List<float> distances = shipsFound.Select(p => {
-                                Vector3 p3 = p.GetPosition();
-                                return Vector2.Distance(playerPos, new Vector2(p3.x, p3.z));
-                            }).ToList();
-                            float closer = distances.Min();
-                            ZDO closerShip = shipsFound[distances.IndexOf(closer)];
-                            string shipName = pinsObjs.Where(p => p.Value == closerShip.GetPrefab()).FirstOrDefault().Key;
-                            Vector3 shipPos3 = closerShip.GetPosition();
-                            Vector2 shipPos = new(shipPos3.x, shipPos3.z);
-                            shipObj.transform.Find("Name").GetComponent<Text>().text = shipName;
-                            SetElementStatus(shipObj, playerPos, shipPos, cameraTransform, space);
-                        } else shipObj.SetActive(false);
-                    }
-                    if (CheckForPin(5)) {
-                        foreach (ZDO zdo in shipsFound) {
-                            Minimap.PinData customPin;
-                            bool pinWasFound = zdoPins.TryGetValue(zdo, out customPin);
-                            if (!pinWasFound) {
-                                string shipName = pinsObjs.Where(p => p.Value == zdo.GetPrefab()).FirstOrDefault().Key;
-                                string pinTitle = CheckForPinTitle(5) ? shipName : "";
-                                customPin = map.AddPin(zdo.m_position, Minimap.PinType.Death, pinTitle, false, false);
-                                customPin.m_icon = GetSprite(zdo.GetPrefab(), true);
-                                customPin.m_doubleSize = CheckForPinSize(5);
-                                zdoPins.Add(zdo, customPin);
-                            } else customPin.m_pos = zdo.m_position;
-                        }
-                    }
-                }
-                if (Main.enablePortalStatus.Value || CheckForPin(4)) {
-                    List<ZDO> portalsFound = new(), woodsList = new(), stonesList = new();
-                    foundPrefabs.TryGetValue("portal_wood".GetStableHashCode(), out woodsList);
-                    foundPrefabs.TryGetValue("portal".GetStableHashCode(), out stonesList);
-                    if (woodsList != null) portalsFound = portalsFound.Concat(woodsList).ToList();
-                    if (stonesList != null) portalsFound = portalsFound.Concat(stonesList).ToList();
-                    if (Main.enablePortalStatus.Value && portalObj != null) {
-                        int space = totEffects + (bedObj != null ? (bedObj.activeSelf ? 1 : 0) : 0) + (shipObj != null ? (shipObj.activeSelf ? 1 : 0) : 0);
-                        if (portalsFound.Count > 0) {
-                            List<float> distances = portalsFound.Select(p => {
-                                Vector3 p3 = p.GetPosition();
-                                return Vector2.Distance(playerPos, new Vector2(p3.x, p3.z));
-                            }).ToList();
-                            float closer = distances.Min();
-                            Vector3 portalPos3 = portalsFound[distances.IndexOf(closer)].GetPosition();
-                            Vector2 portalPos = new(portalPos3.x, portalPos3.z);
-                            SetElementStatus(portalObj, playerPos, portalPos, cameraTransform, space);
-                        } else portalObj.SetActive(false);
-                    }
-                    if (CheckForPin(4)) {
-                        foreach (ZDO zdo in portalsFound) {
-                            Minimap.PinData customPin;
-                            bool pinWasFound = zdoPins.TryGetValue(zdo, out customPin);
-                            if (!pinWasFound) {
-                                string portalTag = CheckForPinTitle(4) ? zdo.GetString("tag", "") : "";
-                                customPin = map.AddPin(zdo.m_position, Minimap.PinType.Death, portalTag, false, false);
-                                customPin.m_icon = GetSprite(zdo.m_prefab, true);
-                                customPin.m_doubleSize = CheckForPinSize(4);
-                                zdoPins.Add(zdo, customPin);
-                            } else {
-                                string portalTag = CheckForPinTitle(4) ? zdo.GetString("tag", "") : "";
-                                customPin.m_name = portalTag;
-                                customPin.m_pos = zdo.m_position;
-                            }
-                        }
-                    }
-                }
-            }
-
-            /*timeInterval += Time.deltaTime;
-            if ((Main.enableCustomPins.Value || Main.enablePortalStatus.Value || Main.enableShipStatus.Value) && timeInterval >= updateTime) {
-                Dictionary<ZDO, Minimap.PinData> tempDict = zdoPins.Keys.ToDictionary(k => k, k => zdoPins[k]);
-                foreach (KeyValuePair<ZDO, Minimap.PinData> pin in tempDict) {
-                    if (!pin.Key.IsValid()) {
-                        map.RemovePin(pin.Value);
-                        zdoPins.Remove(pin.Key);
-                    }
-                }
-                shipsFound.Clear();
-                portalsFound.Clear();
-                foundPrefabs.Clear();
-                foreach (ZDO zdo in ZDOMan.instance.m_objectsByID.Values.ToList()) {
-                    if (pinsObjs.Any(p => p.Value == zdo.GetPrefab())) {
-                        if (foundPrefabs.ContainsKey(zdo.GetPrefab())) foundPrefabs[zdo.GetPrefab()].Add(zdo);
-                        else foundPrefabs.Add(zdo.GetPrefab(), new List<ZDO>(){ zdo });
-                    }
-                }
-                List<ZDO> raftsList = new(), karvesList = new(), vikingsList = new(), woodsList = new(), stonesList = new();
-                foundPrefabs.TryGetValue("Raft".GetStableHashCode(), out raftsList);
-                foundPrefabs.TryGetValue("Karve".GetStableHashCode(), out karvesList);
-                foundPrefabs.TryGetValue("VikingShip".GetStableHashCode(), out vikingsList);
-                foundPrefabs.TryGetValue("portal_wood".GetStableHashCode(), out woodsList);
-                foundPrefabs.TryGetValue("portal".GetStableHashCode(), out stonesList);
-                if (raftsList != null) shipsFound = shipsFound.Concat(raftsList).ToList();
-                if (karvesList != null) shipsFound = shipsFound.Concat(karvesList).ToList();
-                if (vikingsList != null) shipsFound = shipsFound.Concat(vikingsList).ToList();
-                if (woodsList != null) portalsFound = portalsFound.Concat(woodsList).ToList();
-                if (stonesList != null) portalsFound = portalsFound.Concat(stonesList).ToList();
-                timeInterval -= updateTime;
-            }
-
-            foreach (int prefab in foundPrefabs.Keys.ToList()) {
-                if (Main.enableCartsPins.Value && foundPrefabs.ContainsKey("Cart".GetStableHashCode())) {
-                    foreach (ZDO zdo in foundPrefabs["Cart".GetStableHashCode()]) {
-                        Minimap.PinData customPin;
-                        bool pinWasFound = zdoPins.TryGetValue(zdo, out customPin);
-                        if (!pinWasFound) {
-                            string pinTitle = CheckForPinTitle(6) ? "Cart" : "";
-                            customPin = map.AddPin(zdo.m_position, Minimap.PinType.Death, pinTitle, false, false);
-                            customPin.m_icon = GetSprite(zdo.m_prefab, true);
-                            customPin.m_doubleSize = CheckForPinSize(6);
-                            zdoPins.Add(zdo, customPin);
-                        }
-                    }
-                }
-                if (Main.enableShipStatus.Value || Main.enableShipsPins.Value) {
-                    if (Main.enableShipStatus.Value && shipObj != null) {
-                        int space = totEffects + (bedObj != null ? (bedObj.activeSelf ? 1 : 0) : 0);
-                        if (shipsFound.Count > 0) {
-                            List<float> distances = shipsFound.Select(p => {
-                                Vector3 p3 = p.GetPosition();
-                                return Vector2.Distance(playerPos, new Vector2(p3.x, p3.z));
-                            }).ToList();
-                            float closer = distances.Min();
-                            ZDO closerShip = shipsFound[distances.IndexOf(closer)];
-                            string shipName = pinsObjs.Where(p => p.Value == closerShip.GetPrefab()).FirstOrDefault().Key;
-                            Vector3 shipPos3 = closerShip.GetPosition();
-                            Vector2 shipPos = new(shipPos3.x, shipPos3.z);
-                            shipObj.transform.Find("Name").GetComponent<Text>().text = shipName;
-                            SetElementStatus(shipObj, playerPos, shipPos, cameraTransform, space);
-                        } else shipObj.SetActive(false);
-                    }
-                    if (Main.enableShipsPins.Value) {
-                        foreach (ZDO zdo in shipsFound) {
-                            Minimap.PinData customPin;
-                            bool pinWasFound = zdoPins.TryGetValue(zdo, out customPin);
-                            if (!pinWasFound) {
-                                string shipName = pinsObjs.Where(p => p.Value == zdo.GetPrefab()).FirstOrDefault().Key;
-                                string pinTitle = CheckForPinTitle(5) ? shipName : "";
-                                customPin = map.AddPin(zdo.m_position, Minimap.PinType.Death, pinTitle, false, false);
-                                customPin.m_icon = GetSprite(zdo.GetPrefab(), true);
-                                customPin.m_doubleSize = CheckForPinSize(5);
-                                zdoPins.Add(zdo, customPin);
-                            }
-                        }
-                    }
-                }
-                if (Main.enablePortalStatus.Value || Main.enablePortalsPins.Value) {
-                    if (Main.enablePortalStatus.Value && portalObj != null) {
-                        int space = totEffects + (bedObj != null ? (bedObj.activeSelf ? 1 : 0) : 0) + (shipObj != null ? (shipObj.activeSelf ? 1 : 0) : 0);
-                        if (portalsFound.Count > 0) {
-                            List<float> distances = portalsFound.Select(p => {
-                                Vector3 p3 = p.GetPosition();
-                                return Vector2.Distance(playerPos, new Vector2(p3.x, p3.z));
-                            }).ToList();
-                            float closer = distances.Min();
-                            Vector3 portalPos3 = portalsFound[distances.IndexOf(closer)].GetPosition();
-                            Vector2 portalPos = new(portalPos3.x, portalPos3.z);
-                            SetElementStatus(portalObj, playerPos, portalPos, cameraTransform, space);
-                        } else portalObj.SetActive(false);
-                    }
-                    if (Main.enablePortalsPins.Value) {
-                        foreach (ZDO zdo in portalsFound) {
-                            Minimap.PinData customPin;
-                            bool pinWasFound = zdoPins.TryGetValue(zdo, out customPin);
-                            if (!pinWasFound) {
-                                string portalTag = CheckForPinTitle(4) ? zdo.GetString("tag", "") : "";
-                                customPin = map.AddPin(zdo.m_position, Minimap.PinType.Death, portalTag, false, false);
-                                customPin.m_icon = GetSprite(zdo.m_prefab, true);
-                                customPin.m_doubleSize = CheckForPinSize(4);
-                                zdoPins.Add(zdo, customPin);
-                            }
-                        }
-                    }
-                }
-            }*/
-
-            if (Main.enableBedStatus.Value && bedObj != null) {
-                PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
-                if (playerProfile.HaveCustomSpawnPoint()) {
-                    Vector3 spawnPos3 = playerProfile.GetCustomSpawnPoint();
-                    Vector2 spawnPos = new(spawnPos3.x, spawnPos3.z);
-                    SetElementStatus(bedObj, playerPos, spawnPos, cameraTransform, totEffects);
-                } else bedObj.SetActive(false);
-            }
-            if (Main.enableMapStats.Value && mapBlock != null) {
-                RaycastHit hit;
-                Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit);
-                mapBlock.SetText(String.Format(
-                    Main.worldCoordinatesFormat.Value,
-                    $"{playerPos3.x:0.#}", $"{playerPos3.y:0.#}", $"{playerPos3.z:0.#}",
-                    $"{hit.point.x:0.#}", $"{hit.point.y:0.#}", $"{hit.point.z:0.#}"
-                ));
-            }
-            if (Main.showCursorCoordinatesInMap.Value && cursorObj != null && RectTransformUtility.RectangleContainsScreenPoint(mapRect, mousePos)) {
-                Vector3 cursor = map.ScreenToWorldPoint(mousePos);
-                cursorObj.GetComponent<Text>().text = String.Format(
-                    Main.mapCoordinatesFormat.Value,
-                    $"{cursor.x:0.#}", $"{cursor.z:0.#}"
-                );
-            }
-            if (Main.showExploredPercentage.Value && exploredObj != null) {
-                float exploredYouPercentage = map.m_explored.Where(b => b).Count() * 100f / map.m_explored.Length;
-                //float exploredOthersPercentage = map.m_exploredOthers.Where(b => b).Count() * 100f / map.m_exploredOthers.Length;
-                exploredObj.GetComponent<Text>().text = $"Explored : {exploredYouPercentage:0.##} %";
-            }
-            if (Main.enableRotatingMinimap.Value) {
-                map.m_mapImageSmall.transform.rotation = Quaternion.Euler(0f, 0f, cameraAngles.y);
-                map.m_pinRootSmall.transform.rotation = Quaternion.Euler(0f, 0f, cameraAngles.y);
-                for (int i = 0; i < map.m_pinRootSmall.childCount; i++)
-                    map.m_pinRootSmall.transform.GetChild(i).transform.rotation = Quaternion.identity;
-                if (map.m_mode == Minimap.MapMode.Small) {
-                    map.m_smallMarker.rotation = Quaternion.identity;
-                    Vector3 windAngles = Quaternion.LookRotation(EnvMan.instance.GetWindDir()).eulerAngles;
-                    map.m_windMarker.rotation = Quaternion.Euler(0f, 0f, cameraAngles.y - windAngles.y);
-                    Ship controlledShip = localPlayer.GetControlledShip();
-                    if (controlledShip) {
-                        map.m_smallShipMarker.gameObject.SetActive(true);
-                        map.m_smallShipMarker.transform.rotation = Quaternion.Euler(0f, 0f, controlledShip.GetShipYawAngle());
-                    } else map.m_smallShipMarker.gameObject.SetActive(false);
-                }
-            }
-        }
-
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Minimap), "Awake")]
+        [HarmonyPatch(typeof(Minimap), "Start")]
         static void MinimapStart(Minimap __instance) {
             /*if (Main.showCustomMinimap.Value) {
                 Assembly assembly = Assembly.GetExecutingAssembly();
@@ -425,6 +147,8 @@ namespace AlweStats {
                 __instance.m_smallShipMarker.transform.SetParent(__instance.m_smallRoot.transform);
                 __instance.m_windMarker.transform.SetParent(__instance.m_smallRoot.transform);
             }
+            exploredTotal = 0;
+            mapSize = __instance.m_explored.Length;
             float newSmallSize = __instance.m_smallMarker.sizeDelta.x * Main.playerMarkerScale.Value;
             float newLargeSize = __instance.m_largeMarker.sizeDelta.x * Main.playerMarkerScale.Value;
             __instance.m_smallMarker.sizeDelta = new(newSmallSize, newSmallSize);
@@ -432,19 +156,104 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
+        [HarmonyPatch(typeof(Minimap), "Update")]
+        static void MinimapUpdate(Minimap __instance) {
+            Player localPlayer = Player.m_localPlayer;
+            if (localPlayer == null) return;
+            Vector2 mousePos = Input.mousePosition;
+            RectTransform mapRect = __instance.m_largeRoot.GetComponent<RectTransform>();
+            int totEffects = Hud.instance.m_statusEffects.Count;
+            Vector3 playerPos3 = localPlayer.transform.position;
+            Vector2 playerPos = new(playerPos3.x, playerPos3.z);
+            Transform cameraTransform = Utils.GetMainCamera().transform;
+
+            LoadLocations();
+            LoadZDOs();
+
+            foreach (KeyValuePair<ZDO, Minimap.PinData> pin in zdoPins) {
+                if ((pin.Key.GetPrefab() == "portal_wood".GetStableHashCode() || pin.Key.GetPrefab() == "portal".GetStableHashCode())
+                    && Utilities.CheckForValue("4", Main.showPinsTitles.Value)) pin.Value.m_name = pin.Key.GetString("tag", "");
+                pin.Value.m_pos = pin.Key.GetPosition();            
+            }
+
+            if (Main.enableBedStatus.Value && bedObj != null) {
+                PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
+                if (playerProfile.HaveCustomSpawnPoint()) {
+                    Vector2 spawnPos = new(playerProfile.GetCustomSpawnPoint().x, playerProfile.GetCustomSpawnPoint().z);
+                    float distance = Vector2.Distance(playerPos, spawnPos);
+                    string distanceText = distance < 1000f ? $"{distance:0.#} m" : $"{(distance / 1000f):0.#} km";
+                    Vector2 cameraForward = new(cameraTransform.forward.x, cameraTransform.forward.z);
+                    Vector2 cameraRight = new(cameraTransform.right.x, cameraTransform.right.z);
+                    float forwardAngle = Vector2.Angle(spawnPos - playerPos, cameraForward);
+                    float rightAngle = Vector2.Angle(spawnPos - playerPos, cameraRight);
+                    Quaternion objRotation = Quaternion.Euler(0f, 0f, rightAngle <= 90f ? 360f - forwardAngle : forwardAngle);
+                    bedObj.GetComponent<RectTransform>().anchoredPosition = new Vector3(-4f - totEffects * Hud.instance.m_statusEffectSpacing, 0f);
+                    bedObj.transform.Find("Icon").rotation = objRotation;
+                    bedObj.transform.Find("TimeText").GetComponent<Text>().text = distanceText;
+                    bedObj.SetActive(true);
+                } else bedObj.SetActive(false);
+            }
+            if (Main.enablePortalStatus.Value && portalObj != null) {
+                int space = totEffects + (bedObj != null ? (bedObj.activeSelf ? 1 : 0) : 0);
+                SetElementStatus(portalObj, portalsFound, playerPos, cameraTransform, space);
+            }
+            if (Main.enableShipStatus.Value && shipObj != null) {
+                int space = totEffects + (bedObj != null ? (bedObj.activeSelf ? 1 : 0) : 0) + (shipObj != null ? (shipObj.activeSelf ? 1 : 0) : 0);
+                SetElementStatus(shipObj, shipsFound, playerPos, cameraTransform, space);
+            }
+            if (Main.enableMapStats.Value && mapBlock != null) {
+                RaycastHit hit;
+                Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit);
+                mapBlock.SetText(String.Format(
+                    Main.worldCoordinatesFormat.Value,
+                    $"{playerPos3.x:0.#}", $"{playerPos3.y:0.#}", $"{playerPos3.z:0.#}",
+                    $"{hit.point.x:0.#}", $"{hit.point.y:0.#}", $"{hit.point.z:0.#}"
+                ));
+            }
+            if (Main.showCursorCoordinates.Value && cursorObj != null && RectTransformUtility.RectangleContainsScreenPoint(mapRect, mousePos)) {
+                Vector3 cursor = __instance.ScreenToWorldPoint(mousePos);
+                cursorObj.GetComponent<Text>().text = String.Format(
+                    Main.mapCoordinatesFormat.Value,
+                    $"{cursor.x:0.#}", $"{cursor.z:0.#}"
+                );
+            }
+            if (Main.enableRotatingMinimap.Value) {
+                Vector3 playerAngles = localPlayer.m_eye.transform.rotation.eulerAngles;
+                __instance.m_mapImageSmall.transform.rotation = Quaternion.Euler(0f, 0f, playerAngles.y);
+                __instance.m_pinRootSmall.transform.rotation = Quaternion.Euler(0f, 0f, playerAngles.y);
+                for (int i = 0; i < __instance.m_pinRootSmall.childCount; i++)
+                    __instance.m_pinRootSmall.transform.GetChild(i).transform.rotation = Quaternion.identity;
+                if (__instance.m_mode == Minimap.MapMode.Small) {
+                    __instance.m_smallMarker.rotation = Quaternion.identity;
+                    Vector3 windAngles = Quaternion.LookRotation(EnvMan.instance.GetWindDir()).eulerAngles;
+                    __instance.m_windMarker.rotation = Quaternion.Euler(0f, 0f, playerAngles.y - windAngles.y);
+                    Ship controlledShip = localPlayer.GetControlledShip();
+                    if (controlledShip) {
+                        __instance.m_smallShipMarker.gameObject.SetActive(true);
+                        __instance.m_smallShipMarker.transform.rotation = Quaternion.Euler(0f, 0f, controlledShip.GetShipYawAngle());
+                    } else __instance.m_smallShipMarker.gameObject.SetActive(false);
+                }
+            }
+        }
+
+        [HarmonyPostfix]
         [HarmonyPatch(typeof(Location), "Awake")]
         static void ShowDungeonsPins(Location __instance) {
+            LoadLocations();
             Location location = __instance.GetComponent<Location>();
             Minimap map = Minimap.instance;
-            if (location && map) {
+            if (location != null && map != null && (Utilities.CheckForValue("1", Main.showCustomPins.Value) || 
+                Utilities.CheckForValue("2", Main.showCustomPins.Value) || Utilities.CheckForValue("3", Main.showCustomPins.Value))) {
                 Vector3 locPos = location.transform.position;
                 string locName = location.name.ToLower();
-                if (!locPins.ContainsKey(locPos) && pinsObjs.Any(p => locName.Contains(p.Key.ToLower()))) {
-                    KeyValuePair<string, int> pair = pinsObjs.Where(p => locName.Contains(p.Key.ToLower())).FirstOrDefault();
-                    string pinTitle = CheckForPinTitle(pair.Key.Contains("Crypt") ? 2 : 1) ? pair.Key : "";
+                if (!locPins.ContainsKey(locPos) && locObjs.Any(p => locName.Contains(p.Key.ToLower()))) {
+                    KeyValuePair<string, int> pair = locObjs.Where(p => locName.Contains(p.Key.ToLower())).FirstOrDefault();
+                    string dungeonType = pair.Key.Contains("Crypt") ? "2" : (pair.Key.Contains("TrollCave") ? "1" : "3");
+                    string pinTitle = Utilities.CheckForValue(dungeonType, Main.showPinsTitles.Value) ? 
+                        Regex.Replace(pair.Key, "([a-z])([A-Z])", "$1 $2") : "";
                     Minimap.PinData customPin = map.AddPin(locPos, Minimap.PinType.Death, pinTitle, false, false);
                     customPin.m_icon = GetSprite(pair.Value, false);
-                    customPin.m_doubleSize = CheckForPinSize(pair.Key.Contains("Crypt") ? 2 : 1);
+                    customPin.m_doubleSize = Utilities.CheckForValue(dungeonType, Main.biggerPins.Value);
                     locPins.Add(locPos, customPin);
                 }
             }
@@ -453,54 +262,53 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ZNetScene), "AddInstance")]
         static void PatchCreateZDO(ZNetScene __instance, ZDO zdo) {
-            if ((CheckForPin(0) || Main.enablePortalStatus.Value || Main.enableShipStatus.Value) && foundPrefabs.Count == 0) {
-                if (!CheckForPin(6)) pinsObjs.Remove("Cart");
-                if (!CheckForPin(5) && !Main.enableShipStatus.Value) {
-                    pinsObjs.Remove("Raft");
-                    pinsObjs.Remove("Karve");
-                    pinsObjs.Remove("Viking Ship");
-                }
-                if (!CheckForPin(4) && !Main.enablePortalStatus.Value) {
-                    pinsObjs.Remove("Wood Portal");
-                    pinsObjs.Remove("Stone Portal");
-                }
-                foreach (ZDO zdoByID in ZDOMan.instance.m_objectsByID.Values.ToList()) {
-                    if (pinsObjs.Any(p => p.Value == zdoByID.GetPrefab())) {
-                        if (foundPrefabs.ContainsKey(zdoByID.GetPrefab())) foundPrefabs[zdoByID.GetPrefab()].Add(zdoByID);
-                        else foundPrefabs.Add(zdoByID.GetPrefab(), new List<ZDO>(){ zdoByID });
-                    }
-                }
-            }
-            if (zdo.IsValid() && pinsObjs.Any(p => zdo.GetPrefab() == p.Value) &&
-                CheckForPin(0) || Main.enablePortalStatus.Value || Main.enableShipStatus.Value) {
-                //Debug.Log($"ZDO aggiunto a foundPrefabs !");
-                if (foundPrefabs.ContainsKey(zdo.GetPrefab())) foundPrefabs[zdo.GetPrefab()].Add(zdo);
-                else foundPrefabs.Add(zdo.GetPrefab(), new List<ZDO>(){ zdo });
+            LoadZDOs();
+            Minimap map = Minimap.instance;
+            int prefabHash = zdo.GetPrefab();
+            if (map != null && zdo.IsValid() && zdoObjs.Any(p => prefabHash == p.Value)) SetElementPin(map, zdo);
+            if (zdo.IsValid() && portalObj != null && (prefabHash == "portal_wood".GetStableHashCode() || 
+                prefabHash == "portal".GetStableHashCode())) {
+                //Debug.Log($"ZDO aggiunto a portalsFound !");
+                portalsFound.Add(zdo);
+            } else if (zdo.IsValid() && shipObj != null && (prefabHash == "VikingShip".GetStableHashCode() || 
+                prefabHash == "Raft".GetStableHashCode() || prefabHash == "Karve".GetStableHashCode())) {
+                //Debug.Log($"ZDO aggiunto a shipsFound !");
+                shipsFound.Add(zdo);
             }
         }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ZNetScene), "Destroy")]
         static bool PatchDestroyZDO(ZNetScene __instance, GameObject go) {
-            if (CheckForPin(0) || !Main.enablePortalStatus.Value || !Main.enableShipStatus.Value) return true;
-            Minimap map = Minimap.instance;
+            if (!Utilities.CheckForValue("0", Main.showCustomPins.Value) 
+                && !Main.enablePortalStatus.Value && !Main.enableShipStatus.Value) return true;
             ZNetView component = go.GetComponent<ZNetView>();
             if (component && component.GetZDO() != null) {
+                Minimap map = Minimap.instance;
                 ZDO zdo = component.GetZDO();
-                if (map && pinsObjs.Any(p => zdo.GetPrefab() == p.Value)) {
+                if (map && zdoObjs.Any(p => zdo.GetPrefab() == p.Value)) {
                     Minimap.PinData customPin;
-                    List<ZDO> zdoList;
                     if (zdoPins.TryGetValue(zdo, out customPin)) {
                         //Debug.Log($"ZDO rimosso da zdoPins !");
                         map.RemovePin(customPin);
                         zdoPins.Remove(zdo);
                     }
-                    if (foundPrefabs.TryGetValue(zdo.GetPrefab(), out zdoList)) {
-                        if (zdoList.Contains(zdo)) {
-                            //Debug.Log($"ZDO rimosso da foundPrefabs !");
-                            foundPrefabs[zdo.GetPrefab()].Remove(zdo);
-                        }
+                }
+                if (map && locObjs.Any(p => zdo.GetPrefab() == p.Value)) {
+                    Minimap.PinData customPin;
+                    if (locPins.TryGetValue(zdo.GetPosition(), out customPin)) {
+                        //Debug.Log($"ZDO rimosso da locPins !");
+                        map.RemovePin(customPin);
+                        locPins.Remove(zdo.GetPosition());
                     }
+                }
+                if (shipsFound.Contains(zdo)) {
+                    //Debug.Log($"ZDO rimosso da shipsFound !");
+                    shipsFound.Remove(zdo);
+                }
+                if (portalsFound.Contains(zdo)) {
+                    //Debug.Log($"ZDO rimosso da portalsFound !");
+                    portalsFound.Remove(zdo);
                 }
                 component.ResetZDO();
                 __instance.m_instances.Remove(zdo);
@@ -510,20 +318,51 @@ namespace AlweStats {
             return false;
         }
 
-        private static void SetElementStatus(GameObject element, Vector2 playerPos, Vector2 targetPos, Transform camera, int space) {
-            float distance = Vector2.Distance(playerPos, targetPos);
-            string pointDistance = distance < 1000f ? $"{distance:0.#} m" : $"{(distance / 1000f):0.#} km";
-            Vector2 cameraForward = new(camera.forward.x, camera.forward.z);
-            Vector2 cameraRight = new(camera.right.x, camera.right.z);
-            float forwardAngle = Vector2.Angle(targetPos - playerPos, cameraForward);
-            float rightAngle = Vector2.Angle(targetPos - playerPos, cameraRight);
-            Quaternion objRotation = Quaternion.Euler(0f, 0f, rightAngle <= 90f ? 360f - forwardAngle : forwardAngle);
-            element.GetComponent<RectTransform>().anchoredPosition = new Vector3(-4f - space * Hud.instance.m_statusEffectSpacing, 0f);
-            element.transform.Find("Icon").rotation = objRotation;
-            element.transform.Find("TimeText").GetComponent<Text>().text = pointDistance;
-            element.SetActive(true);
+        private static void SetElementStatus(GameObject element, List<ZDO> list, Vector2 playerPos, Transform camera, int space) {
+            if (list.Count > 0) {
+                List<float> distances = list.Select(p => {
+                    Vector3 p3 = p.GetPosition();
+                    return Vector2.Distance(playerPos, new Vector2(p3.x, p3.z));
+                }).ToList();
+                float closer = distances.Min();
+                string distance = closer < 1000f ? $"{closer:0.#} m" : $"{(closer / 1000f):0.#} km";
+                ZDO closerZDO = list[distances.IndexOf(closer)];
+                Vector2 closerPos = new(closerZDO.GetPosition().x, closerZDO.GetPosition().z);
+                if (list.All(shipsFound.Contains)) {
+                    string prefabName = zdoObjs.Where(p => p.Value == closerZDO.GetPrefab()).FirstOrDefault().Key;
+                    element.transform.Find("Name").GetComponent<Text>().text = prefabName;
+                }
+                Vector2 cameraForward = new(camera.forward.x, camera.forward.z);
+                Vector2 cameraRight = new(camera.right.x, camera.right.z);
+                float forwardAngle = Vector2.Angle(closerPos - playerPos, cameraForward);
+                float rightAngle = Vector2.Angle(closerPos - playerPos, cameraRight);
+                Quaternion objRotation = Quaternion.Euler(0f, 0f, rightAngle <= 90f ? 360f - forwardAngle : forwardAngle);
+                element.GetComponent<RectTransform>().anchoredPosition = new Vector3(-4f - space * Hud.instance.m_statusEffectSpacing, 0f);
+                element.transform.Find("Icon").rotation = objRotation;
+                element.transform.Find("TimeText").GetComponent<Text>().text = distance;
+                element.SetActive(true);
+            } else element.SetActive(false);
         }
         
+        private static void SetElementPin(Minimap map, ZDO zdo) {
+            string number = "0";
+            if (zdo.GetPrefab() == "Cart".GetStableHashCode()) number = "6";
+            else if (zdo.GetPrefab() == "Raft".GetStableHashCode() || zdo.GetPrefab() == "Karve".GetStableHashCode()
+                || zdo.GetPrefab() == "VikingShip".GetStableHashCode()) number = "5";
+            else if (zdo.GetPrefab() == "portal_wood".GetStableHashCode() 
+                || zdo.GetPrefab() == "portal".GetStableHashCode()) number = "4";
+            Minimap.PinData customPin;
+            if (!zdoPins.TryGetValue(zdo, out customPin)) {
+                string zdoName = zdoObjs.Where(p => p.Value == zdo.GetPrefab()).FirstOrDefault().Key;
+                string pinTitle = Utilities.CheckForValue(number, Main.showPinsTitles.Value) ? zdoName : "";
+                customPin = map.AddPin(zdo.GetPosition(), Minimap.PinType.Death, pinTitle, false, false);
+                customPin.m_icon = GetSprite(zdo.GetPrefab(), true);
+                customPin.m_doubleSize = Utilities.CheckForValue(number, Main.biggerPins.Value);
+                zdoPins.Add(zdo, customPin);
+                //Debug.Log($"ZDO aggiunto a zdoPins !");
+            }
+        }
+
         private static Sprite GetSprite(int nameHash, bool isPiece) {
             if (isPiece) {
                 GameObject hammerObj = ObjectDB.instance.m_itemByHash["Hammer".GetStableHashCode()];
@@ -546,25 +385,103 @@ namespace AlweStats {
             return null;
         }
 
-        private static bool CheckForPin(int num) {
-            string numString = Convert.ToString(num);
-            string[] values = Regex.Replace(Main.showCustomPins.Value, @"\s+", "").Split(',');
-            if (values.Contains("0")) return false;
-            else return values.Contains(numString);
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Minimap), "GetSprite")]
+        static void PatchGetSprite(ref Sprite __result, Minimap.PinType type) {
+            if (Main.replaceBedPinIcon.Value && type == Minimap.PinType.Bed) __result = GetSprite("bed".GetStableHashCode(), true);
         }
 
-        private static bool CheckForPinTitle(int num) {
-            string numString = Convert.ToString(num);
-            string[] values = Regex.Replace(Main.showPinsTitles.Value, @"\s+", "").Split(',');
-            if (values.Contains("0")) return false;
-            else return values.Contains(numString);
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Minimap), "Explore", new Type[] { typeof(int), typeof(int)})]
+        static void PatchExplore(ref bool __result, Minimap __instance) {
+            if (Main.showExploredPercentage.Value && exploredObj != null && __result) {
+                exploredTotal += 1;
+                float exploredYouPercentage = exploredTotal * 100f / mapSize;
+                exploredObj.GetComponent<Text>().text = $"Explored : {exploredYouPercentage:0.##} %";
+            }
         }
 
-        private static bool CheckForPinSize(int num) {
-            string numString = Convert.ToString(num);
-            string[] values = Regex.Replace(Main.biggerPins.Value, @"\s+", "").Split(',');
-            if (values.Contains("0")) return false;
-            else return values.Contains(numString);
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Minimap), "Reset")]
+        static void PatchReset(Minimap __instance) {
+            if (Main.showExploredPercentage.Value && exploredObj != null) {
+                exploredTotal = 0;
+                float exploredYouPercentage = exploredTotal * 100f / mapSize;
+                exploredObj.GetComponent<Text>().text = $"Explored : {exploredYouPercentage:0.##} %";
+            }
+        }
+
+        private static void LoadLocations() {
+            Minimap map = Minimap.instance;
+            if ((Utilities.CheckForValue("1", Main.showCustomPins.Value) || Utilities.CheckForValue("2", Main.showCustomPins.Value) 
+                || Utilities.CheckForValue("3", Main.showCustomPins.Value)) && locPins.Count == 0 && map != null) {
+                List<ZoneSystem.LocationInstance> locations = Enumerable.ToList<ZoneSystem.LocationInstance>(ZoneSystem.instance.GetLocationList());
+                foreach (ZoneSystem.LocationInstance loc in locations.Where(l => l.m_placed == true)) {
+                    //Debug.Log($"Location {loc.m_location.m_prefabName} | {loc.m_position} | {loc.m_placed}");
+                    string prefabName = loc.m_location.m_prefabName.ToLower();
+                    if (!locPins.ContainsKey(loc.m_position) && locObjs.Any(p => prefabName.Contains(p.Key.ToLower()))) {
+                        KeyValuePair<string, int> pair = locObjs.Where(p => prefabName.Contains(p.Key.ToLower())).FirstOrDefault();
+                        string dungeonType = pair.Key.Contains("Crypt") ? "2" : (pair.Key.Contains("TrollCave") ? "1" : "3");
+                        string pinTitle = Utilities.CheckForValue(dungeonType, Main.showPinsTitles.Value) ? 
+                            Regex.Replace(pair.Key, "([a-z])([A-Z])", "$1 $2") : "";
+                        Minimap.PinData customPin = map.AddPin(loc.m_position, Minimap.PinType.Death, pinTitle, false, false);
+                        customPin.m_icon = GetSprite(pair.Value, false);
+                        customPin.m_doubleSize = Utilities.CheckForValue(dungeonType, Main.biggerPins.Value);
+                        locPins.Add(loc.m_position, customPin);
+                    }
+                }
+                Debug.Log($"Loaded {locPins.Count} locations pins");
+            }
+        }
+
+        private static void LoadZDOs() {
+            Minimap map = Minimap.instance;
+            if ((!Utilities.CheckForValue("0", Main.showCustomPins.Value) || Main.enablePortalStatus.Value 
+                || Main.enableShipStatus.Value) && !zdoCheck && map != null) {
+                if (ZDOMan.instance.m_objectsByID.Count > 0) zdoCheck = true;
+                foreach (ZDO zdoByID in ZDOMan.instance.m_objectsByID.Values.ToList()) {
+                    int prefabHash = zdoByID.GetPrefab();
+                    if (zdoObjs.Any(p => p.Value == prefabHash)) SetElementPin(map, zdoByID);
+                    if (portalObj != null && (prefabHash == "portal_wood".GetStableHashCode() || 
+                        prefabHash == "portal".GetStableHashCode())) {
+                        //Debug.Log($"ZDO aggiunto a portalsFound !");    
+                        portalsFound.Add(zdoByID);
+                    } else if (shipObj != null && (prefabHash == "VikingShip".GetStableHashCode() || 
+                        prefabHash == "Raft".GetStableHashCode() || prefabHash == "Karve".GetStableHashCode())) {
+                        //Debug.Log($"ZDO aggiunto a shipsFound !");
+                        shipsFound.Add(zdoByID);
+                    }
+                }
+                Debug.Log($"Loaded {zdoPins.Count} zdos pins");
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(ZNet), "LoadWorld")]
+        static void PatchLoadWorld(ZNet __instance) {
+            zdoCheck = false;
+            zdoPins.Clear();
+            locPins.Clear();
+            shipsFound.Clear();
+            portalsFound.Clear();
+            locObjs = locObjsReal.Keys.ToDictionary(k => k, v => locObjsReal[v]);
+            zdoObjs = zdoObjsReal.Keys.ToDictionary(k => k, v => zdoObjsReal[v]);
+            if (!Utilities.CheckForValue("1", Main.showCustomPins.Value)) locObjs.Remove("TrollCave");
+            if (!Utilities.CheckForValue("2", Main.showCustomPins.Value)) {
+                locObjs.Remove("SunkenCrypt");
+                locObjs.Remove("Crypt");
+            }
+            if (!Utilities.CheckForValue("3", Main.showCustomPins.Value)) locObjs.Remove("FireHole");
+            if (!Utilities.CheckForValue("4", Main.showCustomPins.Value)) {
+                zdoObjs.Remove("Wood Portal");
+                zdoObjs.Remove("Stone Portal");
+            }
+            if (!Utilities.CheckForValue("5", Main.showCustomPins.Value)) {
+                zdoObjs.Remove("Raft");
+                zdoObjs.Remove("Karve");
+                zdoObjs.Remove("Viking Ship");
+            }
+            if (!Utilities.CheckForValue("6", Main.showCustomPins.Value)) zdoObjs.Remove("Cart");
         }
     }
 }

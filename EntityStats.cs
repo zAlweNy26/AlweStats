@@ -34,7 +34,7 @@ namespace AlweStats {
                         healthObj.GetComponent<Text>().fontSize = (int) slow.GetComponent<RectTransform>().sizeDelta.y;
                     }
                 }
-                if (Main.showEntityDistance.Value && nameTransform) {
+                if (!Utilities.CheckForValue("0", Main.showEntityDistance.Value) && nameTransform) {
                     GameObject distanceObj = UnityEngine.Object.Instantiate(originalName.gameObject, originalName);
                     distanceObj.name = "Distance";
                     distanceObj.transform.SetParent(nameTransform.parent);
@@ -114,7 +114,7 @@ namespace AlweStats {
                         totalHealth, 
                         $"{healthPercentage:0.#}"
                     );
-                    if (Main.showEntityDistance.Value && player) {
+                    if (Utilities.CheckForValue("1", Main.showEntityDistance.Value) && player) {
                         Character hoverCreature = player.GetHoverCreature();
                         if (hoverCreature) {
                             float distance = Vector3.Distance(player.transform.position, hoverCreature.transform.position);
@@ -122,6 +122,11 @@ namespace AlweStats {
                             value.m_gui.transform.Find("Distance").GetComponent<Text>().text = $"{distance:0.#} m";
                             value.m_gui.transform.Find("Distance").gameObject.SetActive(true);
                         } else value.m_gui.transform.Find("Distance").gameObject.SetActive(false);
+                    }
+                    if (Utilities.CheckForValue("2", Main.showEntityDistance.Value) && player) {
+                        float distance = Vector3.Distance(player.transform.position, value.m_character.transform.position);
+                        value.m_gui.transform.Find("Distance").GetComponent<Text>().text = $"{distance:0.#} m";
+                        value.m_gui.transform.Find("Distance").gameObject.SetActive(true);
                     }
                     if (value.m_character.IsTamed()) {
                         value.m_gui.transform.Find("Health/health_fast").GetComponent<GuiBar>().SetColor(Utilities.StringToColor(Main.tamedBarColor.Value));

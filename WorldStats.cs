@@ -92,7 +92,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(FejdStartup), "OnSelectWorld")]
+        [HarmonyPatch(typeof(FejdStartup), "SetSelectedWorld")]
         static void PatchWorldSelection(FejdStartup __instance) {
             if (Main.daysInWorldsList.Value) UpdateWorldsPanel();
         }
@@ -100,12 +100,6 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(FejdStartup), "OnSelectWorldTab")]
         static void PatchWorldSelectionTab(FejdStartup __instance) {
-            if (Main.daysInWorldsList.Value) UpdateWorldsPanel();
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(FejdStartup), "OnButtonRemoveWorldYes")]
-        static void PatchWorldRemove(FejdStartup __instance) {
             if (Main.daysInWorldsList.Value) UpdateWorldsPanel();
         }
     }

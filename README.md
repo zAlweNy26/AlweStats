@@ -38,6 +38,7 @@ In the config file you can also :
 - Toggle each section (blocks and not)
 - Toggle a "Days" counter in the world selection panel
 - Toggle the player stats in the character selection
+- Change the color of the health bar for tamed animals
 - Toggle a reset button in the pause menu to reset the positions of all the blocks with their default values
 - Choose the clock format (12h or 24h)
 - Toggle the current biome text in the WorldStats block instead of the top-left corner in minimap 
@@ -52,6 +53,7 @@ In the config file you can also :
 - Toggle the custom bow charge bar instead of the vanilla circle that shrinks
 - Toggle pins for ships, dungeons (troll caves, crypts and fire holes), carts and portals
 - Toggle the title of the custom pins
+- Replace the default bed pin icon with the icon of the bed as building piece
 - Set the color of the bow charge bar when fully charged
 
 > For reasons inherent to the optimal functioning of the mod, 
@@ -81,6 +83,17 @@ In the config file you can also :
 - Remaining time doesn't work properly for beehives
 
 ### Changelog
+
+**3.8.0**
+- **Reduced the load of everything related to MapStats (pin, status, etc...) to maximize the performance**
+- Grouped all the config settings for the status in EnvStats in one config setting (ShowEnvStatus)
+- Renamed the config value "EntityDistance" to "ShowEntityDistance"
+- Now with the config value "ShowEntityDistance" you can choose to show the distance with all the entities or just the one you are hovering
+- Fixed bug that was showing incorrect pin title for fire holes pins
+- Fixed bug that wasn't correctly rotating the wind and player markers in the minimap
+- Fixed world days text in world selection panel not showing when selecting world with arrow keys
+- You can now replace the default bed pin icon with the icon of the bed as building piece
+- Renamed the config value "ShowCursorCoordinatesInMap" to "ShowCursorCoordinates"
 
 **3.7.0**
 - Updated game version reference to 0.207.20
