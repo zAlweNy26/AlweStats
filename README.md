@@ -53,7 +53,7 @@ In the config file you can also :
 - Toggle the custom bow charge bar instead of the vanilla circle that shrinks
 - Toggle pins for ships, dungeons (troll caves, crypts and fire holes), carts and portals
 - Toggle the title of the custom pins
-- Toggle the distance between you and the ping
+- Toggle the distance between you and the ping a player does on the map
 - Replace the default bed pin icon with the icon of the bed as a building piece
 - Set the color of the bow charge bar when fully charged
 
@@ -85,9 +85,9 @@ In the config file you can also :
 ### Changelog
 
 **3.8.1**
-- Fixed positions of blocks templates when dragging with mouse
-- Fixed a bug that was spamming how much pins it loaded
-- Added config setting to show the distance between you and the ping a player do
+- Fixed positions of block templates when dragging with a mouse
+- Fixed a bug that was spamming how many pins it loaded
+- Added config setting to show the distance between you and the ping a player does on the map
 
 **3.8.0**
 - **Reduced the load of everything related to MapStats (pin, status, etc...) to maximize the performance**
