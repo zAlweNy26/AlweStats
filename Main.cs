@@ -17,7 +17,7 @@ namespace AlweStats {
             enableBowStats, customBowCharge, daysInWorldsList, twelveHourFormat, enableShipStatus, 
             showResetButton, customShowBiome, enableEntityStats, enableMapStats, showCursorCoordinates, 
             enableRotatingMinimap, showExploredPercentage, enableBedStatus, enablePortalStatus, enablePlayerStats, 
-            replaceBedPinIcon/*, showCustomMinimap*/;
+            replaceBedPinIcon, showPingDistance/*, showCustomMinimap*/;
         public static ConfigEntry<int> 
             gameStatsSize, worldStatsSize, worldClockSize, 
             shipStatsSize, bowStatsSize, mapStatsSize, largeMapInfoSize;
@@ -63,6 +63,7 @@ namespace AlweStats {
             enablePortalStatus = Config.Bind("MapStats", "PortalStatus", true, "Toggle the status that shows the distance from the closer portal");
             enableShipStatus = Config.Bind("MapStats", "ShipStatus", true, "Toggle the status that shows the distance from the closer ship");
             replaceBedPinIcon = Config.Bind("MapStats", "ReplaceBedPinIcon", true, "Replace the default pin icon for the bed with the icon of the bed building piece");
+            showPingDistance = Config.Bind("MapStats", "ShowPingDistance", true, "Toggle the distance to be shown when someone pings on the map");
 
             gameStatsColor = Config.Bind("GameStats", "Color", "255, 183, 92, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");

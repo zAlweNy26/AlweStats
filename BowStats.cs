@@ -33,7 +33,6 @@ namespace AlweStats {
                 int currentAmmo = 0, totalAmmo = 0;
                 List<ItemDrop.ItemData> inventoryItems = localPlayer.GetInventory().GetAllItems();
                 ItemDrop.ItemData bow = inventoryItems.Find(i => i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Bow);
-                bowBlock.SetActive(bow != null);
                 if (bow != null) {
                     ItemDrop.ItemData ammoItem = localPlayer.m_ammoItem;
                     if (ammoItem == null) ammoItem = localPlayer.GetInventory().GetAmmoItem(bow.m_shared.m_ammoType);
@@ -50,7 +49,7 @@ namespace AlweStats {
                         string arrowLocalized = Localization.instance.Localize(ammoItem.m_shared.m_name);
                         bowBlock.SetText($"Bow ammo : {currentAmmo} / {totalAmmo}\nSelected arrows : {arrowLocalized}");
                     } else bowBlock.SetActive(false);
-                }
+                } else bowBlock.SetActive(false);
             }
             if (Main.customBowCharge.Value && bowCharge != null && localPlayer) {
                 float bowPerc = localPlayer.GetAttackDrawPercentage();

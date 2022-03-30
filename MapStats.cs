@@ -30,7 +30,7 @@ namespace AlweStats {
         private static Dictionary<Vector3, Minimap.PinData> locPins = new();
         private static List<ZDO> shipsFound = new(), portalsFound = new();
         private static long exploredTotal = 0, mapSize = 0;
-        private static bool zdoCheck;
+        private static bool zdoCheck, locCheck;
 
         public static Block Start() {
             Minimap map = Minimap.instance;
@@ -393,7 +393,7 @@ namespace AlweStats {
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Minimap), "Explore", new Type[] { typeof(int), typeof(int)})]
-        static void PatchExplore(ref bool __result, Minimap __instance) {
+        static void PatchExplore(ref bool __result) {
             if (Main.showExploredPercentage.Value && exploredObj != null && __result) {
                 exploredTotal += 1;
                 float exploredYouPercentage = exploredTotal * 100f / mapSize;
@@ -403,7 +403,7 @@ namespace AlweStats {
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Minimap), "Reset")]
-        static void PatchReset(Minimap __instance) {
+        static void PatchReset() {
             if (Main.showExploredPercentage.Value && exploredObj != null) {
                 exploredTotal = 0;
                 float exploredYouPercentage = exploredTotal * 100f / mapSize;
@@ -411,11 +411,25 @@ namespace AlweStats {
             }
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Chat), "UpdateWorldTextField")]
+        static void PatchPingDistance(Chat.WorldTextInstance wt) {
+            if (Main.showPingDistance.Value && wt.m_type == Talker.Type.Ping) {
+                Vector2 pingPos = new(wt.m_position.x, wt.m_position.z);
+                Vector3 playerPos3 = Player.m_localPlayer.transform.position;
+                Vector2 playerPos = new(playerPos3.x, playerPos3.z);
+                float distance = Vector2.Distance(playerPos, pingPos);
+                string distanceText = distance < 1000f ? $"\n{distance:0.#} m" : $"\n{(distance / 1000f):0.#} km";
+                wt.m_textField.text += distanceText;
+            }
+        }
+
         private static void LoadLocations() {
             Minimap map = Minimap.instance;
             if ((Utilities.CheckForValue("1", Main.showCustomPins.Value) || Utilities.CheckForValue("2", Main.showCustomPins.Value) 
-                || Utilities.CheckForValue("3", Main.showCustomPins.Value)) && locPins.Count == 0 && map != null) {
+                || Utilities.CheckForValue("3", Main.showCustomPins.Value)) && !locCheck && map != null) {
                 List<ZoneSystem.LocationInstance> locations = Enumerable.ToList<ZoneSystem.LocationInstance>(ZoneSystem.instance.GetLocationList());
+                if (locations.Count > 0) locCheck = true;
                 foreach (ZoneSystem.LocationInstance loc in locations.Where(l => l.m_placed == true)) {
                     //Debug.Log($"Location {loc.m_location.m_prefabName} | {loc.m_position} | {loc.m_placed}");
                     string prefabName = loc.m_location.m_prefabName.ToLower();
@@ -430,7 +444,7 @@ namespace AlweStats {
                         locPins.Add(loc.m_position, customPin);
                     }
                 }
-                Debug.Log($"Loaded {locPins.Count} locations pins");
+                if (locPins.Count > 0) Debug.Log($"Loaded {locPins.Count} locations pins");
             }
         }
 
@@ -452,7 +466,7 @@ namespace AlweStats {
                         shipsFound.Add(zdoByID);
                     }
                 }
-                Debug.Log($"Loaded {zdoPins.Count} zdos pins");
+                if (zdoPins.Count > 0) Debug.Log($"Loaded {zdoPins.Count} zdos pins");
             }
         }
 
@@ -460,6 +474,7 @@ namespace AlweStats {
         [HarmonyPatch(typeof(ZNet), "LoadWorld")]
         static void PatchLoadWorld(ZNet __instance) {
             zdoCheck = false;
+            locCheck = false;
             zdoPins.Clear();
             locPins.Clear();
             shipsFound.Clear();

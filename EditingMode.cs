@@ -40,13 +40,13 @@ namespace AlweStats {
                     Transform current = Hud.instance.m_rootObject.transform.Find(currentlyDragging);
                     if (current) {
                         RectTransform currentRect = current.GetComponent<RectTransform>();
-                        current.position = mousePos - new Vector3(currentRect.sizeDelta.x / 2f, currentRect.sizeDelta.y / 8f, 0f);
+                        current.position = mousePos;
                     }
                 } else {
                     foreach (GameObject g in templateObjs) {
                         if (RectTransformUtility.RectangleContainsScreenPoint(g.GetComponent<RectTransform>(), mousePos)) {
                             RectTransform currentRect = g.GetComponent<RectTransform>();
-                            g.transform.position = mousePos - new Vector3(currentRect.sizeDelta.x / 2f, currentRect.sizeDelta.y / 8f, 0f);
+                            g.transform.position = mousePos;
                             currentlyDragging = g.name;
                             break;
                         }
@@ -60,7 +60,7 @@ namespace AlweStats {
             isEditing = !isEditing;
             if (templateObjs == null) return;
             if (isEditing) {
-                //Debug.Log("Editing mode : ON !");
+                Debug.Log("Editing mode : ON !");
                 foreach (GameObject g in templateObjs) {
                     RectTransform original = g.transform.parent.Find(g.name.Replace("Template", "")).GetComponent<RectTransform>();
                     RectTransform rt = g.GetComponent<RectTransform>();
@@ -71,7 +71,7 @@ namespace AlweStats {
                     if (original.gameObject.activeSelf) g.SetActive(true);
                 }
             } else if (!isEditing) {
-                //Debug.Log("Editing mode : OFF !");
+                Debug.Log("Editing mode : OFF !");
                 foreach (GameObject g in templateObjs) {
                     RectTransform original = g.transform.parent.Find(g.name.Replace("Template", "")).GetComponent<RectTransform>();
                     RectTransform rt = g.GetComponent<RectTransform>();
