@@ -18,9 +18,9 @@ namespace AlweStats {
 
         public static void Start() {
             envObjsNew = envObjs.Select(i => (string) i.Clone()).ToList();
-            if (!Utilities.CheckForValue("1", Main.showEnvStatus.Value)) envObjsNew.Remove("rock");
-            if (!Utilities.CheckForValue("2", Main.showEnvStatus.Value)) envObjsNew = envObjsNew.Except(treeObjs).ToList();
-            if (Utilities.CheckForValue("7", Main.showEnvStatus.Value)) {
+            if (!Utilities.CheckInEnum(EnvType.Rock, Main.showEnvStatus.Value)) envObjsNew.Remove("rock");
+            if (!Utilities.CheckInEnum(EnvType.Tree, Main.showEnvStatus.Value)) envObjsNew = envObjsNew.Except(treeObjs).ToList();
+            if (Utilities.CheckInEnum(EnvType.Piece, Main.showEnvStatus.Value)) {
                 pieceObj = UnityEngine.Object.Instantiate(Hud.instance.m_hoverName.gameObject, Hud.instance.m_hoverName.transform);
                 pieceObj.name = "PieceHealthText";
                 Hud.instance.m_pieceHealthRoot.GetComponent<RectTransform>().anchoredPosition = new Vector2(0f, 20f);
@@ -58,7 +58,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Container), "GetHoverText")]
         static void PatchContainerHoverText(ref string __result, Container __instance) {
-            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("9", Main.showEnvStatus.Value)) return;
+            if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Container, Main.showEnvStatus.Value)) return;
             if (__instance.m_checkGuardStone && !PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false)) {
                 __result = Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
                 return;
@@ -90,7 +90,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(TreeBase), "RPC_Damage")]
         static void OnDamage(TreeBase __instance, HitData hit) {
-            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("2", Main.showEnvStatus.Value)) return;
+            if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Tree, Main.showEnvStatus.Value)) return;
             //Debug.Log($"TreeBase : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             Hoverable hoverable = __instance.gameObject ? __instance.gameObject.GetComponentInParent<Hoverable>() : null;
@@ -103,7 +103,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(TreeLog), "RPC_Damage")]
         static void OnDamage(TreeLog __instance, HitData hit) {
-            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("2", Main.showEnvStatus.Value)) return;
+            if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Tree, Main.showEnvStatus.Value)) return;
             //Debug.Log($"TreeLog : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             Hoverable hoverable = __instance.gameObject ? __instance.gameObject.GetComponentInParent<Hoverable>() : null;
@@ -116,7 +116,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MineRock), "RPC_Hit")]
         static void OnDamage(MineRock __instance, HitData hit, int hitAreaIndex) {
-            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("1", Main.showEnvStatus.Value)) return;
+            if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Rock, Main.showEnvStatus.Value)) return;
             //Debug.Log($"MineRock : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
@@ -129,7 +129,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(MineRock5), "RPC_Damage")]
         static void OnDamage(MineRock5 __instance, HitData hit) {
-            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("1", Main.showEnvStatus.Value)) return;
+            if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Rock, Main.showEnvStatus.Value)) return;
             //Debug.Log($"MineRock piece : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
@@ -142,7 +142,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Plant), "GetHoverText")]
         static void PatchPlantHoverText(ref string __result, Plant __instance) {
-            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("4", Main.showEnvStatus.Value) || __instance == null) return;
+            if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Plant, Main.showEnvStatus.Value) || __instance == null) return;
             float growPercentage = (float) __instance.TimeSincePlanted() / __instance.GetGrowTime() * 100f;
             growPercentage = growPercentage > 100f ? 100f : growPercentage;
             __result = SetPickableText(growPercentage, __instance.GetHoverName(), __instance.GetGrowTime() - __instance.TimeSincePlanted());
@@ -151,7 +151,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Pickable), "GetHoverText")]
         static void PatchPickableHoverText(ref string __result, Pickable __instance) {
-            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("3", Main.showEnvStatus.Value) 
+            if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Bush, Main.showEnvStatus.Value) 
                 || !__instance.name.ToLower().Contains("bush")) return;
             DateTime startTime = new DateTime(__instance.m_nview.GetZDO().GetLong("picked_time"));
             float currentGrowTime = (float) (ZNet.instance.GetTime() - startTime).TotalSeconds;
@@ -164,7 +164,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Beehive), "GetHoverText")]
         static void PatchBeehiveHoverText(ref string __result, Beehive __instance) {
-            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("5", Main.showEnvStatus.Value)) return;
+            if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Beehive, Main.showEnvStatus.Value)) return;
             if (!PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false)) {
                 __result = Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
                 return;
@@ -187,7 +187,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Fireplace), "GetHoverText")]
         static void PatchFireplaceHoverText(ref string __result, Fireplace __instance) {
-            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("8", Main.showEnvStatus.Value)) return;
+            if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Fireplace, Main.showEnvStatus.Value)) return;
             if (!__instance.m_nview.IsValid()) {
                 __result = "";
                 return;
@@ -210,7 +210,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Fermenter), "GetHoverText")]
         static void PatchFermenterHoverText(ref string __result, Fermenter __instance) {
-            if (!Main.enableEnvStats.Value || !Utilities.CheckForValue("6", Main.showEnvStatus.Value)) return;
+            if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Fermenter, Main.showEnvStatus.Value)) return;
             if (!PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false))
                 __result = Localization.instance.Localize(__instance.m_name + "\n$piece_noaccess");
             switch (__instance.GetStatus()) {

@@ -51,11 +51,19 @@ In the config file you can also :
 - Toggle the rotation of the minimap that follows the player camera rotation
 - Toggle the distance and direction from claimed bed, closer portal and closer ship shown as elements in the status effects list
 - Toggle the custom bow charge bar instead of the vanilla circle that shrinks
-- Toggle pins for ships, dungeons (troll caves, crypts and fire holes), carts and portals
+- Toggle pins for ships, dungeons (troll caves, mountain caves, crypts and fire holes), carts and portals
 - Toggle the title of the custom pins
 - Toggle the distance between you and the ping a player does on the map
 - Replace the default bed pin icon with the icon of the bed as a building piece
 - Set the color of the bow charge bar when fully charged
+
+In the console or chat, now you can use these commands :
+```console
+> alwe
+List of valid subcommands :
+cfp [world] - Remove all the pins from the AlweStats.json file for a specific world
+df - Clear the entire AlweStats.json file by deleting it
+```
 
 > For reasons inherent to the optimal functioning of the mod,
 > everything related to the pins and elements in the status effects list (BedStatus, PortalStatus and ShipStatus)
@@ -83,6 +91,15 @@ In the config file you can also :
 - Remaining time doesn't work properly for beehives
 
 ### Changelog
+
+**4.0.0**
+- Removed the Alwe.stats file and replaced with AlweStats.json to be able to save custom pins.
+- Fixed ShipStatus that wasn't correctly being positioned when PortalStatus wasn't active
+- Added mountain caves to the custom pins
+- Now you can rename, check/uncheck and remove custom pins
+- Added a console/chat command named "alwe" to execute subcommands
+- Added a console/chat subcommands "cfp" to remove all pins saved in the AlweStats.json file for a specific world
+- Added a console/chat subcommands "df" to delete the AlweStats.json file
 
 **3.8.1**
 - Fixed positions of block templates when dragging with a mouse

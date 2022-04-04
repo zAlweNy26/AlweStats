@@ -13,7 +13,7 @@ namespace AlweStats {
             foreach (Transform t in EnemyHud.instance.m_hudRoot.transform) {
                 Transform healthTransform = t.Find("Health");
                 Transform nameTransform = t.Find("Name");   
-                if (healthTransform) {
+                if (Main.enableEntityStats.Value && healthTransform) {
                     if (healthTransform.Find("HealthText")) return;
                     GameObject healthObj = UnityEngine.Object.Instantiate(originalHealthText.gameObject, originalHealthText);
                     healthObj.name = "HealthText";
@@ -34,7 +34,7 @@ namespace AlweStats {
                         healthObj.GetComponent<Text>().fontSize = (int) slow.GetComponent<RectTransform>().sizeDelta.y;
                     }
                 }
-                if (!Utilities.CheckForValue("0", Main.showEntityDistance.Value) && nameTransform) {
+                if (!Utilities.CheckInEnum(DistanceType.Disabled, Main.showEntityDistance.Value) && nameTransform) {
                     GameObject distanceObj = UnityEngine.Object.Instantiate(originalName.gameObject, originalName);
                     distanceObj.name = "Distance";
                     distanceObj.transform.SetParent(nameTransform.parent);
@@ -114,7 +114,7 @@ namespace AlweStats {
                         totalHealth, 
                         $"{healthPercentage:0.#}"
                     );
-                    if (Utilities.CheckForValue("1", Main.showEntityDistance.Value) && player) {
+                    if (Utilities.CheckInEnum(DistanceType.Hovering, Main.showEntityDistance.Value) && player) {
                         Character hoverCreature = player.GetHoverCreature();
                         if (hoverCreature) {
                             float distance = Vector3.Distance(player.transform.position, hoverCreature.transform.position);
@@ -123,7 +123,7 @@ namespace AlweStats {
                             value.m_gui.transform.Find("Distance").gameObject.SetActive(true);
                         } else value.m_gui.transform.Find("Distance").gameObject.SetActive(false);
                     }
-                    if (Utilities.CheckForValue("2", Main.showEntityDistance.Value) && player) {
+                    if (Utilities.CheckInEnum(DistanceType.All, Main.showEntityDistance.Value) && player) {
                         float distance = Vector3.Distance(player.transform.position, value.m_character.transform.position);
                         value.m_gui.transform.Find("Distance").GetComponent<Text>().text = $"{distance:0.#} m";
                         value.m_gui.transform.Find("Distance").gameObject.SetActive(true);

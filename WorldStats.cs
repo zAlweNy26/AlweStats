@@ -2,15 +2,16 @@
 using HarmonyLib;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
+using UnityEngine.Events;
 
 namespace AlweStats {
     [HarmonyPatch]
     public static class WorldStats {
         private static Block worldBlock = null;
-        private static string[] statsFileLines;
+        private static List<WorldInfo> worldsList;
 
         public static Block Start() {
             worldBlock = new Block(
@@ -41,7 +42,61 @@ namespace AlweStats {
             }
         }
 
-        private static void UpdateWorldsPanel() {
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(FejdStartup), "Start")]
+        private static void PatchMainMenuStart() {
+            worldsList = Utilities.UpdateWorldFile();
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(FejdStartup), "UpdateWorldList")]
+        static bool PatchWorldList(FejdStartup __instance, bool centerSelection) {
+            if (!Main.daysInWorldsList.Value) return true;
+            __instance.m_worlds = World.GetWorldList();
+            foreach (GameObject obj in __instance.m_worldListElements) UnityEngine.Object.Destroy(obj);
+            __instance.m_worldListElements.Clear();
+            float num = (float) __instance.m_worlds.Count * __instance.m_worldListElementStep;
+            num = Mathf.Max(__instance.m_worldListBaseSize, num);
+            __instance.m_worldListRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, num);
+            for (int i = 0; i < __instance.m_worlds.Count; i++) {
+                World world = __instance.m_worlds[i];
+                GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(__instance.m_worldListElement, __instance.m_worldListRoot);
+                gameObject.SetActive(true);
+                (gameObject.transform as RectTransform).anchoredPosition = new Vector2(0f, (float)i * -__instance.m_worldListElementStep);
+                gameObject.GetComponent<Button>().onClick.AddListener(new UnityAction(__instance.OnSelectWorld));
+                Text component = gameObject.transform.Find("seed").GetComponent<Text>();
+                component.text = "Seed:" + world.m_seedName;
+                gameObject.transform.Find("name").GetComponent<Text>().text = world.m_name;
+                Transform days = UnityEngine.Object.Instantiate(gameObject.transform.Find("name"));
+                days.name = "days";
+                days.SetParent(gameObject.transform);
+                days.GetComponent<RectTransform>().localPosition = new(320f, -14f, 0f);
+                string daysText = "0 days";
+                if (File.Exists(world.GetDBPath())) {
+                    using FileStream fs = File.OpenRead(world.GetDBPath());
+                    using BinaryReader br = new(fs);
+                    int worldVersion = br.ReadInt32();
+                    double timePlayed = br.ReadDouble();
+                    int daysPlayed = (int) Math.Floor(timePlayed / 1200L); 
+                    if (worldsList != null) {
+                        WorldInfo worldInfo = worldsList.FirstOrDefault(w => w.worldName == world.m_name);
+                        if (worldInfo != null) daysPlayed = (int) Math.Floor(worldInfo.timePlayed / worldInfo.dayLength); 
+                    }
+                    daysText = $"{daysPlayed} {(daysPlayed == 1 ? "day" : "days")}";
+                }
+                days.GetComponent<Text>().text = daysText;
+                if (world.m_loadError) component.text = " [LOAD ERROR]";
+                else if (world.m_versionError) component.text = " [BAD VERSION]";
+                RectTransform rectTransform = gameObject.transform.Find("selected") as RectTransform;
+                bool flag = __instance.m_world != null && world.m_name == __instance.m_world.m_name;
+                rectTransform.gameObject.SetActive(flag);
+                if (flag && centerSelection) __instance.m_worldListEnsureVisible.CenterOnItem(rectTransform);
+                __instance.m_worldListElements.Add(gameObject);
+            }
+            return false;
+        }
+
+        /*private static void UpdateWorldsPanel() {
             List<string> worlds = new();
             if (File.Exists(Main.statsFilePath)) statsFileLines = File.ReadAllLines(Main.statsFilePath);
             foreach (Transform t in FejdStartup.instance.m_worldListRoot) {
@@ -53,10 +108,10 @@ namespace AlweStats {
                 string dBPath = $"{Utils.GetSaveDataPath()}/worlds/{worldName}.db";
                 if (File.Exists(dBPath)) {
                     using FileStream fs = File.OpenRead(dBPath);
-                    using BinaryReader br = new(fs);
+                    using BinaryReader br = new(fsdouble timePlayed = br.ReadDouble(););
                     int worldVersion = br.ReadInt32();
                     if (worldVersion >= 4) {
-                        double timePlayed = br.ReadDouble();
+                        
                         long daySeconds = 1200L;
                         if (statsFileLines != null) {
                             string str = statsFileLines.FirstOrDefault(s => s.Contains(worldName));
@@ -70,19 +125,6 @@ namespace AlweStats {
                 } else days.GetComponent<Text>().text = "0 days";
                 days.gameObject.SetActive(true);
             }
-        }
-
-        public static void UpdateWorldsFile() {
-            if (!ZNet.instance.IsServer()) return;
-            string worldName = ZNet.instance.GetWorldName();
-            if (File.Exists(Main.statsFilePath)) {
-                statsFileLines = File.ReadAllLines(Main.statsFilePath);
-                string str = statsFileLines.FirstOrDefault(s => s.Contains(worldName));
-                if (str != null) {
-                    statsFileLines[Array.IndexOf(statsFileLines, str)] = $"{worldName}:{EnvMan.instance.m_dayLengthSec}";
-                    File.WriteAllLines(Main.statsFilePath, statsFileLines);
-                } else File.AppendAllText(Main.statsFilePath, $"\n{worldName}:{EnvMan.instance.m_dayLengthSec}");
-            } else File.AppendAllText(Main.statsFilePath, $"{worldName}:{EnvMan.instance.m_dayLengthSec}");
         }
 
         [HarmonyPostfix]
@@ -101,6 +143,6 @@ namespace AlweStats {
         [HarmonyPatch(typeof(FejdStartup), "OnSelectWorldTab")]
         static void PatchWorldSelectionTab(FejdStartup __instance) {
             if (Main.daysInWorldsList.Value) UpdateWorldsPanel();
-        }
+        }*/
     }
 }

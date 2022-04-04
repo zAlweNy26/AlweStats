@@ -4,6 +4,7 @@ using HarmonyLib;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using System.Linq;
 
 namespace AlweStats {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
@@ -160,7 +161,7 @@ namespace AlweStats {
                 "\n7 = build piece status" +
                 "\n8 = fireplace status" +
                 "\n9 = container status");
-            showCustomPins = Config.Bind("MapStats", "ShowCustomPins", "1, 2, 3, 4, 5, 6", 
+            showCustomPins = Config.Bind("MapStats", "ShowCustomPins", "1, 2, 3, 4, 5, 6, 7", 
                 "Toggle specific custom pins, separate them with a comma (,)" +
                 "\n0 = disable all the custom pins" +
                 "\n1 = troll caves pins" +
@@ -168,7 +169,8 @@ namespace AlweStats {
                 "\n3 = fire holes pins" +
                 "\n4 = portals pins" +
                 "\n5 = ships pins" +
-                "\n6 = carts pins");
+                "\n6 = carts pins" +
+                "\n7 = mountain caves pins");
             showPinsTitles = Config.Bind("MapStats", "ShowPinsTitles", "4", 
                 "Toggle the title for specific custom pins, separate them with a comma (,)" +
                 "\n0 = disable for all custom pins" +
@@ -177,7 +179,8 @@ namespace AlweStats {
                 "\n3 = fire holes pins" +
                 "\n4 = portals pins" +
                 "\n5 = ships pins" +
-                "\n6 = carts pins");
+                "\n6 = carts pins" +
+                "\n7 = mountain caves pins");
             biggerPins = Config.Bind("MapStats", "BiggerPins", "4, 5, 6", 
                 "Double or not the size of specific custom pins, separate them with a comma (,)" +
                 "\n0 = disable for all custom pins" +
@@ -186,7 +189,8 @@ namespace AlweStats {
                 "\n3 = fire holes pins" +
                 "\n4 = portals pins" +
                 "\n5 = ships pins" +
-                "\n6 = carts pins");
+                "\n6 = carts pins" +
+                "\n7 = mountain caves pins");
 
             healthFormat = Config.Bind("General", "HealthFormat", "{0} / {1} (<color>{2} %</color>)", 
                 "The format of the string when showing the health of environment elements, construction pieces and living entities" + 
@@ -215,7 +219,7 @@ namespace AlweStats {
 
             Logger.LogInfo($"{PluginInfo.PLUGIN_GUID} loaded successfully !");
 
-            statsFilePath = Path.Combine(Paths.PluginPath, "Alwe.stats");
+            statsFilePath = Path.Combine(Paths.PluginPath, "AlweStats.json");
         }
 
         public void Start() { harmony.PatchAll(); }
@@ -238,7 +242,7 @@ namespace AlweStats {
             private static void PatchHudStart() {
                 blocks = new();
 
-                if (enableEntityStats.Value) EntityStats.Start();
+                EntityStats.Start();
                 if (enableEnvStats.Value) EnvStats.Start();
                 if (enableGameStats.Value) blocks.Add(GameStats.Start());
                 if (enableWorldStats.Value) blocks.Add(WorldStats.Start());
@@ -261,7 +265,7 @@ namespace AlweStats {
             [HarmonyPostfix]
             [HarmonyPatch(typeof(Hud), "UpdateCrosshair")]
             private static void PatchHudCrosshair() {
-                if (Main.enableEnvStats.Value && Utilities.CheckForValue("7", showEnvStatus.Value)) EnvStats.PatchHoveringPiece();
+                if (Main.enableEnvStats.Value && Utilities.CheckInEnum(EnvType.Piece, showEnvStatus.Value)) EnvStats.PatchHoveringPiece();
             }
 
             [HarmonyPostfix]
@@ -288,9 +292,10 @@ namespace AlweStats {
 
             [HarmonyPrefix]
             [HarmonyPatch(typeof(ZNet), "OnDestroy")]
-            static void PatchWorldEnd() {
+            static bool PatchWorldEnd() {
                 if (blocks != null) EditingMode.Destroy(blocks);
-                if (enableWorldStats.Value && daysInWorldsList.Value) WorldStats.UpdateWorldsFile();
+                Utilities.UpdateWorldFile(MapStats.removedPins);
+                return true;
             }
         }
     }

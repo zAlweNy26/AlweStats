@@ -4,7 +4,7 @@
     <TargetFramework>net48</TargetFramework>
     <AssemblyName>AlweStats</AssemblyName>
     <Description>Easily read stats about almost everything !</Description>
-    <Version>3.8.0</Version>
+    <Version>4.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Copyright>zAlweNy26</Copyright>
@@ -21,15 +21,16 @@
     <WarningLevel>5</WarningLevel>
   </PropertyGroup>
 
-  <ItemGroup>
+  <!--<ItemGroup>
     <EmbeddedResource Include="resources/CircleMask.png" />
-  </ItemGroup>
+  </ItemGroup>-->
 
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="UnityEngine.Modules" Version="2021.2.11" IncludeAssets="compile" />
   </ItemGroup>
   
@@ -41,13 +42,13 @@
     <Reference Include="0Harmony">
       <HintPath>.\dependencies\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="assembly_guiutils_publicized">
+    <Reference Include="GuiUtils">
       <HintPath>.\dependencies\assembly_guiutils_publicized.dll</HintPath>
     </Reference>
-    <Reference Include="assembly_utils_publicized">
+    <Reference Include="Utils">
       <HintPath>.\dependencies\assembly_utils_publicized.dll</HintPath>
     </Reference>
-    <Reference Include="assembly_valheim_publicized">
+    <Reference Include="Valheim">
       <HintPath>.\dependencies\assembly_valheim_publicized.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
