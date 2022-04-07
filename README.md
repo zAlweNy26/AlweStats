@@ -4,6 +4,10 @@ You can find it here : https://valheim.thunderstore.io/package/Padank/AlweStats/
 
 **Give a thumbs up if you like the mod and you have a GitHub account !**
 
+**If you encounter an error that says "FormatException: Input string was not in a correct format",
+try deleting the config file (AlweStats.cfg) and restart the game. If the error persists, 
+please create an issue on GitHub to let me know !** 
+
 **You may encounter incompatibilities in case there are other mods that modify the UI, 
 be sure to enable either one or the other equivalent section so they don't conflict in the same function**
 
@@ -15,7 +19,7 @@ The UI is separated into 6 blocks :
 - WorldStats, that contains "Days passed", "Time played" and "Current biome"
 - WorldClock, that contains "Clock"
 - ShipStats, that contains "Ship health", "Ship speed", "Wind speed", "Wind direction"
-- BowStats, that contains "Selected arrows" and "Bow ammo"
+- PlayerStats, that contains "Inventory slots", "Inventory weight", "Selected arrows" and "Bow ammo"
 - MapStats, that contains "Player coordinates" and "Focus coordinates"
 
 For each block, you can enable or disable it and you can also set :
@@ -29,7 +33,7 @@ Each block is also movable with your mouse while in-game thanks to the integrate
 
 You can reload the configuration file (default key : F9) while in-game to see changes.
 
-There are also "EntityStats", "EnvStats" and "PlayerStats" which aren't UI blocks but can let you choose different things.
+There are also "EntityStats", "EnvStats" which aren't UI blocks but can let you choose different things.
 
 In the config file you can also :
 - Change key for plugin reload and editing mode
@@ -59,7 +63,7 @@ In the config file you can also :
 
 In the console or chat, now you can use these commands :
 ```console
-> alwe
+> alwe (or /alwe in chat)
 List of valid subcommands :
 cfp [world] - Remove all the pins from the AlweStats.json file for a specific world
 df - Clear the entire AlweStats.json file by deleting it
@@ -92,8 +96,14 @@ df - Clear the entire AlweStats.json file by deleting it
 
 ### Changelog
 
+**4.1.0**
+- Merged BowStats with PlayerStats to a unique block that displays inventory slots, weight, bow ammo and select arrows
+- Added weight fill percentage as an element in the status effect list
+- Fixed bug that wasn't correctly sizing vanilla pins when there was "0" in the "BiggerPins" config setting.
+- Fixed bug that wasn't correctly showing EnvStatus for each environment element
+
 **4.0.0**
-- Removed the Alwe.stats file and replaced with AlweStats.json to be able to save custom pins.
+- Replaced the Alwe.stats file with AlweStats.json to be able to save custom pins.
 - Fixed ShipStatus that wasn't correctly being positioned when PortalStatus wasn't active
 - Added mountain caves to the custom pins
 - Now you can rename, check/uncheck and remove custom pins

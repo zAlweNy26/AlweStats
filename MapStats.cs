@@ -19,7 +19,7 @@ namespace AlweStats {
                 }, 
                 new Minimap.SpriteData() { 
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length, 
-                    m_icon = GetSprite("TrophySkeletonPoison".GetStableHashCode(), false) 
+                    m_icon = Utilities.GetSprite("TrophySkeletonPoison".GetStableHashCode(), false) 
                 } 
             },
             {   
@@ -30,7 +30,7 @@ namespace AlweStats {
                 }, 
                 new Minimap.SpriteData() { 
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 1, 
-                    m_icon = GetSprite("TrophyFrostTroll".GetStableHashCode(), false) 
+                    m_icon = Utilities.GetSprite("TrophyFrostTroll".GetStableHashCode(), false) 
                 } 
             },
             {   
@@ -41,7 +41,7 @@ namespace AlweStats {
                 }, 
                 new Minimap.SpriteData() { 
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 2, 
-                    m_icon = GetSprite("TrophySurtling".GetStableHashCode(), false) 
+                    m_icon = Utilities.GetSprite("TrophySurtling".GetStableHashCode(), false) 
                 } 
             },
             {   
@@ -52,7 +52,7 @@ namespace AlweStats {
                 }, 
                 new Minimap.SpriteData() { 
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 3, 
-                    m_icon = GetSprite("TrophySkeleton".GetStableHashCode(), false) 
+                    m_icon = Utilities.GetSprite("TrophySkeleton".GetStableHashCode(), false) 
                 } 
             },
             { 
@@ -63,7 +63,7 @@ namespace AlweStats {
                 }, 
                 new Minimap.SpriteData() { 
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 4, 
-                    m_icon = GetSprite("Cart".GetStableHashCode(), true) 
+                    m_icon = Utilities.GetSprite("Cart".GetStableHashCode(), true) 
                 } 
             },
             { 
@@ -74,7 +74,7 @@ namespace AlweStats {
                 },  
                 new Minimap.SpriteData() { 
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 5, 
-                    m_icon = GetSprite("Raft".GetStableHashCode(), true) 
+                    m_icon = Utilities.GetSprite("Raft".GetStableHashCode(), true) 
                 } 
             },
             { 
@@ -85,7 +85,7 @@ namespace AlweStats {
                 }, 
                 new Minimap.SpriteData() { 
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 6, 
-                    m_icon = GetSprite("Karve".GetStableHashCode(), true) 
+                    m_icon = Utilities.GetSprite("Karve".GetStableHashCode(), true) 
                 } 
             },
             { 
@@ -96,7 +96,7 @@ namespace AlweStats {
                 }, 
                 new Minimap.SpriteData() { 
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 7, 
-                    m_icon = GetSprite("VikingShip".GetStableHashCode(), true) 
+                    m_icon = Utilities.GetSprite("VikingShip".GetStableHashCode(), true) 
                 } 
             },
             { 
@@ -107,7 +107,7 @@ namespace AlweStats {
                 }, 
                 new Minimap.SpriteData() { 
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 8, 
-                    m_icon = GetSprite("portal_wood".GetStableHashCode(), true) 
+                    m_icon = Utilities.GetSprite("portal_wood".GetStableHashCode(), true) 
                 } 
             },
             {   
@@ -118,13 +118,13 @@ namespace AlweStats {
                 }, 
                 new Minimap.SpriteData() { 
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 9, 
-                    m_icon = GetSprite("TrophyCultist".GetStableHashCode(), false) 
+                    m_icon = Utilities.GetSprite("TrophyCultist".GetStableHashCode(), false) 
                 } 
             },
         };
         private static Dictionary<CustomPinData, Minimap.SpriteData> usedPins = new();
         private static GameObject cursorObj = null, exploredObj = null, bedObj = null, shipObj = null, portalObj = null;
-        private static Dictionary<ZDO, Minimap.PinData> zdoPins = new();
+        public static Dictionary<ZDO, Minimap.PinData> zdoPins = new();
         private static Dictionary<Vector3, Minimap.PinData> locPins = new();
         private static List<ZDO> shipsFound = new(), portalsFound = new();
         public static List<Vector3> removedPins = new();
@@ -266,7 +266,7 @@ namespace AlweStats {
             if (localPlayer == null) return;
             Vector2 mousePos = Input.mousePosition;
             RectTransform mapRect = __instance.m_largeRoot.GetComponent<RectTransform>();
-            int totEffects = Hud.instance.m_statusEffects.Count;
+            int totEffects = Hud.instance.m_statusEffects.Count + (Main.enableWeightStatus.Value ? 1 : 0);
             Vector3 playerPos3 = localPlayer.transform.position;
             Vector2 playerPos = new(playerPos3.x, playerPos3.z);
             Transform cameraTransform = Utils.GetMainCamera().transform;
@@ -450,53 +450,27 @@ namespace AlweStats {
             }
         }
 
-        private static Sprite GetSprite(int nameHash, bool isPiece) {
-            if (isPiece) {
-                GameObject hammerObj = ObjectDB.instance.m_itemByHash["Hammer".GetStableHashCode()];
-                if (!hammerObj) return null;
-                ItemDrop hammerDrop = hammerObj.GetComponent<ItemDrop>();
-                if (!hammerDrop) return null;
-                PieceTable hammerPieceTable = hammerDrop.m_itemData.m_shared.m_buildPieces;
-                foreach (GameObject piece in hammerPieceTable.m_pieces) {
-                    Piece p = piece.GetComponent<Piece>();
-                    if (p.name.GetStableHashCode() == nameHash) return p.m_icon;
-                }
-            } else {
-                GameObject itemObj;
-                ObjectDB.instance.m_itemByHash.TryGetValue(nameHash, out itemObj);
-                if (!itemObj) return null;
-                ItemDrop itemDrop = itemObj.GetComponent<ItemDrop>();
-                if (!itemDrop) return null;
-                return itemDrop.m_itemData.GetIcon();
-            }
-            return null;
-        }
-
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Minimap), "AddPin")]
         static bool PatchAddPin(Minimap __instance, ref Minimap.PinData __result,
             Vector3 pos, ref Minimap.PinType type, ref string name, bool save, bool isChecked, long ownerID = 0L) {
             if (Utilities.CheckInEnum(CustomPinType.Disabled, Main.showCustomPins.Value)) return true;
+            if (type >= (Minimap.PinType)__instance.m_visibleIconTypes.Length || type < Minimap.PinType.Icon0) type = Minimap.PinType.Icon3;
             Minimap.PinType customType = type;
-            if (type >= (Minimap.PinType)__instance.m_visibleIconTypes.Length || type < Minimap.PinType.Icon0) {
-                type = Minimap.PinType.Icon3;
-            }
             if (name == null) name = "";
             Minimap.PinData pinData = new Minimap.PinData();
             pinData.m_type = type;
             pinData.m_name = name;
             pinData.m_pos = pos;
             pinData.m_icon = __instance.GetSprite(type);
-            if (Main.replaceBedPinIcon.Value && type == Minimap.PinType.Bed) pinData.m_icon = GetSprite("bed".GetStableHashCode(), true);
+            if (Main.replaceBedPinIcon.Value && type == Minimap.PinType.Bed) pinData.m_icon = Utilities.GetSprite("bed".GetStableHashCode(), true);
             pinData.m_save = save;
             pinData.m_checked = isChecked;
             pinData.m_ownerID = ownerID;
             CustomPinType biggerPin = usedPins.Where(p => p.Value.m_name == customType).FirstOrDefault().Key.type;
-            pinData.m_doubleSize = Utilities.CheckInEnum(biggerPin, Main.biggerPins.Value);
+            if (biggerPin != CustomPinType.Disabled) pinData.m_doubleSize = Utilities.CheckInEnum(biggerPin, Main.biggerPins.Value);
             if (!__instance.m_pins.Any(p => p.m_pos == pos)) __instance.m_pins.Add(pinData);
-            if (type < (Minimap.PinType)__instance.m_visibleIconTypes.Length && !__instance.m_visibleIconTypes[(int)type]) {
-                __instance.ToggleIconFilter(type);
-            }
+            if (type < (Minimap.PinType)__instance.m_visibleIconTypes.Length && !__instance.m_visibleIconTypes[(int)type]) __instance.ToggleIconFilter(type);
             __result = pinData;
             return false;
         }
@@ -505,7 +479,7 @@ namespace AlweStats {
         [HarmonyPatch(typeof(Minimap), "RemovePin", new Type[] { typeof(Minimap.PinData)})]
         static bool PatchRemovePin(Minimap __instance, Minimap.PinData pin) {
             Vector3 roundedVec = pin.m_pos.Round(); 
-            if (!removedPins.Contains(roundedVec)) removedPins.Add(roundedVec);
+            if (!removedPins.Contains(roundedVec) && pinsDict.Any(pair => pair.Value.m_name == pin.m_type)) removedPins.Add(roundedVec);
             if (pin.m_uiElement) UnityEngine.Object.Destroy(pin.m_uiElement.gameObject);
             __instance.m_pins.Remove(pin);
             return false;

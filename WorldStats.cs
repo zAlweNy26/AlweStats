@@ -45,7 +45,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(FejdStartup), "Start")]
         private static void PatchMainMenuStart() {
-            worldsList = Utilities.UpdateWorldFile();
+            worldsList = Utilities.GetWorldInfos();
         }
 
         [HarmonyPrefix]
@@ -95,54 +95,5 @@ namespace AlweStats {
             }
             return false;
         }
-
-        /*private static void UpdateWorldsPanel() {
-            List<string> worlds = new();
-            if (File.Exists(Main.statsFilePath)) statsFileLines = File.ReadAllLines(Main.statsFilePath);
-            foreach (Transform t in FejdStartup.instance.m_worldListRoot) {
-                Transform days = UnityEngine.Object.Instantiate(t.Find("name"));
-                days.name = "days";
-                days.SetParent(t.Find("name").parent);
-                days.GetComponent<RectTransform>().localPosition = new(320f, -14f, 0f);
-                string worldName = t.Find("name").GetComponent<Text>().text;
-                string dBPath = $"{Utils.GetSaveDataPath()}/worlds/{worldName}.db";
-                if (File.Exists(dBPath)) {
-                    using FileStream fs = File.OpenRead(dBPath);
-                    using BinaryReader br = new(fsdouble timePlayed = br.ReadDouble(););
-                    int worldVersion = br.ReadInt32();
-                    if (worldVersion >= 4) {
-                        
-                        long daySeconds = 1200L;
-                        if (statsFileLines != null) {
-                            string str = statsFileLines.FirstOrDefault(s => s.Contains(worldName));
-                            if (str != null) daySeconds = long.Parse(statsFileLines[Array.IndexOf(statsFileLines, str)].Split(':')[1]);
-                        }
-                        int daysPlayed = (int) Math.Floor(timePlayed / daySeconds);
-                        //Debug.Log($"{worldName} : {timePlayed} seconds | {daysPlayed} days");
-                        days.GetComponent<Text>().text = $"{daysPlayed} days";
-                        if (!worlds.Contains(worldName)) worlds.Add(worldName);
-                    }
-                } else days.GetComponent<Text>().text = "0 days";
-                days.gameObject.SetActive(true);
-            }
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(FejdStartup), "ShowStartGame")]
-        static void PatchWorldList(FejdStartup __instance) {
-            if (Main.daysInWorldsList.Value) UpdateWorldsPanel();
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(FejdStartup), "SetSelectedWorld")]
-        static void PatchWorldSelection(FejdStartup __instance) {
-            if (Main.daysInWorldsList.Value) UpdateWorldsPanel();
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(FejdStartup), "OnSelectWorldTab")]
-        static void PatchWorldSelectionTab(FejdStartup __instance) {
-            if (Main.daysInWorldsList.Value) UpdateWorldsPanel();
-        }*/
     }
 }

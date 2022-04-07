@@ -72,39 +72,75 @@ namespace AlweStats {
             );
         }
 
-        public static List<WorldInfo> UpdateWorldFile(List<Vector3> pins = null) {
+        public static List<WorldInfo> GetWorldInfos() {
             if (!File.Exists(Main.statsFilePath)) {
                 FileStream fs = File.Create(Main.statsFilePath);
                 fs.Close();
             }
-            List<WorldInfo> worlds = JsonConvert.DeserializeObject<List<WorldInfo>>(
+            return JsonConvert.DeserializeObject<List<WorldInfo>>(
                 File.ReadAllText(Main.statsFilePath),
                 new JsonSerializerSettings { Error = (se, ev) => { ev.ErrorContext.Handled = true; } }
             );
-            if (pins != null) {
-                if (worlds == null) worlds = new();
-                WorldInfo world = worlds.FirstOrDefault(w => w.worldName == ZNet.instance.GetWorldName());
-                if (world == null) {
-                    worlds.Add(new WorldInfo {
-                        worldName = ZNet.instance.GetWorldName(),
-                        timePlayed = ZNet.instance.GetTimeSeconds(),
-                        dayLength = EnvMan.instance.m_dayLengthSec,
-                        removedPins = pins
-                    });
-                } else world.removedPins = pins;
-                string worldsLines = JsonConvert.SerializeObject(
-                    worlds, 
-                    Formatting.Indented, 
-                    new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore, NullValueHandling = NullValueHandling.Ignore }
-                );
-                File.WriteAllText(Main.statsFilePath, worldsLines);
+        }
+
+        public static void SetWorldInfos(List<WorldInfo> worlds) {
+            if (!File.Exists(Main.statsFilePath)) {
+                FileStream fs = File.Create(Main.statsFilePath);
+                fs.Close();
+            }
+            string worldsLines = JsonConvert.SerializeObject(
+                worlds, 
+                Formatting.Indented, 
+                new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore, NullValueHandling = NullValueHandling.Ignore }
+            );
+            File.WriteAllText(Main.statsFilePath, worldsLines);
+        }
+
+        public static List<WorldInfo> UpdateWorldFile(List<Vector3> pins = null, Dictionary<Minimap.PinData, List<ZDO>> hubs = null) {
+            List<WorldInfo> worlds = GetWorldInfos();
+            if (worlds == null) worlds = new();
+            WorldInfo world = worlds.FirstOrDefault(w => w.worldName == ZNet.instance.GetWorldName());
+            if (world == null) {
+                worlds.Add(new WorldInfo {
+                    worldName = ZNet.instance.GetWorldName(),
+                    timePlayed = ZNet.instance.GetTimeSeconds(),
+                    dayLength = EnvMan.instance.m_dayLengthSec,
+                    removedPins = pins == null ? new() : pins,
+                    portalsHubs = hubs == null ? new() : hubs
+                });
+            } else {
+                if (pins != null) world.removedPins = pins;
+                if (hubs != null) world.portalsHubs = hubs;
+                SetWorldInfos(worlds);
             }
             return worlds;
+        }
+
+        public static Sprite GetSprite(int nameHash, bool isPiece) {
+            if (isPiece) {
+                GameObject hammerObj = ObjectDB.instance.m_itemByHash["Hammer".GetStableHashCode()];
+                if (!hammerObj) return null;
+                ItemDrop hammerDrop = hammerObj.GetComponent<ItemDrop>();
+                if (!hammerDrop) return null;
+                PieceTable hammerPieceTable = hammerDrop.m_itemData.m_shared.m_buildPieces;
+                foreach (GameObject piece in hammerPieceTable.m_pieces) {
+                    Piece p = piece.GetComponent<Piece>();
+                    if (p.name.GetStableHashCode() == nameHash) return p.m_icon;
+                }
+            } else {
+                GameObject itemObj;
+                ObjectDB.instance.m_itemByHash.TryGetValue(nameHash, out itemObj);
+                if (!itemObj) return null;
+                ItemDrop itemDrop = itemObj.GetComponent<ItemDrop>();
+                if (!itemDrop) return null;
+                return itemDrop.m_itemData.GetIcon();
+            }
+            return null;
         }
     }
 
     public enum CustomPinType { Disabled, TrollCave, Crypt, FireHole, Portal, Ship, Cart, MountainCave }
-    public enum EnvType { Rock, Tree, Bush, Plant, Beehive, Fermenter, Piece, Fireplace, Container }
+    public enum EnvType { Disabled, Rock, Tree, Bush, Plant, Beehive, Fermenter, Piece, Fireplace, Container }
     public enum DistanceType { Disabled, Hovering, All }
 
     public struct CustomPinData {
@@ -117,6 +153,7 @@ namespace AlweStats {
         public string worldName { get; set; }
         public double timePlayed { get; set; }
         public long dayLength { get; set; }
+        public Dictionary<Minimap.PinData, List<ZDO>> portalsHubs { get; set; }
         public List<Vector3> removedPins { get; set; }
     }
 }
