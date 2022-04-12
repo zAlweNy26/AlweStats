@@ -7,6 +7,8 @@ using UnityEngine;
 
 namespace AlweStats {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency("randyknapp.mods.equipmentandquickslots", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("aedenthorn.ExtendedPlayerInventory", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInProcess("Valheim.exe")]
     public class Main : BaseUnityPlugin {
         private readonly Harmony harmony = new("zAlweNy26.AlweStats");
@@ -26,12 +28,13 @@ namespace AlweStats {
         public static ConfigEntry<string> 
             gameStatsColor, gameStatsAlign, gameStatsPosition, gameStatsMargin, 
             worldStatsColor, worldStatsAlign, worldStatsPosition, worldStatsMargin,
-            shipStatsColor, shipStatsAlign, shipStatsPosition, shipStatsMargin,
+            shipStatsColor, shipStatsAlign, shipStatsPosition, shipStatsMargin, crosshairColor,
             mapStatsColor, mapStatsPosition, mapStatsMargin, mapStatsAlign, showEntityDistance,
             worldClockColor, worldClockPosition, worldClockMargin, healthFormat, processFormat, 
             bowChargeBarColor, blocksBackgroundColor, blocksPadding, tamedBarColor, showEnvStatus,
             worldCoordinatesFormat, mapCoordinatesFormat, showCustomPins, showPinsTitles, biggerPins,
-            playerStatsColor, playerStatsAlign, playerStatsPosition, playerStatsMargin, playerStatsFormat;
+            playerStatsColor, playerStatsAlign, playerStatsPosition, playerStatsMargin, 
+            playerStatsFormat, /*gameStatsFormat, worldStatsFormat,*/ shipStatsFormat;
 
         public void Awake() {
             config = Config;
@@ -139,6 +142,8 @@ namespace AlweStats {
 
             tamedBarColor = Config.Bind("EntityStats", "TamedBarColor", "0, 0, 255, 255",
                 "The color of the background color for all the blocks\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
+            crosshairColor = Config.Bind("PlayerStats", "CrosshairColor", "255, 255, 255, 255",
+                "The color of the crosshair\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
             largeMapInfoSize = Config.Bind("MapStats", "LargeMapInfoSize", 16,
                 "The size of the text that show the cursor coordinates and explored percentage in the large map\nThe range of possible values is from 0 to the amount of your blindness");
             playerMarkerScale = Config.Bind("MapStats", "PlayerMarkerScale", 1.5f,
@@ -200,6 +205,23 @@ namespace AlweStats {
                 "\n'{4}' stands for the bow currently used arrows" +
                 "\n'{5}' stands for the bow total arrows" +
                 "\n'{6}' stands for the name of the currently selected arrows");
+            /*gameStatsFormat = Config.Bind("General", "GameStatsFormat", "FPS : {0}\nPing : {1}\nTotal players : {2}", 
+                "The format of the string when showing fps, ping and total players" +
+                "\n'{0}' stands for the fps" +
+                "\n'{1}' stands for the ping" +
+                "\n'{2}' stands for the total players");
+            worldStatsFormat = Config.Bind("General", "WorldStatsFormat", "Days : {0}\nPlay time : {1} h\nBiome : {2}", 
+                "The format of the string when showing the days, playtime and biome" +
+                "\n'{0}' stands for the days" +
+                "\n'{1}' stands for the play time" +
+                "\n'{2}' stands for the biome");*/
+            shipStatsFormat = Config.Bind("General", "ShipStatsFormat", "Ship speed : {0}\nShip health : {1} / {2}\nWind speed : {3}\nWind direction : {4}", 
+                "The format of the string when showing the ship speed and health, and wind speed and direction" +
+                "\n'{0}' stands for the ship speed in kts (knots)" +
+                "\n'{1}' stands for the ship current health" +
+                "\n'{2}' stands for the ship total health" +
+                "\n'{3}' stands for the wind speed in km/h" +
+                "\n'{4}' stands for the wind direction");
             
             healthFormat = Config.Bind("General", "HealthFormat", "{0} / {1} (<color>{2} %</color>)", 
                 "The format of the string when showing the health of environment elements, construction pieces and living entities" + 
@@ -275,6 +297,7 @@ namespace AlweStats {
             [HarmonyPatch(typeof(Hud), "UpdateCrosshair")]
             private static void PatchHudCrosshair() {
                 if (Main.enableEnvStats.Value && Utilities.CheckInEnum(EnvType.Piece, showEnvStatus.Value)) EnvStats.PatchHoveringPiece();
+                PlayerStats.PatchCrosshairColor();
             }
 
             [HarmonyPostfix]

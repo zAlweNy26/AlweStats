@@ -143,6 +143,7 @@ namespace AlweStats {
         [HarmonyPatch(typeof(Plant), "GetHoverText")]
         static void PatchPlantHoverText(ref string __result, Plant __instance) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Plant, Main.showEnvStatus.Value) || __instance == null) return;
+            if (!__instance.m_nview.IsValid()) return;
             float growPercentage = (float) __instance.TimeSincePlanted() / __instance.GetGrowTime() * 100f;
             growPercentage = growPercentage > 100f ? 100f : growPercentage;
             __result = SetPickableText(growPercentage, __instance.GetHoverName(), __instance.GetGrowTime() - __instance.TimeSincePlanted());

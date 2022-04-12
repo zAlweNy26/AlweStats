@@ -19,6 +19,13 @@ namespace AlweStats {
             return color;
         }
 
+        public static T GetCultureInvariant<T>(object num) {
+            string str = num.ToString().Replace(",", ".");
+            if (typeof(T) == typeof(float)) num = Convert.ToSingle(num, CultureInfo.InvariantCulture);
+            else if (typeof(T) == typeof(int)) num = Convert.ToInt32(num, CultureInfo.InvariantCulture);
+            return (T) Convert.ChangeType(num, typeof(T));
+        }
+
         public static string VectorToString(Vector2 vector) {
             string x = vector.x.ToString("0.##", CultureInfo.InvariantCulture);
             string y = vector.y.ToString("0.##", CultureInfo.InvariantCulture);
@@ -28,35 +35,34 @@ namespace AlweStats {
         public static Vector2 StringToVector(string setting) {
             string[] values = Regex.Replace(setting, @"\s+", "").Split(',');
             if (values.Length < 2) return Vector2.zero;
-            float x = float.Parse(values[0], CultureInfo.InvariantCulture);
-            float y = float.Parse(values[1], CultureInfo.InvariantCulture);
-            return new Vector2(x, y);
+            return new Vector2(GetCultureInvariant<float>(values[0]), GetCultureInvariant<float>(values[1]));
         }
 
         public static RectOffset StringToPadding(string setting) {
             string[] values = Regex.Replace(setting, @"\s+", "").Split(',');
             if (values.Length < 4) return new RectOffset(0, 0, 0, 0);
-            int left = int.Parse(values[0]);
-            int right = int.Parse(values[1]);
-            int top = int.Parse(values[2]);
-            int bottom = int.Parse(values[3]);
-            return new RectOffset(left, right, top, bottom);
+            return new RectOffset(
+                GetCultureInvariant<int>(values[0]),
+                GetCultureInvariant<int>(values[1]),
+                GetCultureInvariant<int>(values[2]),
+                GetCultureInvariant<int>(values[3])
+            );
         }
 
         public static Color StringToColor(string setting) {
             string[] values = Regex.Replace(setting, @"\s+", "").Split(',');
             if (values.Length < 4) return Color.gray;
             return new Color(
-                Mathf.Clamp01(float.Parse(values[0], CultureInfo.InvariantCulture) / 255f),
-                Mathf.Clamp01(float.Parse(values[1], CultureInfo.InvariantCulture) / 255f),
-                Mathf.Clamp01(float.Parse(values[2], CultureInfo.InvariantCulture) / 255f),
-                Mathf.Clamp01(float.Parse(values[3], CultureInfo.InvariantCulture) / 255f)
+                Mathf.Clamp01(GetCultureInvariant<float>(values[0]) / 255f),
+                Mathf.Clamp01(GetCultureInvariant<float>(values[1]) / 255f),
+                Mathf.Clamp01(GetCultureInvariant<float>(values[2]) / 255f),
+                Mathf.Clamp01(GetCultureInvariant<float>(values[3]) / 255f)
             );
         }
 
         public static bool CheckInEnum<T>(T type, string setting) {
             int value = Convert.ToInt32(type);
-            int[] values = Array.ConvertAll(Regex.Replace(setting, @"\s+", "").Split(','), int.Parse);
+            int[] values = Array.ConvertAll(Regex.Replace(setting, @"\s+", "").Split(','), s => int.Parse(s, CultureInfo.InvariantCulture));
             if (value == 0 && values.Contains(0)) return true;
             else if (values.Contains(0)) return false;
             else return values.Contains(value);
@@ -128,8 +134,7 @@ namespace AlweStats {
                     if (p.name.GetStableHashCode() == nameHash) return p.m_icon;
                 }
             } else {
-                GameObject itemObj;
-                ObjectDB.instance.m_itemByHash.TryGetValue(nameHash, out itemObj);
+                ObjectDB.instance.m_itemByHash.TryGetValue(nameHash, out GameObject itemObj);
                 if (!itemObj) return null;
                 ItemDrop itemDrop = itemObj.GetComponent<ItemDrop>();
                 if (!itemDrop) return null;

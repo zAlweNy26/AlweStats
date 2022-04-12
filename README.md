@@ -1,6 +1,9 @@
 # AlweStats
 
-You can find it here : https://valheim.thunderstore.io/package/Padank/AlweStats/
+You can find it here : 
+
+https://valheim.thunderstore.io/package/Padank/AlweStats/
+https://www.nexusmods.com/valheim/mods/1822/
 
 **Give a thumbs up if you like the mod and you have a GitHub account !**
 
@@ -96,6 +99,14 @@ df - Clear the entire AlweStats.json file by deleting it
 
 ### Changelog
 
+**4.2.0**
+- Fixed error shown when getting grow time of lots of surrounding plants
+- Fixed bug that wasn't hiding the charging circle when the custom bow charge bar was enabled
+- Added support for randyknapp's "Equipment and quick slots" in the PlayerStats block
+- Added black outline to the direction arrow for Bed, Portal and Ship status
+- Added config setting to change text of the ShipStats block
+- Added config setting to change the color of the crosshair
+
 **4.1.0**
 - Merged BowStats with PlayerStats to a unique block that displays inventory slots, weight, bow ammo and select arrows
 - Added weight fill percentage as an element in the status effect list
@@ -178,7 +189,7 @@ df - Clear the entire AlweStats.json file by deleting it
 **3.3.0**
 - Added a new config value regarding the text alignment for the BowStats block
 - Added a new config value regarding the background color for all the blocks (under General > BlocksBackgroundColor)
-- Fixed an error showed when deleting a construction piece
+- Fixed an error shown when deleting a construction piece
 - Fixed an error that didn't make editing mode work best
 - Moved "HealthStringFormat" and "ProcessStringFormat" to the "General" section
 - Added a new block called EntityStats that shows health as text in the health bar when hovering living entities
@@ -188,7 +199,7 @@ df - Clear the entire AlweStats.json file by deleting it
 - Moved the position of the health text for construction pieces
 
 **3.2.2**
-- Fixed an error showed when you had no arrows in the inventory
+- Fixed an error shown when you had no arrows in the inventory
 - Added total players string in GameStats block when there is more than 1
 - Overall adjustments
 

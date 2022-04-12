@@ -174,6 +174,8 @@ namespace AlweStats {
                 bedObj.name = "BedStatus";
                 bedObj.transform.SetParent(template.transform.parent);
                 bedObj.GetComponentInChildren<Image>().sprite = map.m_windMarker.GetComponent<Image>().sprite;
+                Outline statusOutline = bedObj.transform.Find("Icon").gameObject.AddComponent<Outline>();
+                statusOutline.effectColor = Color.black;
                 bedObj.transform.Find("Name").GetComponent<Text>().text = Localization.instance.Localize("$piece_bed");
                 bedObj.transform.Find("TimeText").GetComponent<Text>().text = "0 m";
                 bedObj.SetActive(false);
@@ -184,6 +186,8 @@ namespace AlweStats {
                 shipObj.name = "ShipStatus";
                 shipObj.transform.SetParent(template.transform.parent);
                 shipObj.GetComponentInChildren<Image>().sprite = map.m_windMarker.GetComponent<Image>().sprite;
+                Outline statusOutline = shipObj.transform.Find("Icon").gameObject.AddComponent<Outline>();
+                statusOutline.effectColor = Color.black;
                 shipObj.transform.Find("Name").GetComponent<Text>().text = "Ship";
                 shipObj.transform.Find("TimeText").GetComponent<Text>().text = "0 m";
                 shipObj.SetActive(false);
@@ -194,6 +198,8 @@ namespace AlweStats {
                 portalObj.name = "PortalStatus";
                 portalObj.transform.SetParent(template.transform.parent);
                 portalObj.GetComponentInChildren<Image>().sprite = map.m_windMarker.GetComponent<Image>().sprite;
+                Outline statusOutline = portalObj.transform.Find("Icon").gameObject.AddComponent<Outline>();
+                statusOutline.effectColor = Color.black;
                 portalObj.transform.Find("Name").GetComponent<Text>().text = Localization.instance.Localize("$piece_portal");
                 portalObj.transform.Find("TimeText").GetComponent<Text>().text = "0 m";
                 portalObj.SetActive(false);
@@ -251,8 +257,8 @@ namespace AlweStats {
             }
             exploredTotal = 0;
             mapSize = __instance.m_explored.Length;
-            float newSmallSize = __instance.m_smallMarker.sizeDelta.x * Main.playerMarkerScale.Value;
-            float newLargeSize = __instance.m_largeMarker.sizeDelta.x * Main.playerMarkerScale.Value;
+            float newSmallSize = __instance.m_smallMarker.sizeDelta.x * Utilities.GetCultureInvariant<float>(Main.playerMarkerScale.Value);
+            float newLargeSize = __instance.m_largeMarker.sizeDelta.x * Utilities.GetCultureInvariant<float>(Main.playerMarkerScale.Value);
             __instance.m_smallMarker.sizeDelta = new(newSmallSize, newSmallSize);
             __instance.m_largeMarker.sizeDelta = new(newLargeSize, newLargeSize);
             __instance.m_visibleIconTypes = Enumerable.Repeat(true, Enum.GetValues(typeof(Minimap.PinType)).Length + usedPins.Count).ToArray();
@@ -306,8 +312,7 @@ namespace AlweStats {
                 SetElementStatus(shipObj, shipsFound, playerPos, cameraTransform, space);
             }
             if (Main.enableMapStats.Value && mapBlock != null) {
-                RaycastHit hit;
-                Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit);
+                Physics.Raycast(cameraTransform.position, cameraTransform.forward, out RaycastHit hit);
                 mapBlock.SetText(String.Format(
                     Main.worldCoordinatesFormat.Value,
                     $"{playerPos3.x:0.#}", $"{playerPos3.y:0.#}", $"{playerPos3.z:0.#}",
@@ -441,8 +446,7 @@ namespace AlweStats {
         }
         
         private static void SetElementPin(Minimap map, ZDO zdo) {
-            Minimap.PinData customPin;
-            if (!zdoPins.TryGetValue(zdo, out customPin)) {
+            if (!zdoPins.TryGetValue(zdo, out Minimap.PinData customPin)) {
                 KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => p.Key.hash == zdo.GetPrefab()).FirstOrDefault();
                 string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? pair.Key.name : "";
                 zdoPins.Add(zdo, map.AddPin(zdo.GetPosition(), pair.Value.m_name, pinTitle, true, false));

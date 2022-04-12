@@ -32,7 +32,8 @@ namespace AlweStats {
             TextAnchor textAlignment;
             if (Enum.TryParse(align, out textAlignment)) blockText.alignment = textAlignment;
             else blockText.alignment = TextAnchor.MiddleCenter;
-            textObj.AddComponent<Outline>();
+            Outline textOutline = textObj.AddComponent<Outline>();
+            textOutline.effectColor = Color.black;
 
             blockObj.SetActive(true);
         }
