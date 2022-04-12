@@ -1,9 +1,7 @@
 # AlweStats
 
-You can find it here : 
-
-https://valheim.thunderstore.io/package/Padank/AlweStats/
-https://www.nexusmods.com/valheim/mods/1822/
+You can find it on [ThunderStore](https://valheim.thunderstore.io/package/Padank/AlweStats/)
+and [Nexus](https://www.nexusmods.com/valheim/mods/1822/).
 
 **Give a thumbs up if you like the mod and you have a GitHub account !**
 
