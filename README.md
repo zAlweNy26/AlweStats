@@ -32,7 +32,7 @@ The UI is separated into 6 blocks :
 - WorldStats, which contains "Days passed", "Time played" and "Current biome"
 - WorldClock, which contains "Clock"
 - ShipStats, which contains "Ship health", "Ship speed", "Wind speed", "Wind direction"
-- PlayerStats, that contains "Inventory slots", "Inventory weight", "Selected arrows" and "Bow ammo"
+- PlayerStats, which contains "Inventory slots", "Inventory weight", "Selected arrows" and "Bow ammo"
 - MapStats, which contains "Player coordinates" and "Focus coordinates"
 
 For each block, you can enable or disable it and you can also set :
@@ -46,7 +46,7 @@ Each block is also movable with your mouse while in-game thanks to the integrate
 
 You can reload the configuration file (default key : F9) while in-game to see changes.
 
-There are also "EntityStats", "EnvStats" which aren't UI blocks but can let you choose different things.
+There are also "EntityStats" and "EnvStats" which aren't UI blocks but can let you choose different things.
 
 In the config file you can also :
 - Change key for plugin reload and editing mode
@@ -115,11 +115,11 @@ df - Clear the entire AlweStats.json file by deleting it
 **4.1.0**
 - Merged BowStats with PlayerStats to a unique block that displays inventory slots, weight, bow ammo and select arrows
 - Added weight fill percentage as an element in the status effect list
-- Fixed bug that wasn't correctly sizing vanilla pins when there was "0" in the "BiggerPins" config setting.
+- Fixed bug that wasn't correctly sizing vanilla pins when there was "0" in the "BiggerPins" config setting
 - Fixed bug that wasn't correctly showing EnvStatus for each environment element
 
 **4.0.0**
-- Replaced the Alwe.stats file with AlweStats.json to be able to save custom pins.
+- Replaced the Alwe.stats file with AlweStats.json to be able to save custom pins
 - Fixed ShipStatus that wasn't correctly being positioned when PortalStatus wasn't active
 - Added mountain caves to the custom pins
 - Now you can rename, check/uncheck and remove custom pins
@@ -177,7 +177,7 @@ df - Clear the entire AlweStats.json file by deleting it
 **3.4.0**
 - Added a new config value regarding the padding for all the blocks
 - Fixed the flicker when the value of blocks change
-- Now the environment element name will be shown even if you hit an element without aiming at it.
+- Now the environment element name will be shown even if you hit an element without aiming at it
 - Now the health bar color of construction pieces is based on the health percentage
 - Moved the position of the health text and bar for construction pieces
 - Added outline to the text of all the blocks
