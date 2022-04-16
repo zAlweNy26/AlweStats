@@ -23,7 +23,7 @@ namespace AlweStats {
         public static ConfigEntry<int> 
             gameStatsSize, worldStatsSize, worldClockSize, 
             shipStatsSize, playerStatsSize, mapStatsSize, largeMapInfoSize;
-        public static ConfigEntry<float> playerMarkerScale;
+        public static ConfigEntry<float> playerMarkerScale, crosshairScale;
         public static ConfigEntry<KeyCode> toggleEditMode, reloadPluginKey;
         public static ConfigEntry<string> 
             gameStatsColor, gameStatsAlign, gameStatsPosition, gameStatsMargin, 
@@ -148,7 +148,9 @@ namespace AlweStats {
                 "The size of the text that show the cursor coordinates and explored percentage in the large map\nThe range of possible values is from 0 to the amount of your blindness");
             playerMarkerScale = Config.Bind("MapStats", "PlayerMarkerScale", 1.5f,
                 "The multiplier for the scale of the player marker icon in both small and large map");
-
+            crosshairScale = Config.Bind("PlayerStats", "CrosshairScale", 1.5f,
+                "The multiplier for the scale of the crosshair image");
+                
             showEntityDistance = Config.Bind("EntityStats", "ShowEntityDistance", "1", 
                 "Toggle the text about the distance from the player and the entity" +
                 "\n0 = disable this setting" +

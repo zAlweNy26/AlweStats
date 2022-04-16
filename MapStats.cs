@@ -126,6 +126,7 @@ namespace AlweStats {
         private static GameObject cursorObj = null, exploredObj = null, bedObj = null, shipObj = null, portalObj = null;
         public static Dictionary<ZDO, Minimap.PinData> zdoPins = new();
         private static Dictionary<Vector3, Minimap.PinData> locPins = new();
+        private static Dictionary<string, Vector3> locsFound = new();
         private static List<ZDO> shipsFound = new(), portalsFound = new();
         public static List<Vector3> removedPins = new();
         private static long exploredTotal = 0, mapSize = 0;
@@ -286,6 +287,17 @@ namespace AlweStats {
                 pin.Value.m_pos = pin.Key.GetPosition();            
             }
 
+            foreach (KeyValuePair<string, Vector3> loc in locsFound) {    
+                if (!locPins.ContainsKey(loc.Value) && !removedPins.Contains(loc.Value) && Vector3.Distance(loc.Value, playerPos3) <= 75f) {
+                    KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => loc.Key.Contains(p.Key.name.ToLower())).FirstOrDefault();
+                    string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? 
+                        Regex.Replace(pair.Key.name, "([a-z])([A-Z])", "$1 $2") : "";
+                    Minimap.PinData locPin = __instance.AddPin(loc.Value, pair.Value.m_name, pinTitle, true, false);
+                    locPin.m_doubleSize = Utilities.CheckInEnum(pair.Key.type, Main.biggerPins.Value);
+                    locPins.Add(loc.Value, locPin);
+                }
+            }
+
             if (Main.enableBedStatus.Value && bedObj != null) {
                 PlayerProfile playerProfile = Game.instance.GetPlayerProfile();
                 if (playerProfile.HaveCustomSpawnPoint()) {
@@ -355,11 +367,8 @@ namespace AlweStats {
                 Vector3 locPos = location.transform.position.Round();
                 string locName = location.name.ToLower();
                 if (!locPins.ContainsKey(locPos) && !removedPins.Contains(locPos) && usedPins.Any(p => locName.Contains(p.Key.name.ToLower()))) {
+                    locsFound.Add(locName, locPos);
                     //Debug.Log($"Added location pin {locName} with position {locPos}");
-                    KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => locName.Contains(p.Key.name.ToLower())).FirstOrDefault();
-                    string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? 
-                        Regex.Replace(pair.Key.name, "([a-z])([A-Z])", "$1 $2") : "";
-                    locPins.Add(locPos, map.AddPin(locPos, pair.Value.m_name, pinTitle, true, false));
                 }
             }
         }
@@ -449,34 +458,17 @@ namespace AlweStats {
             if (!zdoPins.TryGetValue(zdo, out Minimap.PinData customPin)) {
                 KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => p.Key.hash == zdo.GetPrefab()).FirstOrDefault();
                 string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? pair.Key.name : "";
-                zdoPins.Add(zdo, map.AddPin(zdo.GetPosition(), pair.Value.m_name, pinTitle, true, false));
+                Minimap.PinData zdoPin = map.AddPin(zdo.GetPosition(), pair.Value.m_name, pinTitle, true, false);
+                zdoPin.m_doubleSize = Utilities.CheckInEnum(pair.Key.type, Main.biggerPins.Value);
+                zdoPins.Add(zdo, zdoPin);
                 //Debug.Log($"ZDO aggiunto a zdoPins !");
             }
         }
 
-        [HarmonyPrefix]
+        [HarmonyPostfix]
         [HarmonyPatch(typeof(Minimap), "AddPin")]
-        static bool PatchAddPin(Minimap __instance, ref Minimap.PinData __result,
-            Vector3 pos, ref Minimap.PinType type, ref string name, bool save, bool isChecked, long ownerID = 0L) {
-            if (Utilities.CheckInEnum(CustomPinType.Disabled, Main.showCustomPins.Value)) return true;
-            if (type >= (Minimap.PinType)__instance.m_visibleIconTypes.Length || type < Minimap.PinType.Icon0) type = Minimap.PinType.Icon3;
-            Minimap.PinType customType = type;
-            if (name == null) name = "";
-            Minimap.PinData pinData = new Minimap.PinData();
-            pinData.m_type = type;
-            pinData.m_name = name;
-            pinData.m_pos = pos;
-            pinData.m_icon = __instance.GetSprite(type);
-            if (Main.replaceBedPinIcon.Value && type == Minimap.PinType.Bed) pinData.m_icon = Utilities.GetSprite("bed".GetStableHashCode(), true);
-            pinData.m_save = save;
-            pinData.m_checked = isChecked;
-            pinData.m_ownerID = ownerID;
-            CustomPinType biggerPin = usedPins.Where(p => p.Value.m_name == customType).FirstOrDefault().Key.type;
-            if (biggerPin != CustomPinType.Disabled) pinData.m_doubleSize = Utilities.CheckInEnum(biggerPin, Main.biggerPins.Value);
-            if (!__instance.m_pins.Any(p => p.m_pos == pos)) __instance.m_pins.Add(pinData);
-            if (type < (Minimap.PinType)__instance.m_visibleIconTypes.Length && !__instance.m_visibleIconTypes[(int)type]) __instance.ToggleIconFilter(type);
-            __result = pinData;
-            return false;
+        static void PatchAddPin(ref Minimap.PinData __result, Minimap.PinType type) {
+            if (Main.replaceBedPinIcon.Value && type == Minimap.PinType.Bed) __result.m_icon = Utilities.GetSprite("bed".GetStableHashCode(), true);
         }
 
         [HarmonyPrefix]
@@ -549,7 +541,9 @@ namespace AlweStats {
                         KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => prefabName.Contains(p.Key.name.ToLower())).FirstOrDefault();
                         string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? 
                             Regex.Replace(pair.Key.name, "([a-z])([A-Z])", "$1 $2") : "";
-                        locPins.Add(locPos, map.AddPin(locPos, pair.Value.m_name, pinTitle, true, false));
+                        Minimap.PinData locPin = map.AddPin(locPos, pair.Value.m_name, pinTitle, true, false);
+                        locPin.m_doubleSize = Utilities.CheckInEnum(pair.Key.type, Main.biggerPins.Value);
+                        locPins.Add(locPos, locPin);
                     }
                 }
                 if (locPins.Count > 0) Debug.Log($"Loaded {locPins.Count} locations pins");
@@ -584,6 +578,7 @@ namespace AlweStats {
             zdoCheck = locCheck = false;
             zdoPins.Clear();
             locPins.Clear();
+            locsFound.Clear();
             shipsFound.Clear();
             portalsFound.Clear();
             usedPins = pinsDict.Keys.ToDictionary(k => k, v => pinsDict[v]);

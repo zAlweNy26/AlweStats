@@ -57,6 +57,9 @@ namespace AlweStats {
                 weightObj.transform.Find("TimeText").GetComponent<Text>().text = "0 %";
                 weightObj.SetActive(true);
             }
+            float crosshairSize = Utilities.GetCultureInvariant<float>(Main.crosshairScale.Value);
+            RectTransform crosshairRect = Hud.instance.m_crosshair.gameObject.GetComponent<RectTransform>();
+            crosshairRect.sizeDelta = crosshairRect.sizeDelta * new Vector2(crosshairSize, crosshairSize);
             return playerBlock;
         }
 

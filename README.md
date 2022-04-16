@@ -12,16 +12,28 @@ please create an issue on GitHub to let me know !**
 **You may encounter incompatibilities in case there are other mods that modify the UI, 
 be sure to enable either one or the other equivalent section so they don't conflict in the same function**
 
+> For reasons inherent to the optimal functioning of the mod,
+> everything related to the pins and elements in the status effects list (BedStatus, PortalStatus and ShipStatus)
+> could cause a lowering of fps if the computer running the game is not very powerful.
+
+> As I don't know the proportions that the game uses,
+> I have established that the maximum **ship speed** is equal to **30 kts** and the maximum **wind speed** is equal to **100 km/h**,
+> so the values ​​are proportioned according to this.
+
+> Since the default day length declared in Valheim doesn't match the real one,
+> to successfully use the "Days passed" counter in the world selection panel you need to join in a world at least one time,
+> The mod will then get the day length in that world and save it in the "AlweStats.json" file (you have to do it for each world).
+
 **If you have an idea for something to add or any suggestion regarding the implemented features, 
 feel free to create an issue on the GitHub repository !**
 
 The UI is separated into 6 blocks :
-- GameStats, that contains "FPS", "Ping" and "Total players"
-- WorldStats, that contains "Days passed", "Time played" and "Current biome"
-- WorldClock, that contains "Clock"
-- ShipStats, that contains "Ship health", "Ship speed", "Wind speed", "Wind direction"
+- GameStats, which contains "FPS", "Ping" and "Total players"
+- WorldStats, which contains "Days passed", "Time played" and "Current biome"
+- WorldClock, which contains "Clock"
+- ShipStats, which contains "Ship health", "Ship speed", "Wind speed", "Wind direction"
 - PlayerStats, that contains "Inventory slots", "Inventory weight", "Selected arrows" and "Bow ammo"
-- MapStats, that contains "Player coordinates" and "Focus coordinates"
+- MapStats, which contains "Player coordinates" and "Focus coordinates"
 
 For each block, you can enable or disable it and you can also set :
 - Position
@@ -49,9 +61,12 @@ In the config file you can also :
 - Toggle the current biome text in the WorldStats block instead of the top-left corner in the minimap
 - Set the string format for the health of environment elements, construction pieces and entities
 - Set the string format for the process status of bushes, plants, fireplaces, beehives and fermenters
-- Set the string format for the player and focus coordinates string
 - Set the string format for the cursor coordinates string
-- Toggle the hover status separately for rock, trees, bushes, plants, beehives, fireplaces, fermenters, containers and construction pieces
+- Set the string format for the ShipStats and MapStats blocks
+- Set the color of the crosshair and the custom bow charge bar
+- Set the scale of the player marker and the crosshair
+- Toggle a weight fill percentage as an element in the status effects list
+- Toggle the hover status separately for rock, trees, bushes, plants, beehives, fireplaces, fermenters and containers
 - Toggle the cursor coordinates and the explored percentage in the large map
 - Toggle the rotation of the minimap that follows the player camera rotation
 - Toggle the distance and direction from claimed bed, closer portal and closer ship shown as elements in the status effects list
@@ -60,7 +75,6 @@ In the config file you can also :
 - Toggle the title of the custom pins
 - Toggle the distance between you and the ping a player does on the map
 - Replace the default bed pin icon with the icon of the bed as a building piece
-- Set the color of the bow charge bar when fully charged
 
 In the console or chat, now you can use these commands :
 ```console
@@ -70,21 +84,9 @@ cfp [world] - Remove all the pins from the AlweStats.json file for a specific wo
 df - Clear the entire AlweStats.json file by deleting it
 ```
 
-> For reasons inherent to the optimal functioning of the mod,
-> everything related to the pins and elements in the status effects list (BedStatus, PortalStatus and ShipStatus)
-> could cause a lowering of fps if the computer running the game is not very powerful.
-
-> As I don't know the proportions that the game uses,
-> I have established that the maximum **ship speed** is equal to **30 kts** and the maximum **wind speed** is equal to **100 km/h**,
-> so the values ​​are proportioned according to this.
-
-> Since the default day length declared in Valheim doesn't match the real one,
-> to successfully use the "Days passed" counter in the world selection panel you need to join in a world at least one time,
-> The mod will then get the day length in that world and save it in the "Alwe.stats" file (you have to do it for each world).
-
 ### Things I want to do as soon as possible
 
-- Add detailed item informations
+- Add detailed items informations
 - Add a compass
 - Add a custom minimap
 - Fix the known issues
@@ -96,6 +98,11 @@ df - Clear the entire AlweStats.json file by deleting it
 - Remaining time doesn't work properly for beehives
 
 ### Changelog
+
+**4.2.1**
+- Added config setting to scale the size of the crosshair
+- Now you have to be closer to a dungeon before the pin is added
+- Added compatibility to other mods that add custom pins
 
 **4.2.0**
 - Fixed error shown when getting grow time of lots of surrounding plants
