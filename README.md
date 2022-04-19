@@ -99,6 +99,15 @@ df - Clear the entire AlweStats.json file by deleting it
 
 ### Changelog
 
+**4.2.2**
+- Fixed error generated when adding dungeons pins
+- Fixed a bug that wasn't saving world infos in the AlweStats.json file when it was the first time
+- Added more conditions to check if game objects are valid or not
+- Added more conditions before adding a pin
+- Added compatibility to other mods that add custom pins
+- Changed the pin icon for sunken crypts to draugr trophy image
+- Added config setting to choose if the mod should automatically rename portal pins titles or not
+
 **4.2.1**
 - Added config setting to scale the size of the crosshair
 - Now you have to be closer to a dungeon before the pin is added

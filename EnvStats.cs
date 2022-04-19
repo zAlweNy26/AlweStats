@@ -38,7 +38,7 @@ namespace AlweStats {
             if (hoveringPiece) {
                 WearNTear wnt = hoveringPiece.GetComponent<WearNTear>();
                 ZNetView znv = hoveringPiece.GetComponent<ZNetView>();
-                if (wnt && znv?.IsValid() == true) {
+                if (wnt != null && znv.IsValid()) {
                     float currentHealth = znv.GetZDO().GetFloat("health", wnt.m_health);
                     float currentPercentage = wnt.GetHealthPercentage() * 100f;
                     pieceObj.SetActive(true);

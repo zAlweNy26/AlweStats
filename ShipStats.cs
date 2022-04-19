@@ -29,7 +29,7 @@ namespace AlweStats {
                     string windAngle = GetWindAngle(nearestShip.GetWindAngle());
                     float windSpeed = EnvMan.instance.GetWindIntensity() * 100f; // 100 (max km/h I decided) / 1 (maximum speed in game)
                     float shipSpeed = Mathf.Abs(nearestShip.GetSpeed() * 3f); // 30 (max kts I decided) / 10 (maximum speed in game)
-                    if (wnt && znv?.IsValid() == true) {
+                    if (wnt != null && znv.IsValid()) {
                         string currentHealth = $"{znv.GetZDO().GetFloat("health", wnt.m_health):0.#}";
                         shipBlock.SetText(string.Format(Main.shipStatsFormat.Value, $"{shipSpeed:0.#} kts", currentHealth, wnt.m_health, $"{windSpeed:0.#} km/h", windAngle));
                         shipBlock.SetActive(true);

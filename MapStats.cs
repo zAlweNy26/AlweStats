@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using BepInEx.Bootstrap;
 
 namespace AlweStats {
     [HarmonyPatch]
@@ -19,7 +20,7 @@ namespace AlweStats {
                 }, 
                 new Minimap.SpriteData() { 
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length, 
-                    m_icon = Utilities.GetSprite("TrophySkeletonPoison".GetStableHashCode(), false) 
+                    m_icon = Utilities.GetSprite("TrophyDraugr".GetStableHashCode(), false) 
                 } 
             },
             {   
@@ -126,7 +127,7 @@ namespace AlweStats {
         private static GameObject cursorObj = null, exploredObj = null, bedObj = null, shipObj = null, portalObj = null;
         public static Dictionary<ZDO, Minimap.PinData> zdoPins = new();
         private static Dictionary<Vector3, Minimap.PinData> locPins = new();
-        private static Dictionary<string, Vector3> locsFound = new();
+        private static Dictionary<string, List<Vector3>> locsFound = new();
         private static List<ZDO> shipsFound = new(), portalsFound = new();
         public static List<Vector3> removedPins = new();
         private static long exploredTotal = 0, mapSize = 0;
@@ -262,7 +263,8 @@ namespace AlweStats {
             float newLargeSize = __instance.m_largeMarker.sizeDelta.x * Utilities.GetCultureInvariant<float>(Main.playerMarkerScale.Value);
             __instance.m_smallMarker.sizeDelta = new(newSmallSize, newSmallSize);
             __instance.m_largeMarker.sizeDelta = new(newLargeSize, newLargeSize);
-            __instance.m_visibleIconTypes = Enumerable.Repeat(true, Enum.GetValues(typeof(Minimap.PinType)).Length + usedPins.Count).ToArray();
+            if (!Chainloader.PluginInfos.ContainsKey("AMP_Configurable") && !Chainloader.PluginInfos.ContainsKey("randyknapp.mods.epicloot")) 
+                __instance.m_visibleIconTypes = Enumerable.Repeat(true, Enum.GetValues(typeof(Minimap.PinType)).Length + usedPins.Count).ToArray();
             pinsDict.Do(p => __instance.m_icons.Add(p.Value));
         }
 
@@ -282,19 +284,23 @@ namespace AlweStats {
             LoadZDOs();
 
             foreach (KeyValuePair<ZDO, Minimap.PinData> pin in zdoPins) {
-                if (pin.Key.GetPrefab() == "portal_wood".GetStableHashCode() 
+                if (pin.Key.GetPrefab() == "portal_wood".GetStableHashCode()
                     && Utilities.CheckInEnum(CustomPinType.Portal, Main.showPinsTitles.Value)) pin.Value.m_name = pin.Key.GetString("tag", "");
                 pin.Value.m_pos = pin.Key.GetPosition();            
             }
 
-            foreach (KeyValuePair<string, Vector3> loc in locsFound) {    
-                if (!locPins.ContainsKey(loc.Value) && !removedPins.Contains(loc.Value) && Vector3.Distance(loc.Value, playerPos3) <= 75f) {
-                    KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => loc.Key.Contains(p.Key.name.ToLower())).FirstOrDefault();
-                    string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? 
-                        Regex.Replace(pair.Key.name, "([a-z])([A-Z])", "$1 $2") : "";
-                    Minimap.PinData locPin = __instance.AddPin(loc.Value, pair.Value.m_name, pinTitle, true, false);
-                    locPin.m_doubleSize = Utilities.CheckInEnum(pair.Key.type, Main.biggerPins.Value);
-                    locPins.Add(loc.Value, locPin);
+            foreach (KeyValuePair<string, List<Vector3>> loc in locsFound) { 
+                foreach (Vector3 pos in loc.Value) {
+                    if (!locPins.ContainsKey(pos) && !removedPins.Contains(pos.Round()) && Vector3.Distance(pos, playerPos3) <= 75f) {
+                        KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => loc.Key.Contains(p.Key.name.ToLower())).FirstOrDefault();
+                        string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? 
+                            Regex.Replace(pair.Key.name, "([a-z])([A-Z])", "$1 $2") : "";
+                        if (!__instance.HavePinInRange(pos, 1f)) {
+                            Minimap.PinData locPin = __instance.AddPin(pos, pair.Value.m_name, pinTitle, true, false);
+                            locPin.m_doubleSize = Utilities.CheckInEnum(pair.Key.type, Main.biggerPins.Value);
+                            locPins.Add(pos, locPin);
+                        }
+                    }
                 }
             }
 
@@ -359,15 +365,19 @@ namespace AlweStats {
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Location), "Awake")]
-        static void ShowDungeonsPins(Location __instance) {
+        static void AddDungeonPin(Location __instance) {
             LoadLocations();
             Location location = __instance.GetComponent<Location>();
             Minimap map = Minimap.instance;
             if (location != null && map != null) {
-                Vector3 locPos = location.transform.position.Round();
+                Vector3 locPos = location.transform.position;
                 string locName = location.name.ToLower();
-                if (!locPins.ContainsKey(locPos) && !removedPins.Contains(locPos) && usedPins.Any(p => locName.Contains(p.Key.name.ToLower()))) {
-                    locsFound.Add(locName, locPos);
+                if (!locPins.ContainsKey(locPos) && !removedPins.Contains(locPos.Round()) && !locsFound.Any(p => p.Value.Contains(locPos))
+                    && usedPins.Any(p => locName.Contains(p.Key.name.ToLower()))) {
+                    if (locsFound.ContainsKey(locName)) {
+                        locsFound.TryGetValue(locName, out List<Vector3> locations);
+                        locations.Add(locPos);
+                    } else locsFound.Add(locName, new List<Vector3> { locPos });
                     //Debug.Log($"Added location pin {locName} with position {locPos}");
                 }
             }
@@ -380,11 +390,11 @@ namespace AlweStats {
             Minimap map = Minimap.instance;
             int prefabHash = zdo.GetPrefab();
             if (map != null && zdo.IsValid() && usedPins.Any(p => prefabHash == p.Key.hash)) SetElementPin(map, zdo);
-            if (zdo.IsValid() && portalObj != null && prefabHash == "portal_wood".GetStableHashCode()) {
+            if (zdo.IsValid() && portalObj != null && prefabHash == "portal_wood".GetStableHashCode() && !portalsFound.Contains(zdo)) {
                 //Debug.Log($"ZDO aggiunto a portalsFound !");
                 portalsFound.Add(zdo);
             } else if (zdo.IsValid() && shipObj != null && (prefabHash == "VikingShip".GetStableHashCode() || 
-                prefabHash == "Raft".GetStableHashCode() || prefabHash == "Karve".GetStableHashCode())) {
+                prefabHash == "Raft".GetStableHashCode() || prefabHash == "Karve".GetStableHashCode()) && !shipsFound.Contains(zdo)) {
                 //Debug.Log($"ZDO aggiunto a shipsFound !");
                 shipsFound.Add(zdo);
             }
@@ -458,7 +468,8 @@ namespace AlweStats {
             if (!zdoPins.TryGetValue(zdo, out Minimap.PinData customPin)) {
                 KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => p.Key.hash == zdo.GetPrefab()).FirstOrDefault();
                 string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? pair.Key.name : "";
-                Minimap.PinData zdoPin = map.AddPin(zdo.GetPosition(), pair.Value.m_name, pinTitle, true, false);
+                Minimap.PinData zdoPin = map.GetClosestPin(zdo.GetPosition(), 1f);
+                if (zdoPin == null) zdoPin = map.AddPin(zdo.GetPosition(), pair.Value.m_name, pinTitle, true, false);
                 zdoPin.m_doubleSize = Utilities.CheckInEnum(pair.Key.type, Main.biggerPins.Value);
                 zdoPins.Add(zdo, zdoPin);
                 //Debug.Log($"ZDO aggiunto a zdoPins !");
@@ -535,14 +546,15 @@ namespace AlweStats {
                 if (locations.Count > 0) locCheck = true;
                 foreach (ZoneSystem.LocationInstance loc in locations.Where(l => l.m_placed == true)) {
                     //Debug.Log($"Location {loc.m_location.m_prefabName} | {loc.m_position} | {loc.m_placed}");
-                    Vector3 locPos = loc.m_position.Round();
+                    Vector3 locPos = loc.m_position;
                     string prefabName = loc.m_location.m_prefabName.ToLower();
-                    if (!removedPins.Contains(locPos) && usedPins.Any(p => prefabName.Contains(p.Key.name.ToLower()))) {
+                    if (!removedPins.Contains(locPos.Round()) && usedPins.Any(p => prefabName.Contains(p.Key.name.ToLower()))) {
                         KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => prefabName.Contains(p.Key.name.ToLower())).FirstOrDefault();
                         string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? 
                             Regex.Replace(pair.Key.name, "([a-z])([A-Z])", "$1 $2") : "";
-                        Minimap.PinData locPin = map.AddPin(locPos, pair.Value.m_name, pinTitle, true, false);
-                        locPin.m_doubleSize = Utilities.CheckInEnum(pair.Key.type, Main.biggerPins.Value);
+                        Minimap.PinData locPin = map.GetClosestPin(locPos, 1f);
+                        if (locPin == null) locPin = map.AddPin(locPos, pair.Value.m_name, pinTitle, true, false);
+                        locPin.m_doubleSize = Utilities.CheckInEnum(pair.Key.type, Main.biggerPins.Value); 
                         locPins.Add(locPos, locPin);
                     }
                 }
@@ -558,12 +570,12 @@ namespace AlweStats {
                 foreach (ZDO zdo in ZDOMan.instance.m_objectsByID.Values.ToList()) {
                     int prefabHash = zdo.GetPrefab();
                     Vector3 zdoPos = zdo.GetPosition().Round();
-                    if (!removedPins.Contains(zdoPos) && usedPins.Any(p => p.Key.hash == prefabHash)) SetElementPin(map, zdo);
-                    if (portalObj != null && prefabHash == "portal_wood".GetStableHashCode()) {
+                    if (zdo.IsValid() && !removedPins.Contains(zdoPos) && usedPins.Any(p => p.Key.hash == prefabHash)) SetElementPin(map, zdo);
+                    if (zdo.IsValid() && portalObj != null && prefabHash == "portal_wood".GetStableHashCode()) {
                         //Debug.Log($"ZDO aggiunto a portalsFound !");    
                         portalsFound.Add(zdo);
-                    } else if (shipObj != null && (prefabHash == "VikingShip".GetStableHashCode() || 
-                        prefabHash == "Raft".GetStableHashCode() || prefabHash == "Karve".GetStableHashCode())) {
+                    } else if (zdo.IsValid() && shipObj != null && (prefabHash == "VikingShip".GetStableHashCode() || 
+                        prefabHash == "Raft".GetStableHashCode() || prefabHash == "Karve".GetStableHashCode()) && !shipsFound.Contains(zdo)) {
                         //Debug.Log($"ZDO aggiunto a shipsFound !");
                         shipsFound.Add(zdo);
                     }
@@ -596,12 +608,12 @@ namespace AlweStats {
                 usedPins.Remove(usedPins.First(p => p.Key.name == "Viking Ship").Key);
             }
             if (!Utilities.CheckInEnum(CustomPinType.Cart, Main.showCustomPins.Value)) usedPins.Remove(usedPins.First(p => p.Key.name == "Cart").Key);
-            List<WorldInfo> worldInfos = Utilities.UpdateWorldFile();
+            List<WorldInfo> worldInfos = Utilities.GetWorldInfos();
             if (worldInfos != null) {
                 WorldInfo worldInfo = worldInfos.FirstOrDefault(wi => wi.worldName == ZNet.instance.GetWorldName());
                 if (worldInfo != null) {
                     removedPins = worldInfo.removedPins;
-                    Debug.Log($"Removed {removedPins.Count} pins");
+                    if (removedPins.Count > 0) Debug.Log($"Removed {removedPins.Count} pins");
                 }
             }
         }

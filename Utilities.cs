@@ -79,14 +79,14 @@ namespace AlweStats {
         }
 
         public static List<WorldInfo> GetWorldInfos() {
-            if (!File.Exists(Main.statsFilePath)) {
-                FileStream fs = File.Create(Main.statsFilePath);
-                fs.Close();
+            List<WorldInfo> worldsInfos = new();
+            if (File.Exists(Main.statsFilePath)) {
+                worldsInfos = JsonConvert.DeserializeObject<List<WorldInfo>>(
+                    File.ReadAllText(Main.statsFilePath),
+                    new JsonSerializerSettings { Error = (se, ev) => { ev.ErrorContext.Handled = true; } }
+                );
             }
-            return JsonConvert.DeserializeObject<List<WorldInfo>>(
-                File.ReadAllText(Main.statsFilePath),
-                new JsonSerializerSettings { Error = (se, ev) => { ev.ErrorContext.Handled = true; } }
-            );
+            return worldsInfos;
         }
 
         public static void SetWorldInfos(List<WorldInfo> worlds) {
@@ -104,7 +104,6 @@ namespace AlweStats {
 
         public static List<WorldInfo> UpdateWorldFile(List<Vector3> pins = null, Dictionary<Minimap.PinData, List<ZDO>> hubs = null) {
             List<WorldInfo> worlds = GetWorldInfos();
-            if (worlds == null) worlds = new();
             WorldInfo world = worlds.FirstOrDefault(w => w.worldName == ZNet.instance.GetWorldName());
             if (world == null) {
                 worlds.Add(new WorldInfo {
@@ -117,8 +116,8 @@ namespace AlweStats {
             } else {
                 if (pins != null) world.removedPins = pins;
                 if (hubs != null) world.portalsHubs = hubs;
-                SetWorldInfos(worlds);
             }
+            SetWorldInfos(worlds);
             return worlds;
         }
 

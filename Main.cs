@@ -7,8 +7,6 @@ using UnityEngine;
 
 namespace AlweStats {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-    [BepInDependency("randyknapp.mods.equipmentandquickslots", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("aedenthorn.ExtendedPlayerInventory", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInProcess("Valheim.exe")]
     public class Main : BaseUnityPlugin {
         private readonly Harmony harmony = new("zAlweNy26.AlweStats");
