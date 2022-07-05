@@ -22,6 +22,8 @@ namespace AlweStats {
         }
 
         public static void Update() {
+            Player player = Player.m_localPlayer;
+            if (player == null) return;
             if (shipBlock != null && nearestShip != null) {
                 if (nearestShip.IsPlayerInBoat(Player.m_localPlayer)) {
                     WearNTear wnt = nearestShip.GetComponent<WearNTear>();
@@ -35,6 +37,10 @@ namespace AlweStats {
                         shipBlock.SetActive(true);
                     } else shipBlock.SetActive(false);
                 } else shipBlock.SetActive(false);
+            }
+            if (Main.enableShipStatus.Value && nearestShip != null) {
+                if (nearestShip.IsPlayerInBoat(Player.m_localPlayer)) MapStats.isOnBoat = true;
+                else MapStats.isOnBoat = false;
             }
         }
 
@@ -70,7 +76,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Ship), "OnTriggerEnter")]
         static void PatchShipEnter() {
-            if (Main.enableShipStats.Value) Check();
+            if (Main.enableShipStats.Value || Main.enableShipStatus.Value) Check();
         }
 
         [HarmonyPostfix]

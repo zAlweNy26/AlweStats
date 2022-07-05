@@ -7,11 +7,13 @@ using UnityEngine;
 
 namespace AlweStats {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency("randyknapp.mods.auga", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInProcess("Valheim.exe")]
     public class Main : BaseUnityPlugin {
         private readonly Harmony harmony = new("zAlweNy26.AlweStats");
         public static ConfigFile config;
         public static string statsFilePath;
+        //public static bool HasAuga => Auga.API.IsLoaded();
         public static ConfigEntry<bool> 
             enableGameStats, enableWorldStats, enableWorldClock, enableShipStats, enableEnvStats, 
             enablePlayerStats, customBowCharge, daysInWorldsList, twelveHourFormat, enableShipStatus, 
@@ -41,14 +43,14 @@ namespace AlweStats {
             reloadPluginKey = Config.Bind("General", "ReloadPluginKey", KeyCode.F9, "Key to reload the plugin config file, set it to None to disable it");
             toggleEditMode = Config.Bind("General", "EditModeKey", KeyCode.F8, "Key to toggle hud editing mode, set it to None to disable it");
 
-            enableGameStats = Config.Bind("GameStats", "Enable", true, "Toggle the GameStats block");
-            enableWorldStats = Config.Bind("WorldStats", "Enable", true, "Toggle the WorldStats block");
-            enableWorldClock = Config.Bind("WorldClock", "Enable", true, "Toggle the WorldClock block");
-            enableShipStats = Config.Bind("ShipStats", "Enable", true, "Toggle the ShipStats block");
-            enablePlayerStats = Config.Bind("PlayerStats", "Enable", true, "Toggle the PlayerStats block");
-            enableMapStats = Config.Bind("MapStats", "Enable", true, "Toggle the MapStats block");
-            enableEntityStats = Config.Bind("EntityStats", "Enable", true, "Toggle the EntityStats section");
-            enableEnvStats = Config.Bind("EnvStats", "Enable", true, "Toggle the EnvStats section");
+            enableGameStats = Config.Bind("GameStats", "Enable", true, "Toggle the GameStats UI BLOCK");
+            enableWorldStats = Config.Bind("WorldStats", "Enable", true, "Toggle the WorldStats UI BLOCK");
+            enableWorldClock = Config.Bind("WorldClock", "Enable", true, "Toggle the WorldClock UI BLOCK");
+            enableShipStats = Config.Bind("ShipStats", "Enable", true, "Toggle the ShipStats UI BLOCK");
+            enablePlayerStats = Config.Bind("PlayerStats", "Enable", true, "Toggle the PlayerStats UI BLOCK");
+            enableMapStats = Config.Bind("MapStats", "Enable", true, "Toggle the MapStats UI BLOCK");
+            enableEntityStats = Config.Bind("EntityStats", "Enable", true, "Toggle the EntityStats SECTION");
+            enableEnvStats = Config.Bind("EnvStats", "Enable", true, "Toggle the EnvStats SECTION");
 
             twelveHourFormat = Config.Bind("WorldClock", "TwelveHourFormat", false, "Toggle the clock in the 12h format with AM and PM");
             showResetButton = Config.Bind("General", "ShowResetButton", true, "Toggle a button in the pause menu to reset the AlweStats values");

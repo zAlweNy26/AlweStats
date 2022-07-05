@@ -6,6 +6,8 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using BepInEx.Bootstrap;
+using System.Reflection;
+using System.IO;
 
 namespace AlweStats {
     [HarmonyPatch]
@@ -131,7 +133,7 @@ namespace AlweStats {
         private static List<ZDO> shipsFound = new(), portalsFound = new();
         public static List<Vector3> removedPins = new();
         private static long exploredTotal = 0, mapSize = 0;
-        private static bool zdoCheck, locCheck;
+        public static bool zdoCheck, locCheck, isOnBoat;
 
         public static Block Start() {
             Minimap map = Minimap.instance;
@@ -227,44 +229,30 @@ namespace AlweStats {
                 Sprite spt = Sprite.Create(bmp, new Rect(0, 0, __instance.m_textureSize, __instance.m_textureSize), Vector2.zero);
                 spt.name = "CircleSprite";
 
-                GameObject newSmall = new("MaskedMap");
-                newSmall.transform.SetParent(__instance.m_smallRoot.transform);
-                RectTransform newRect = newSmall.AddComponent<RectTransform>();
-                RectTransform oldRect = __instance.m_mapSmall.GetComponent<RectTransform>();
-                newRect.anchorMin = oldRect.anchorMin;
-                newRect.anchorMax = oldRect.anchorMax;
-                newRect.pivot = oldRect.pivot;
-                newRect.anchoredPosition = oldRect.anchoredPosition;
-                newRect.position = oldRect.position;
-                newRect.sizeDelta = oldRect.sizeDelta;
-                __instance.m_mapSmall.transform.SetParent(newSmall.transform);
                 __instance.m_mapSmall.GetComponent<RectTransform>().sizeDelta = Vector2.zero;
-                UnityEngine.Object.Destroy(__instance.m_mapSmall.GetComponent<RectMask2D>());
                 __instance.m_mapImageSmall.maskable = true;
-                newSmall.AddComponent<Image>().sprite = spt;
-                newSmall.AddComponent<Mask>().showMaskGraphic = false;
-                newSmall.SetActive(true);
-
-                //__instance.m_mapSmall.GetComponent<RectTransform>().sizeDelta = Vector2.zero;
-                //__instance.m_mapImageSmall.maskable = true;
-                //__instance.m_smallRoot.GetComponent<Image>().sprite = spt;
-                //__instance.m_smallRoot.GetComponent<Image>().preserveAspect = true;
-                //__instance.m_smallRoot.AddComponent<Mask>().showMaskGraphic = false;
-            }*/
+                __instance.m_smallRoot.GetComponent<Image>().sprite = spt;
+                __instance.m_smallRoot.GetComponent<Image>().preserveAspect = true;
+                __instance.m_smallRoot.AddComponent<Mask>().showMaskGraphic = false;
+            }
             if (Main.enableRotatingMinimap.Value) {
                 __instance.m_pinRootSmall.transform.SetParent(__instance.m_smallRoot.transform);
                 __instance.m_smallMarker.transform.SetParent(__instance.m_smallRoot.transform);
                 __instance.m_smallShipMarker.transform.SetParent(__instance.m_smallRoot.transform);
                 __instance.m_windMarker.transform.SetParent(__instance.m_smallRoot.transform);
-            }
+            }*/
             exploredTotal = 0;
             mapSize = __instance.m_explored.Length;
             float newSmallSize = __instance.m_smallMarker.sizeDelta.x * Utilities.GetCultureInvariant<float>(Main.playerMarkerScale.Value);
             float newLargeSize = __instance.m_largeMarker.sizeDelta.x * Utilities.GetCultureInvariant<float>(Main.playerMarkerScale.Value);
             __instance.m_smallMarker.sizeDelta = new(newSmallSize, newSmallSize);
             __instance.m_largeMarker.sizeDelta = new(newLargeSize, newLargeSize);
-            if (!Chainloader.PluginInfos.ContainsKey("AMP_Configurable") && !Chainloader.PluginInfos.ContainsKey("randyknapp.mods.epicloot")) 
+            if (!Chainloader.PluginInfos.ContainsKey("AMP_Configurable") 
+                && !Chainloader.PluginInfos.ContainsKey("randyknapp.mods.epicloot")
+                && !Chainloader.PluginInfos.ContainsKey("org.bepinex.plugins.targetportal") 
+                && !Chainloader.PluginInfos.ContainsKey("Tekla_QoLPins")) {
                 __instance.m_visibleIconTypes = Enumerable.Repeat(true, Enum.GetValues(typeof(Minimap.PinType)).Length + usedPins.Count).ToArray();
+            }
             pinsDict.Do(p => __instance.m_icons.Add(p.Value));
         }
 
@@ -325,10 +313,10 @@ namespace AlweStats {
                 int space = totEffects + (bedObj != null ? (bedObj.activeSelf ? 1 : 0) : 0);
                 SetElementStatus(portalObj, portalsFound, playerPos, cameraTransform, space);
             }
-            if (Main.enableShipStatus.Value && shipObj != null) {
+            if (Main.enableShipStatus.Value && shipObj != null && !isOnBoat) {
                 int space = totEffects + (bedObj != null ? (bedObj.activeSelf ? 1 : 0) : 0) + (portalObj != null ? (portalObj.activeSelf ? 1 : 0) : 0);
                 SetElementStatus(shipObj, shipsFound, playerPos, cameraTransform, space);
-            }
+            } else if (Main.enableShipStatus.Value && shipObj != null && isOnBoat) shipObj.SetActive(false);
             if (Main.enableMapStats.Value && mapBlock != null) {
                 Physics.Raycast(cameraTransform.position, cameraTransform.forward, out RaycastHit hit);
                 mapBlock.SetText(String.Format(
@@ -587,7 +575,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ZNet), "LoadWorld")]
         static void PatchLoadWorld(ZNet __instance) {
-            zdoCheck = locCheck = false;
+            zdoCheck = locCheck = isOnBoat = false;
             zdoPins.Clear();
             locPins.Clear();
             locsFound.Clear();

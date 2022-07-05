@@ -4,7 +4,7 @@
     <TargetFramework>net48</TargetFramework>
     <AssemblyName>AlweStats</AssemblyName>
     <Description>Easily read stats about almost everything !</Description>
-    <Version>4.2.2</Version>
+    <Version>4.2.3</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Copyright>zAlweNy26</Copyright>
@@ -63,5 +63,13 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>.\dependencies\UnityEngine.UI.dll</HintPath>
     </Reference>
+    <!--<Reference Include="AugaAPI">
+      <HintPath>.\dependencies\AugaAPI.dll</HintPath>
+    </Reference>-->
   </ItemGroup>
+  <PropertyGroup>
+    <PostBuildEvent>
+      copy "$(TargetDir)AlweStats.dll" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\AlweStats.dll"
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>

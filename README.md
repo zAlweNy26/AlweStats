@@ -99,6 +99,10 @@ df - Clear the entire AlweStats.json file by deleting it
 
 ### Changelog
 
+**4.2.3**
+- Now the ShipStatus disappear when you are on a boat
+- Added compatibility with "TargetPortal" mod, to make it works fine you have to disable portal pins in the "ShowCustomPins" config setting
+
 **4.2.2**
 - Fixed error generated when adding dungeons pins
 - Fixed a bug that wasn't saving world infos in the AlweStats.json file when it was the first time
@@ -106,7 +110,6 @@ df - Clear the entire AlweStats.json file by deleting it
 - Added more conditions before adding a pin
 - Added compatibility to other mods that add custom pins
 - Changed the pin icon for sunken crypts to draugr trophy image
-- Added config setting to choose if the mod should automatically rename portal pins titles or not
 
 **4.2.1**
 - Added config setting to scale the size of the crosshair

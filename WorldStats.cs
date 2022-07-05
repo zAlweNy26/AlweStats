@@ -70,7 +70,10 @@ namespace AlweStats {
                 Transform days = UnityEngine.Object.Instantiate(gameObject.transform.Find("name"));
                 days.name = "days";
                 days.SetParent(gameObject.transform);
-                days.GetComponent<RectTransform>().localPosition = new(320f, -14f, 0f);
+                /*if (Main.HasAuga) {
+                    Vector2 namePos = gameObject.transform.Find("name").GetComponent<RectTransform>().anchoredPosition;
+                    days.GetComponent<RectTransform>().anchoredPosition = new(Math.Abs(namePos.x), 0f);
+                } else*/ days.GetComponent<RectTransform>().localPosition = new(325f, -14f, 0f);
                 string daysText = "0 days";
                 if (File.Exists(world.GetDBPath())) {
                     using FileStream fs = File.OpenRead(world.GetDBPath());
