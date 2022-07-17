@@ -54,6 +54,10 @@ namespace AlweStats {
             blockObj.GetComponentInChildren<Text>().text = text;
         }
 
+        public Text GetText() {
+            return blockObj.GetComponentInChildren<Text>();
+        }
+
         public GameObject GetGameObject() {
             return blockObj;
         }
@@ -64,6 +68,12 @@ namespace AlweStats {
 
         public RectTransform GetRect() {
             return blockObj.GetComponent<RectTransform>();
+        }
+
+        public void SetSize(int size) {
+            Text statsRect = blockObj.GetComponentInChildren<Text>();
+            statsRect.fontSize = size;
+            SetConfigValue(GetName(), "Size", size);
         }
 
         public void SetPosition(string position) {

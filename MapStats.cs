@@ -250,7 +250,8 @@ namespace AlweStats {
             if (!Chainloader.PluginInfos.ContainsKey("AMP_Configurable") 
                 && !Chainloader.PluginInfos.ContainsKey("randyknapp.mods.epicloot")
                 && !Chainloader.PluginInfos.ContainsKey("org.bepinex.plugins.targetportal") 
-                && !Chainloader.PluginInfos.ContainsKey("Tekla_QoLPins")) {
+                && !Chainloader.PluginInfos.ContainsKey("Tekla_QoLPins")
+                && !Chainloader.PluginInfos.ContainsKey("MarketplaceAndServerNPCs")) {
                 __instance.m_visibleIconTypes = Enumerable.Repeat(true, Enum.GetValues(typeof(Minimap.PinType)).Length + usedPins.Count).ToArray();
             }
             pinsDict.Do(p => __instance.m_icons.Add(p.Value));

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 
 namespace AlweStats {
     public static class WorldClock {
@@ -23,12 +24,13 @@ namespace AlweStats {
                 float floor24h = Mathf.Floor(minuteFraction);
                 int hours = Mathf.FloorToInt(floor24h);
                 int minutes = Mathf.FloorToInt(Mathf.Lerp(0f, 60f, minuteFraction - floor24h));
-                if (Main.twelveHourFormat.Value) {
+                if (Main.worldClockFormat.Value) {
                     format12h = hours < 12 ? "AM" : "PM";
                     if (hours > 12) hours -= 12;
                 }
                 //Debug.Log($"Clock time : {hours}:{minutes} {format12h}");
-                clockBlock.SetText($"{(hours < 10 ? "0" : "")}{hours}:{(minutes < 10 ? "0" : "")}{minutes} {format12h}");
+                string gameClock = $"{(hours < 10 ? "0" : "")}{hours}:{(minutes < 10 ? "0" : "")}{minutes} {format12h}";
+                clockBlock.SetText(gameClock);
             }
         }
     }

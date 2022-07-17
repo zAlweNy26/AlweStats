@@ -16,12 +16,12 @@ namespace AlweStats {
         //public static bool HasAuga => Auga.API.IsLoaded();
         public static ConfigEntry<bool> 
             enableGameStats, enableWorldStats, enableWorldClock, enableShipStats, enableEnvStats, 
-            enablePlayerStats, customBowCharge, daysInWorldsList, twelveHourFormat, enableShipStatus, 
+            enablePlayerStats, customBowCharge, daysInWorldsList, worldClockFormat, enableShipStatus, 
             showResetButton, customShowBiome, enableEntityStats, enableMapStats, showCursorCoordinates, 
-            enableRotatingMinimap, showExploredPercentage, enableBedStatus, enablePortalStatus, 
-            replaceBedPinIcon, showPingDistance, enableWeightStatus/*, showCustomMinimap*/;
+            enableRotatingMinimap, showExploredPercentage, enableBedStatus, enablePortalStatus, systemClockFormat, 
+            replaceBedPinIcon, showPingDistance, enableWeightStatus, enableSystemClock/*, showCustomMinimap*/;
         public static ConfigEntry<int> 
-            gameStatsSize, worldStatsSize, worldClockSize, 
+            gameStatsSize, worldStatsSize, worldClockSize, systemClockSize, 
             shipStatsSize, playerStatsSize, mapStatsSize, largeMapInfoSize;
         public static ConfigEntry<float> playerMarkerScale, crosshairScale;
         public static ConfigEntry<KeyCode> toggleEditMode, reloadPluginKey;
@@ -34,7 +34,8 @@ namespace AlweStats {
             bowChargeBarColor, blocksBackgroundColor, blocksPadding, tamedBarColor, showEnvStatus,
             worldCoordinatesFormat, mapCoordinatesFormat, showCustomPins, showPinsTitles, biggerPins,
             playerStatsColor, playerStatsAlign, playerStatsPosition, playerStatsMargin, 
-            playerStatsFormat, /*gameStatsFormat, worldStatsFormat,*/ shipStatsFormat;
+            systemClockColor, systemClockPosition, systemClockMargin, playerStatsFormat, 
+            /*gameStatsFormat, worldStatsFormat,*/ shipStatsFormat;
 
         public void Awake() {
             config = Config;
@@ -46,13 +47,15 @@ namespace AlweStats {
             enableGameStats = Config.Bind("GameStats", "Enable", true, "Toggle the GameStats UI BLOCK");
             enableWorldStats = Config.Bind("WorldStats", "Enable", true, "Toggle the WorldStats UI BLOCK");
             enableWorldClock = Config.Bind("WorldClock", "Enable", true, "Toggle the WorldClock UI BLOCK");
+            enableSystemClock = Config.Bind("SystemClock", "Enable", true, "Toggle the SystemClock UI BLOCK");
             enableShipStats = Config.Bind("ShipStats", "Enable", true, "Toggle the ShipStats UI BLOCK");
             enablePlayerStats = Config.Bind("PlayerStats", "Enable", true, "Toggle the PlayerStats UI BLOCK");
             enableMapStats = Config.Bind("MapStats", "Enable", true, "Toggle the MapStats UI BLOCK");
             enableEntityStats = Config.Bind("EntityStats", "Enable", true, "Toggle the EntityStats SECTION");
             enableEnvStats = Config.Bind("EnvStats", "Enable", true, "Toggle the EnvStats SECTION");
 
-            twelveHourFormat = Config.Bind("WorldClock", "TwelveHourFormat", false, "Toggle the clock in the 12h format with AM and PM");
+            worldClockFormat = Config.Bind("WorldClock", "TwelveHourFormat", false, "Toggle the clock in the 12h format with AM and PM");
+            systemClockFormat = Config.Bind("SystemClock", "TwelveHourFormat", false, "Toggle the clock in the 12h format with AM and PM");
             showResetButton = Config.Bind("General", "ShowResetButton", true, "Toggle a button in the pause menu to reset the AlweStats values");
             customShowBiome = Config.Bind("WorldStats", "CustomShowBiome", true, "Toggle the current biome in the WorldStats block instead of the top-left corner in minimap");
             daysInWorldsList = Config.Bind("WorldStats", "DaysInWorldsList", true, "Toggle days passed counter in the world list panel");
@@ -68,7 +71,7 @@ namespace AlweStats {
             replaceBedPinIcon = Config.Bind("MapStats", "ReplaceBedPinIcon", true, "Replace the default pin icon for the bed with the icon of the bed building piece");
             showPingDistance = Config.Bind("MapStats", "ShowPingDistance", true, "Toggle the distance to be shown when someone pings on the map");
 
-            gameStatsColor = Config.Bind("GameStats", "Color", "255, 183, 92, 255", 
+            gameStatsColor = Config.Bind("GameStats", "Color", "255, 180, 90, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
             gameStatsSize = Config.Bind("GameStats", "Size", 14,
                 "The size of the text showed\nThe range of possible values is from 0 to the amount of your blindness");
@@ -79,7 +82,7 @@ namespace AlweStats {
             gameStatsMargin = Config.Bind("GameStats", "Margin", "0, 0",
                 "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
 
-            worldStatsColor = Config.Bind("WorldStats", "Color", "255, 183, 92, 255",
+            worldStatsColor = Config.Bind("WorldStats", "Color", "255, 180, 90, 255",
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
             worldStatsSize = Config.Bind("WorldStats", "Size", 14,
                 "The size of the text showed\nThe range of possible values is from 0 to the amount of your blindness");
@@ -90,7 +93,7 @@ namespace AlweStats {
             worldStatsMargin = Config.Bind("WorldStats", "Margin", "0, 0",
                 "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
 
-            shipStatsColor = Config.Bind("ShipStats", "Color", "255, 183, 92, 255",
+            shipStatsColor = Config.Bind("ShipStats", "Color", "255, 180, 90, 255",
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
             shipStatsSize = Config.Bind("ShipStats", "Size", 14,
                 "The size of the text showed\nThe range of possible values is from 0 to the amount of your blindness");
@@ -101,7 +104,7 @@ namespace AlweStats {
             shipStatsMargin = Config.Bind("ShipStats", "Margin", "0, 0",
                 "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
 
-            worldClockColor = Config.Bind("WorldClock", "Color", "255, 183, 92, 255", 
+            worldClockColor = Config.Bind("WorldClock", "Color", "255, 180, 90, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
             worldClockSize = Config.Bind("WorldClock", "Size", 24, 
                 "The size of the text showed\nThe range of possible values is from 0 to the amount of your blindness");
@@ -110,7 +113,16 @@ namespace AlweStats {
             worldClockMargin = Config.Bind("WorldClock", "Margin", "0, 0", 
                 "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
 
-            playerStatsColor = Config.Bind("PlayerStats", "Color", "255, 183, 92, 255",
+            systemClockColor = Config.Bind("SystemClock", "Color", "165, 70, 250, 255", 
+                "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
+            systemClockSize = Config.Bind("SystemClock", "Size", 18, 
+                "The size of the text showed\nThe range of possible values is from 0 to the amount of your blindness");
+            systemClockPosition = Config.Bind("SystemClock", "Position", "0.5, 0", 
+                "The position of the text showed\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between");
+            systemClockMargin = Config.Bind("SystemClock", "Margin", "0, 0", 
+                "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
+
+            playerStatsColor = Config.Bind("PlayerStats", "Color", "255, 180, 90, 255",
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
             playerStatsSize = Config.Bind("PlayerStats", "Size", 14,
                 "The size of the text showed\nThe range of possible values is from 0 to the amount of your blindness");
@@ -121,7 +133,7 @@ namespace AlweStats {
             playerStatsMargin = Config.Bind("PlayerStats", "Margin", "0, 0",
                 "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
 
-            mapStatsColor = Config.Bind("MapStats", "Color", "255, 183, 92, 255",
+            mapStatsColor = Config.Bind("MapStats", "Color", "255, 180, 90, 255",
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
             mapStatsSize = Config.Bind("MapStats", "Size", 14,
                 "The size of the text showed\nThe range of possible values is from 0 to the amount of your blindness");
@@ -132,7 +144,7 @@ namespace AlweStats {
             mapStatsMargin = Config.Bind("MapStats", "Margin", "0, 0",
                 "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
 
-            bowChargeBarColor = Config.Bind("PlayerStats", "ChargeBarColor", "255, 183, 92, 255",
+            bowChargeBarColor = Config.Bind("PlayerStats", "ChargeBarColor", "255, 180, 90, 255",
                 "The color of the bow charge bar\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
 
             blocksPadding = Config.Bind("General", "BlocksPadding", "5, 5, 5, 5",
@@ -280,6 +292,7 @@ namespace AlweStats {
                 if (enableGameStats.Value) blocks.Add(GameStats.Start());
                 if (enableWorldStats.Value) blocks.Add(WorldStats.Start());
                 if (enableWorldClock.Value) blocks.Add(WorldClock.Start());
+                if (enableSystemClock.Value) blocks.Add(SystemClock.Start());
                 if (enableShipStats.Value) blocks.Add(ShipStats.Start());
                 if (enableMapStats.Value) blocks.Add(MapStats.Start()); else MapStats.Start();
                 if (enablePlayerStats.Value) blocks.Add(PlayerStats.Start()); else PlayerStats.Start();
@@ -320,6 +333,7 @@ namespace AlweStats {
                 PlayerStats.Update();
                 if (enableWorldStats.Value) WorldStats.Update();
                 if (enableWorldClock.Value) WorldClock.Update();
+                if (enableSystemClock.Value) SystemClock.Update();
                 if (enableShipStats.Value) ShipStats.Update();
                 if (enableGameStats.Value) GameStats.Update();
             }

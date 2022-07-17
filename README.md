@@ -27,10 +27,11 @@ be sure to enable either one or the other equivalent section so they don't confl
 **If you have an idea for something to add or any suggestion regarding the implemented features, 
 feel free to create an issue on the GitHub repository !**
 
-The UI is separated into 6 blocks :
+The UI is separated into 7 blocks :
 - GameStats, which contains "FPS", "Ping" and "Total players"
 - WorldStats, which contains "Days passed", "Time played" and "Current biome"
-- WorldClock, which contains "Clock"
+- WorldClock, which contains "Clock" (game clock)
+- SystemClock, which contains "Clock" (real-life clock)
 - ShipStats, which contains "Ship health", "Ship speed", "Wind speed", "Wind direction"
 - PlayerStats, which contains "Inventory slots", "Inventory weight", "Selected arrows" and "Bow ammo"
 - MapStats, which contains "Player coordinates" and "Focus coordinates"
@@ -98,6 +99,11 @@ df - Clear the entire AlweStats.json file by deleting it
 - Remaining time doesn't work properly for beehives
 
 ### Changelog
+
+**4.3.0**
+- Added a new block : "System Clock" that displays the real-life clock time
+- Added compatibility with "MarketplaceAndServerNPCs" mod (in theory, let me know if it doesn't works)
+- Added possibility to resize blocks while in-game by using CTRL + mouse wheel
 
 **4.2.3**
 - Now the ShipStatus disappear when you are on a boat
