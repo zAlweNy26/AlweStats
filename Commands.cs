@@ -2,9 +2,6 @@ using HarmonyLib;
 using System.Linq;
 using System.IO;
 using System.Collections.Generic;
-using Newtonsoft.Json;
-using System;
-using UnityEngine;
 
 namespace AlweStats {
     [HarmonyPatch]

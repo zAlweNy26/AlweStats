@@ -123,7 +123,7 @@ namespace AlweStats {
 
         public static Sprite GetSprite(int nameHash, bool isPiece) {
             if (isPiece) {
-                GameObject hammerObj = ObjectDB.instance.m_itemByHash["Hammer".GetStableHashCode()];
+                GameObject hammerObj = ObjectDB.instance.GetItemPrefab("Hammer");
                 if (!hammerObj) return null;
                 ItemDrop hammerDrop = hammerObj.GetComponent<ItemDrop>();
                 if (!hammerDrop) return null;
@@ -144,7 +144,7 @@ namespace AlweStats {
     }
 
     public enum CustomPinType { Disabled, TrollCave, Crypt, FireHole, Portal, Ship, Cart, MountainCave }
-    public enum EnvType { Disabled, Rock, Tree, Bush, Plant, Beehive, Fermenter, Piece, Fireplace, Container }
+    public enum EnvType { Disabled, Rock, Tree, Bush, Plant, Beehive, Fermenter, Piece, Fireplace, Container, CookingStation, Smelter }
     public enum DistanceType { Disabled, Hovering, All }
 
     public struct CustomPinData {

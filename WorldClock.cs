@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System;
 
 namespace AlweStats {
     public static class WorldClock {

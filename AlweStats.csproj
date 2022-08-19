@@ -10,6 +10,7 @@
     <Copyright>zAlweNy26</Copyright>
     <Authors>zAlweNy26</Authors>
     <SignAssembly>False</SignAssembly>
+    <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -26,16 +27,17 @@
   </ItemGroup>-->
 
   <ItemGroup>
-    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="All" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="UnityEngine.Modules" Version="2021.2.11" IncludeAssets="compile" />
+    <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.18.2" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="All" />
   </ItemGroup>
   
   <ItemGroup>
@@ -67,6 +69,9 @@
       <HintPath>.\dependencies\AugaAPI.dll</HintPath>
     </Reference>-->
   </ItemGroup>
+
+  <Import Project=".\valheim.targets" />
+
   <PropertyGroup>
     <PostBuildEvent>
       copy "$(TargetDir)AlweStats.dll" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\AlweStats.dll"

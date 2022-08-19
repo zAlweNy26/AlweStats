@@ -67,7 +67,7 @@ In the config file you can also :
 - Set the color of the crosshair and the custom bow charge bar
 - Set the scale of the player marker and the crosshair
 - Toggle a weight fill percentage as an element in the status effects list
-- Toggle the hover status separately for rock, trees, bushes, plants, beehives, fireplaces, fermenters and containers
+- Toggle the hover status separately for rock, trees, bushes, plants, beehives, fireplaces, fermenters, containers, cooking stations and smelters
 - Toggle the cursor coordinates and the explored percentage in the large map
 - Toggle the rotation of the minimap that follows the player camera rotation
 - Toggle the distance and direction from claimed bed, closer portal and closer ship shown as elements in the status effects list
@@ -99,6 +99,17 @@ df - Clear the entire AlweStats.json file by deleting it
 - Remaining time doesn't work properly for beehives
 
 ### Changelog
+
+**4.3.1**
+- Added compatibility with "MinimalStatusEffects" mod
+- Added compatibility with "OdinShip" mod
+- Added cooking stations and smelters status strings in the EnvStats section
+- Fixed bug that was causing the minimap pins and player marker to disappear when the rotation was enabled
+- Fixed ship speed using https://valheim.fandom.com/wiki/Boats
+- Updated game version reference to 0.209.10
+- Moved save type string up above the character name (to avoid overlapping in version 0.209.10)
+- Moved a little to the right the "Days" counter in the worlds list (to avoid overlapping in version 0.209.10)
+- Impossibility to use the "Days" counter in the world selection panel in version 0.209.10 if the world is in the steam cloud
 
 **4.3.0**
 - Added a new block : "System Clock" that displays the real-life clock time

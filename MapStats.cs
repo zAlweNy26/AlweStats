@@ -6,8 +6,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using BepInEx.Bootstrap;
-using System.Reflection;
-using System.IO;
+using BepInEx.Configuration;
 
 namespace AlweStats {
     [HarmonyPatch]
@@ -133,7 +132,19 @@ namespace AlweStats {
         private static List<ZDO> shipsFound = new(), portalsFound = new();
         public static List<Vector3> removedPins = new();
         private static long exploredTotal = 0, mapSize = 0;
-        public static bool zdoCheck, locCheck, isOnBoat;
+        public static bool zdoCheck, locCheck, isOnBoat, isMinimalEffect = false;
+        private static float entrySpacingEffects = 0.0f;
+        private static readonly int[] shipsHashes = {
+            "VikingShip".GetStableHashCode(),
+            "Karve".GetStableHashCode(),
+            "Raft".GetStableHashCode(),
+            "CargoShip".GetStableHashCode(),
+            "BigCargoShip".GetStableHashCode(),
+            "WarShip".GetStableHashCode(),
+            "TransporterShip".GetStableHashCode(),
+            "LittleBoat".GetStableHashCode(),
+            "FishingBoat".GetStableHashCode(),
+        };
 
         public static Block Start() {
             Minimap map = Minimap.instance;
@@ -208,6 +219,38 @@ namespace AlweStats {
                 portalObj.transform.Find("TimeText").GetComponent<Text>().text = "0 m";
                 portalObj.SetActive(false);
             }
+            if (Chainloader.PluginInfos.ContainsKey("randyknapp.mods.minimalstatuseffects")) {
+                isMinimalEffect = true;
+                GameObject[] myStatus = {bedObj, shipObj, portalObj};
+                Chainloader.PluginInfos.TryGetValue("randyknapp.mods.minimalstatuseffects", out BepInEx.PluginInfo modInfo);
+                ConfigFile modConfig = modInfo.Instance.Config;
+                modConfig.TryGetEntry(new ("General", "ListSize"), out ConfigEntry<Vector2> listSize);
+                modConfig.TryGetEntry(new ("General", "EntrySpacing"), out ConfigEntry<float> entrySpacing);
+                entrySpacingEffects = entrySpacing.Value;
+                modConfig.TryGetEntry(new ("General", "IconSize"), out ConfigEntry<float> iconSize);
+                modConfig.TryGetEntry(new ("General", "FontSize"), out ConfigEntry<int> fontSize);
+                foreach (GameObject statusObj in myStatus) {
+                    RectTransform nameRect = statusObj.transform.Find("Name") as RectTransform;
+                    Text nameText = nameRect.GetComponent<Text>();
+                    statusObj.transform.Find("TimeText").gameObject.SetActive(false);
+                    nameText.alignment = TextAnchor.MiddleLeft;
+                    nameText.supportRichText = true;
+                    nameText.horizontalOverflow = HorizontalWrapMode.Wrap;
+                    nameText.resizeTextForBestFit = false;
+                    nameText.fontSize = fontSize.Value;
+                    nameRect.anchorMin = new Vector2(0, 0.5f);
+                    nameRect.anchorMax = new Vector2(1, 0.5f);
+                    nameRect.anchoredPosition = new (120 + iconSize.Value, 2);
+                    nameRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, iconSize.Value + 20);
+                    nameRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, listSize.Value.x);
+                    RectTransform iconRect = statusObj.transform.Find("Icon") as RectTransform;
+                    iconRect.anchorMin = new Vector2(0.5f, 0.5f);
+                    iconRect.anchorMax = new Vector2(0.5f, 0.5f);
+                    iconRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, iconSize.Value);
+                    iconRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, iconSize.Value);
+                    iconRect.anchoredPosition = new Vector2(iconSize.Value, 0);
+                }
+            }
             return mapBlock;
         }
 
@@ -234,13 +277,13 @@ namespace AlweStats {
                 __instance.m_smallRoot.GetComponent<Image>().sprite = spt;
                 __instance.m_smallRoot.GetComponent<Image>().preserveAspect = true;
                 __instance.m_smallRoot.AddComponent<Mask>().showMaskGraphic = false;
-            }
+            }*/
             if (Main.enableRotatingMinimap.Value) {
                 __instance.m_pinRootSmall.transform.SetParent(__instance.m_smallRoot.transform);
                 __instance.m_smallMarker.transform.SetParent(__instance.m_smallRoot.transform);
                 __instance.m_smallShipMarker.transform.SetParent(__instance.m_smallRoot.transform);
                 __instance.m_windMarker.transform.SetParent(__instance.m_smallRoot.transform);
-            }*/
+            }
             exploredTotal = 0;
             mapSize = __instance.m_explored.Length;
             float newSmallSize = __instance.m_smallMarker.sizeDelta.x * Utilities.GetCultureInvariant<float>(Main.playerMarkerScale.Value);
@@ -254,7 +297,7 @@ namespace AlweStats {
                 && !Chainloader.PluginInfos.ContainsKey("MarketplaceAndServerNPCs")) {
                 __instance.m_visibleIconTypes = Enumerable.Repeat(true, Enum.GetValues(typeof(Minimap.PinType)).Length + usedPins.Count).ToArray();
             }
-            pinsDict.Do(p => __instance.m_icons.Add(p.Value));
+            usedPins.Do(p => __instance.m_icons.Add(p.Value));
         }
 
         [HarmonyPostfix]
@@ -304,9 +347,15 @@ namespace AlweStats {
                     float forwardAngle = Vector2.Angle(spawnPos - playerPos, cameraForward);
                     float rightAngle = Vector2.Angle(spawnPos - playerPos, cameraRight);
                     Quaternion objRotation = Quaternion.Euler(0f, 0f, rightAngle <= 90f ? 360f - forwardAngle : forwardAngle);
-                    bedObj.GetComponent<RectTransform>().anchoredPosition = new Vector3(-4f - totEffects * Hud.instance.m_statusEffectSpacing, 0f);
+                    if (isMinimalEffect) {
+                        bedObj.GetComponent<RectTransform>().localPosition = new Vector3(0, - totEffects * (entrySpacingEffects - 1), 0);
+                        Text nameText = bedObj.transform.Find("Name").GetComponent<Text>();
+                        nameText.text = $"{Localization.instance.Localize("$piece_bed")} <color=#ffb75c>{distanceText}</color>";
+                    } else {
+                        bedObj.GetComponent<RectTransform>().anchoredPosition = new Vector3(-4f - totEffects * Hud.instance.m_statusEffectSpacing, 0f);
+                        bedObj.transform.Find("TimeText").GetComponent<Text>().text = distanceText;
+                    }
                     bedObj.transform.Find("Icon").rotation = objRotation;
-                    bedObj.transform.Find("TimeText").GetComponent<Text>().text = distanceText;
                     bedObj.SetActive(true);
                 } else bedObj.SetActive(false);
             }
@@ -382,8 +431,7 @@ namespace AlweStats {
             if (zdo.IsValid() && portalObj != null && prefabHash == "portal_wood".GetStableHashCode() && !portalsFound.Contains(zdo)) {
                 //Debug.Log($"ZDO aggiunto a portalsFound !");
                 portalsFound.Add(zdo);
-            } else if (zdo.IsValid() && shipObj != null && (prefabHash == "VikingShip".GetStableHashCode() || 
-                prefabHash == "Raft".GetStableHashCode() || prefabHash == "Karve".GetStableHashCode()) && !shipsFound.Contains(zdo)) {
+            } else if (zdo.IsValid() && shipObj != null && shipsHashes.Contains(prefabHash) && !shipsFound.Contains(zdo)) {
                 //Debug.Log($"ZDO aggiunto a shipsFound !");
                 shipsFound.Add(zdo);
             }
@@ -437,18 +485,24 @@ namespace AlweStats {
                 string distance = closer < 1000f ? $"{closer:0.#} m" : $"{(closer / 1000f):0.#} km";
                 ZDO closerZDO = list[distances.IndexOf(closer)];
                 Vector2 closerPos = new(closerZDO.GetPosition().x, closerZDO.GetPosition().z);
-                if (list.All(shipsFound.Contains)) {
-                    string prefabName = usedPins.Where(p => p.Key.hash == closerZDO.GetPrefab()).FirstOrDefault().Key.name;
-                    element.transform.Find("Name").GetComponent<Text>().text = prefabName;
-                }
+                string prefabName = "";
+                if (list.All(shipsFound.Contains)) prefabName = usedPins.Where(p => p.Key.hash == closerZDO.GetPrefab()).FirstOrDefault().Key.name;
+                else if (list.All(portalsFound.Contains)) prefabName = Localization.instance.Localize("$piece_portal");
                 Vector2 cameraForward = new(camera.forward.x, camera.forward.z);
                 Vector2 cameraRight = new(camera.right.x, camera.right.z);
                 float forwardAngle = Vector2.Angle(closerPos - playerPos, cameraForward);
                 float rightAngle = Vector2.Angle(closerPos - playerPos, cameraRight);
                 Quaternion objRotation = Quaternion.Euler(0f, 0f, rightAngle <= 90f ? 360f - forwardAngle : forwardAngle);
-                element.GetComponent<RectTransform>().anchoredPosition = new Vector3(-4f - space * Hud.instance.m_statusEffectSpacing, 0f);
+                if (isMinimalEffect) {
+                    element.GetComponent<RectTransform>().localPosition = new Vector3(0, - space * (entrySpacingEffects - 1), 0);
+                    Text nameText = element.transform.Find("Name").GetComponent<Text>();
+                    nameText.text = $"{prefabName} <color=#ffb75c>{distance}</color>";
+                } else {
+                    element.GetComponent<RectTransform>().anchoredPosition = new Vector3(-4f - space * Hud.instance.m_statusEffectSpacing, 0f);
+                    element.transform.Find("TimeText").GetComponent<Text>().text = distance;
+                    element.transform.Find("Name").GetComponent<Text>().text = prefabName;
+                }
                 element.transform.Find("Icon").rotation = objRotation;
-                element.transform.Find("TimeText").GetComponent<Text>().text = distance;
                 element.SetActive(true);
             } else element.SetActive(false);
         }
@@ -563,8 +617,7 @@ namespace AlweStats {
                     if (zdo.IsValid() && portalObj != null && prefabHash == "portal_wood".GetStableHashCode()) {
                         //Debug.Log($"ZDO aggiunto a portalsFound !");    
                         portalsFound.Add(zdo);
-                    } else if (zdo.IsValid() && shipObj != null && (prefabHash == "VikingShip".GetStableHashCode() || 
-                        prefabHash == "Raft".GetStableHashCode() || prefabHash == "Karve".GetStableHashCode()) && !shipsFound.Contains(zdo)) {
+                    } else if (zdo.IsValid() && shipObj != null && shipsHashes.Contains(prefabHash) && !shipsFound.Contains(zdo)) {
                         //Debug.Log($"ZDO aggiunto a shipsFound !");
                         shipsFound.Add(zdo);
                     }
@@ -583,6 +636,62 @@ namespace AlweStats {
             shipsFound.Clear();
             portalsFound.Clear();
             usedPins = pinsDict.Keys.ToDictionary(k => k, v => pinsDict[v]);
+            if (Chainloader.PluginInfos.ContainsKey("marlthon.OdinShip") && Utilities.CheckInEnum(CustomPinType.Ship, Main.showCustomPins.Value)) {
+                usedPins.Add(new CustomPinData() { 
+                    name = "Cargo Ship", 
+                    hash = "CargoShip".GetStableHashCode(),
+                    type = CustomPinType.Ship
+                }, 
+                new Minimap.SpriteData() { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 10, 
+                    m_icon = Utilities.GetSprite("CargoShip".GetStableHashCode(), true) 
+                });
+                usedPins.Add(new CustomPinData() { 
+                    name = "Big Cargo Ship", 
+                    hash = "BigCargoShip".GetStableHashCode(),
+                    type = CustomPinType.Ship
+                }, 
+                new Minimap.SpriteData() { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 11, 
+                    m_icon = Utilities.GetSprite("BigCargoShip".GetStableHashCode(), true) 
+                });
+                usedPins.Add(new CustomPinData() { 
+                    name = "War Ship", 
+                    hash = "WarShip".GetStableHashCode(),
+                    type = CustomPinType.Ship
+                }, 
+                new Minimap.SpriteData() { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 12, 
+                    m_icon = Utilities.GetSprite("WarShip".GetStableHashCode(), true) 
+                });
+                usedPins.Add(new CustomPinData() { 
+                    name = "Transporter Ship", 
+                    hash = "TransporterShip".GetStableHashCode(),
+                    type = CustomPinType.Ship
+                }, 
+                new Minimap.SpriteData() { 
+                    m_name = (Minimap.PinType) Enum.GetValues(enumType: typeof(Minimap.PinType)).Length + 13, 
+                    m_icon = Utilities.GetSprite("TransporterShip".GetStableHashCode(), true) 
+                });
+                usedPins.Add(new CustomPinData() { 
+                    name = "Little Boat", 
+                    hash = "LittleBoat".GetStableHashCode(),
+                    type = CustomPinType.Ship
+                }, 
+                new Minimap.SpriteData() { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 14, 
+                    m_icon = Utilities.GetSprite("LittleBoat".GetStableHashCode(), true) 
+                });
+                usedPins.Add(new CustomPinData() { 
+                    name = "Fishing Boat", 
+                    hash = "FishingBoat".GetStableHashCode(),
+                    type = CustomPinType.Ship
+                }, 
+                new Minimap.SpriteData() { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 15, 
+                    m_icon = Utilities.GetSprite("FishingBoat".GetStableHashCode(), true) 
+                });
+            }
             if (!Utilities.CheckInEnum(CustomPinType.TrollCave, Main.showCustomPins.Value)) usedPins.Remove(usedPins.First(p => p.Key.name == "TrollCave").Key);
             if (!Utilities.CheckInEnum(CustomPinType.MountainCave, Main.showCustomPins.Value)) usedPins.Remove(usedPins.First(p => p.Key.name == "MountainCave").Key);
             if (!Utilities.CheckInEnum(CustomPinType.Crypt, Main.showCustomPins.Value)) {

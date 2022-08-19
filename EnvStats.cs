@@ -209,6 +209,65 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
+        [HarmonyPatch(typeof(CookingStation), "GetHoverText")]
+        static void PatchCookingStationHoverText(ref string __result, CookingStation __instance) {
+            if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.CookingStation, Main.showEnvStatus.Value)) return;
+            if (!__instance.m_nview.IsValid()) {
+                __result = "";
+                return;
+            }
+            string cookingItems = "";
+            int items = 0;
+            for (int i = 0; i < __instance.m_slots.Length; i++) {
+                __instance.GetSlot(i, out string text, out float num, out CookingStation.Status status);
+                if (text != "" && text != __instance.m_overCookedItem.name) {
+                    CookingStation.ItemConversion itemConversion = __instance.GetItemConversion(text);
+                    if (text != null) {
+                        items++;
+                        if (num > itemConversion.m_cookTime) {
+                            string time = $"{((num - itemConversion.m_cookTime) * 100f / (itemConversion.m_cookTime)):0.#} %";
+                            cookingItems += $"\n{itemConversion.m_to.GetHoverName()}: <color=red>{time}</color>";
+                        } else {
+                            string time = $"{(num * 100f / (itemConversion.m_cookTime)):0.#} %";
+                            cookingItems += $"\n{itemConversion.m_from.GetHoverName()}: <color=lime>{time}</color>";
+                        }
+                    }
+                }
+            }
+            if (items > 0) {
+                __result = items >= __instance.m_slots.Length ?
+                    Localization.instance.Localize($"{__instance.m_name}{cookingItems}") :
+                    Localization.instance.Localize($"{__instance.m_name}" + 
+                        $"\n[<color=yellow><b>$KEY_Use</b></color>] {__instance.m_addItemTooltip}" + 
+                        $"\n[<color=yellow><b>1-8</b></color>] {__instance.m_addItemTooltip}{cookingItems}");
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Smelter), "UpdateHoverTexts")]
+        static void PatchSmelterHoverText(Smelter __instance) {
+            if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Smelter, Main.showEnvStatus.Value)) return;
+            if (__instance.m_emptyOreSwitch && __instance.m_spawnStack) {
+                int processedQueueSize = __instance.GetProcessedQueueSize();
+                __instance.m_emptyOreSwitch.m_hoverText = $"{__instance.m_name} ({processedQueueSize} $piece_smelter_ready)\n[<color=yellow><b>$KEY_Use</b></color>] {__instance.m_emptyOreTooltip}";
+            }
+            int queueSize = __instance.GetQueueSize();
+            __instance.m_addOreSwitch.m_hoverText = $"{__instance.m_name} ({queueSize}/{__instance.m_maxOre}) ";
+            if (queueSize > 0) {
+                float percentage = __instance.GetBakeTimer() * 100f / (__instance.m_secPerProduct * queueSize);
+                __instance.m_addOreSwitch.m_hoverText += String.Format(
+                    Main.processFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(percentage)}>"),
+                    $"{percentage:0.#}",
+                    TimeSpan.FromSeconds(__instance.m_secPerProduct - __instance.GetBakeTimer()).ToString(@"hh\:mm\:ss")
+                );
+            }
+            if (__instance.m_requiresRoof && !__instance.m_haveRoof && Mathf.Sin(Time.time * 10f) > 0f)
+                __instance.m_addOreSwitch.m_hoverText += " <color=yellow>$piece_smelter_reqroof</color>";
+            Switch addOreSwitch = __instance.m_addOreSwitch;
+            addOreSwitch.m_hoverText = $"{addOreSwitch.m_hoverText}\n[<color=yellow><b>$KEY_Use</b></color>] {__instance.m_addOreTooltip}";
+        }
+
+        [HarmonyPostfix]
         [HarmonyPatch(typeof(Fermenter), "GetHoverText")]
         static void PatchFermenterHoverText(ref string __result, Fermenter __instance) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Fermenter, Main.showEnvStatus.Value)) return;

@@ -73,10 +73,11 @@ namespace AlweStats {
                 /*if (Main.HasAuga) {
                     Vector2 namePos = gameObject.transform.Find("name").GetComponent<RectTransform>().anchoredPosition;
                     days.GetComponent<RectTransform>().anchoredPosition = new(Math.Abs(namePos.x), 0f);
-                } else*/ days.GetComponent<RectTransform>().localPosition = new(325f, -14f, 0f);
+                } else*/ days.GetComponent<RectTransform>().localPosition = new(355f, -14f, 0f);
                 string daysText = "0 days";
-                if (File.Exists(world.GetDBPath())) {
-                    using FileStream fs = File.OpenRead(world.GetDBPath());
+                string dbPath = File.Exists(world.GetDBPath(FileHelpers.FileSource.Local)) ? world.GetDBPath(FileHelpers.FileSource.Local) : world.GetDBPath(FileHelpers.FileSource.Legacy);
+                if (File.Exists(dbPath)) {
+                    using FileStream fs = File.OpenRead(dbPath);
                     using BinaryReader br = new(fs);
                     int worldVersion = br.ReadInt32();
                     double timePlayed = br.ReadDouble();

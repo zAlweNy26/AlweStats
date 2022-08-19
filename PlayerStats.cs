@@ -12,13 +12,15 @@ namespace AlweStats {
         private static GuiBar bowCharge = null;
         private static GameObject weightObj = null;
         private static int modSlots = 0;
+        public static bool isMinimalEffect = false;
+        private static float entrySpacingEffects = 0.0f;
 
         public static Block Start() {
             if (Chainloader.PluginInfos.ContainsKey("randyknapp.mods.equipmentandquickslots")) {
                 Chainloader.PluginInfos.TryGetValue("randyknapp.mods.equipmentandquickslots", out BepInEx.PluginInfo modInfo);
                 ConfigFile modConfig = modInfo.Instance.Config;
-                modConfig.TryGetEntry(new ConfigDefinition("Toggles", "Enable Equipment Slots"), out ConfigEntry<bool> equipSlots);
-                modConfig.TryGetEntry(new ConfigDefinition("Toggles", "Enable Quick Slots"), out ConfigEntry<bool> quickSlots);
+                modConfig.TryGetEntry(new ("Toggles", "Enable Equipment Slots"), out ConfigEntry<bool> equipSlots);
+                modConfig.TryGetEntry(new ("Toggles", "Enable Quick Slots"), out ConfigEntry<bool> quickSlots);
                 int moreSlots = (equipSlots.Value ? 5 : 0) + (quickSlots.Value ? 3 : 0);
                 modSlots += moreSlots;
                 Debug.Log($"Found randyknapp's \"Equipment and quick slots\" mod, so added {moreSlots} more slots");
@@ -26,8 +28,8 @@ namespace AlweStats {
             /*if (Chainloader.PluginInfos.ContainsKey("aedenthorn.ExtendedPlayerInventory")) {
                 Chainloader.PluginInfos.TryGetValue("aedenthorn.ExtendedPlayerInventory", out BepInEx.PluginInfo modInfo);
                 ConfigFile modConfig = modInfo.Instance.Config;
-                modConfig.TryGetEntry(new ConfigDefinition("Toggles", "ExtraRows"), out ConfigEntry<int> extraRows);
-                modConfig.TryGetEntry(new ConfigDefinition("Toggles", "AddEquipmentRow"), out ConfigEntry<bool> equipSlots);
+                modConfig.TryGetEntry(new ("Toggles", "ExtraRows"), out ConfigEntry<int> extraRows);
+                modConfig.TryGetEntry(new ("Toggles", "AddEquipmentRow"), out ConfigEntry<bool> equipSlots);
                 int moreSlots = (extraRows.Value * 8) + (equipSlots.Value ? 8 : 0);
                 modSlots += moreSlots;
                 Debug.Log($"Found aedenthorn's \"Extended player inventory\" mod, so added {moreSlots} more slots");
@@ -56,6 +58,35 @@ namespace AlweStats {
                 weightObj.transform.Find("Name").GetComponent<Text>().text = "Weight";
                 weightObj.transform.Find("TimeText").GetComponent<Text>().text = "0 %";
                 weightObj.SetActive(true);
+            }
+            if (Chainloader.PluginInfos.ContainsKey("randyknapp.mods.minimalstatuseffects")) {
+                isMinimalEffect = true;
+                Chainloader.PluginInfos.TryGetValue("randyknapp.mods.minimalstatuseffects", out BepInEx.PluginInfo modInfo);
+                ConfigFile modConfig = modInfo.Instance.Config;
+                modConfig.TryGetEntry(new ("General", "ListSize"), out ConfigEntry<Vector2> listSize);
+                modConfig.TryGetEntry(new ("General", "EntrySpacing"), out ConfigEntry<float> entrySpacing);
+                entrySpacingEffects = entrySpacing.Value;
+                modConfig.TryGetEntry(new ("General", "IconSize"), out ConfigEntry<float> iconSize);
+                modConfig.TryGetEntry(new ("General", "FontSize"), out ConfigEntry<int> fontSize);
+                RectTransform nameRect = weightObj.transform.Find("Name") as RectTransform;
+                Text nameText = nameRect.GetComponent<Text>();
+                weightObj.transform.Find("TimeText").gameObject.SetActive(false);
+                nameText.alignment = TextAnchor.MiddleLeft;
+                nameText.supportRichText = true;
+                nameText.horizontalOverflow = HorizontalWrapMode.Wrap;
+                nameText.resizeTextForBestFit = false;
+                nameText.fontSize = fontSize.Value;
+                nameRect.anchorMin = new Vector2(0, 0.5f);
+                nameRect.anchorMax = new Vector2(1, 0.5f);
+                nameRect.anchoredPosition = new (120 + iconSize.Value, 2);
+                nameRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, iconSize.Value + 20);
+                nameRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, listSize.Value.x);
+                RectTransform iconRect = weightObj.transform.Find("Icon") as RectTransform;
+                iconRect.anchorMin = new Vector2(0.5f, 0.5f);
+                iconRect.anchorMax = new Vector2(0.5f, 0.5f);
+                iconRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, iconSize.Value);
+                iconRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, iconSize.Value);
+                iconRect.anchoredPosition = new Vector2(iconSize.Value, 0);
             }
             float crosshairSize = Utilities.GetCultureInvariant<float>(Main.crosshairScale.Value);
             RectTransform crosshairRect = Hud.instance.m_crosshair.gameObject.GetComponent<RectTransform>();
@@ -98,13 +129,23 @@ namespace AlweStats {
             }
             if (Main.enableWeightStatus.Value && weightObj != null && localPlayer) {
                 int totEffects = Hud.instance.m_statusEffects.Count;
-                weightObj.GetComponent<RectTransform>().anchoredPosition = new Vector3(-4f - totEffects * Hud.instance.m_statusEffectSpacing, 0f);
                 Text weightText = weightObj.transform.Find("TimeText").GetComponent<Text>();
                 Inventory inventory = localPlayer.GetInventory();
                 float weight = inventory.GetTotalWeight(), totalWeight = Player.m_localPlayer.GetMaxCarryWeight();
                 float weightPerc = weight / totalWeight * 100f;
-                weightText.text = $"{weightPerc:0.#} %";
-                weightText.color = Color.Lerp(new Color(0f, 1f, 0f, 1f), new Color(1f, 0f, 0f, 1f), weightPerc / 100f);
+                Color currentColor = Color.Lerp(new Color(0f, 1f, 0f, 1f), new Color(1f, 0f, 0f, 1f), weightPerc / 100f);
+                if (isMinimalEffect) {
+                    weightObj.GetComponent<RectTransform>().localPosition = new Vector3(0, - totEffects * (entrySpacingEffects - 1), 0);
+                    Text nameText = weightObj.transform.Find("Name").GetComponent<Text>();
+                    string hexColor = Mathf.RoundToInt(currentColor.r * 255f).ToString("X2") + 
+                        Mathf.RoundToInt(currentColor.g * 255f).ToString("X2") +
+                        Mathf.RoundToInt(currentColor.b * 255f).ToString("X2");
+                    nameText.text = $"Weight <color=#{hexColor}>{weightPerc:0.#} %</color>";
+                } else {
+                    weightObj.GetComponent<RectTransform>().anchoredPosition = new Vector3(-4f - totEffects * Hud.instance.m_statusEffectSpacing, 0f);
+                    weightText.text = $"{weightPerc:0.#} %";
+                    weightText.color = currentColor;
+                }
             }
         }
 
@@ -127,6 +168,13 @@ namespace AlweStats {
                 return;
             }
             instance.m_csName.gameObject.SetActive(false);
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(FejdStartup), "Awake")]
+        static void PatchFejdAwake(ref FejdStartup __instance) {
+            Vector3 sourcePos = __instance.m_csFileSource.transform.position;
+            __instance.m_csFileSource.transform.position = new Vector3(sourcePos.x, sourcePos.y + 100f, sourcePos.z);
         }
 
         [HarmonyPostfix]

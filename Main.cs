@@ -6,8 +6,10 @@ using System.IO;
 using UnityEngine;
 
 namespace AlweStats {
-    [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+    [BepInPlugin("Alwe.AlweStats", "AlweStats", "4.3.1")]
     [BepInDependency("randyknapp.mods.auga", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("randyknapp.mods.minimalstatuseffects", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("marlthon.OdinShip", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInProcess("Valheim.exe")]
     public class Main : BaseUnityPlugin {
         private readonly Harmony harmony = new("zAlweNy26.AlweStats");
@@ -168,7 +170,7 @@ namespace AlweStats {
                 "\n0 = disable this setting" +
                 "\n1 = only the entity you are hovering" +
                 "\n2 = all the entities with a visible hp bar");
-            showEnvStatus = Config.Bind("EnvStats", "ShowEnvStatus", "1, 2, 3, 4, 5, 6, 7, 8, 9", 
+            showEnvStatus = Config.Bind("EnvStats", "ShowEnvStatus", "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11", 
                 "Toggle status for specific environment element, separate them with a comma (,)" +
                 "\n1 = rock status" +
                 "\n2 = tree status" +
@@ -178,7 +180,9 @@ namespace AlweStats {
                 "\n6 = fermenter status" +
                 "\n7 = build piece status" +
                 "\n8 = fireplace status" +
-                "\n9 = container status");
+                "\n9 = container status" +
+                "\n10 = cooking station status" + 
+                "\n11 = smelter status");
             showCustomPins = Config.Bind("MapStats", "ShowCustomPins", "1, 2, 3, 4, 5, 6, 7", 
                 "Toggle specific custom pins, separate them with a comma (,)" +
                 "\n0 = disable all the custom pins" +
@@ -219,6 +223,7 @@ namespace AlweStats {
                 "\n'{4}' stands for the bow currently used arrows" +
                 "\n'{5}' stands for the bow total arrows" +
                 "\n'{6}' stands for the name of the currently selected arrows");
+
             /*gameStatsFormat = Config.Bind("General", "GameStatsFormat", "FPS : {0}\nPing : {1}\nTotal players : {2}", 
                 "The format of the string when showing fps, ping and total players" +
                 "\n'{0}' stands for the fps" +
@@ -229,6 +234,7 @@ namespace AlweStats {
                 "\n'{0}' stands for the days" +
                 "\n'{1}' stands for the play time" +
                 "\n'{2}' stands for the biome");*/
+
             shipStatsFormat = Config.Bind("General", "ShipStatsFormat", "Ship speed : {0}\nShip health : {1} / {2}\nWind speed : {3}\nWind direction : {4}", 
                 "The format of the string when showing the ship speed and health, and wind speed and direction" +
                 "\n'{0}' stands for the ship speed in kts (knots)" +
@@ -339,10 +345,11 @@ namespace AlweStats {
             }
 
             [HarmonyPrefix]
-            [HarmonyPatch(typeof(ZNet), "OnDestroy")]
+            [HarmonyPatch(typeof(Game), "Shutdown")]
             static bool PatchWorldEnd() {
                 if (blocks != null) EditingMode.Destroy(blocks);
                 Utilities.UpdateWorldFile(MapStats.removedPins);
+                Debug.Log("Updating the worlds file...");
                 return true;
             }
         }
