@@ -108,7 +108,6 @@ namespace AlweStats {
                 b.SetPosition(b.GetRect().pivot);
                 b.SetMargin(b.GetRect().anchoredPosition);
             }
-            Main.config.Save();
             Main.ReloadConfig();
         }
 
@@ -120,7 +119,7 @@ namespace AlweStats {
                 b.SetPosition(b.GetConfigValue<string>(b.GetName(), "Position").DefaultValue.ToString());
                 b.SetMargin(b.GetConfigValue<string>(b.GetName(), "Margin").DefaultValue.ToString());
             }
-            Main.config.Save();
+            Main.ReloadConfig();
         }
 
         public static void ShowButton() {

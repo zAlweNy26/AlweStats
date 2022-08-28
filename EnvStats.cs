@@ -56,7 +56,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Container), "GetHoverText")]
+        [HarmonyPatch(typeof(Container), nameof(Container.GetHoverText))]
         static void PatchContainerHoverText(ref string __result, Container __instance) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Container, Main.showEnvStatus.Value)) return;
             if (__instance.m_checkGuardStone && !PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false)) {
@@ -71,7 +71,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Destructible), "RPC_Damage")]
+        [HarmonyPatch(typeof(Destructible), nameof(Destructible.RPC_Damage))]
         static void OnDamage(Destructible __instance, HitData hit) {
             if (!Main.enableEnvStats.Value || __instance == null) return;
             if (envObjsNew.Any(e => __instance.gameObject.name.ToLower().Contains(e))) {
@@ -88,7 +88,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(TreeBase), "RPC_Damage")]
+        [HarmonyPatch(typeof(TreeBase), methodName: nameof(TreeBase.RPC_Damage))]
         static void OnDamage(TreeBase __instance, HitData hit) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Tree, Main.showEnvStatus.Value)) return;
             //Debug.Log($"TreeBase : {__instance.gameObject.name}");
@@ -101,7 +101,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(TreeLog), "RPC_Damage")]
+        [HarmonyPatch(typeof(TreeLog), methodName: nameof(TreeLog.RPC_Damage))]
         static void OnDamage(TreeLog __instance, HitData hit) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Tree, Main.showEnvStatus.Value)) return;
             //Debug.Log($"TreeLog : {__instance.gameObject.name}");
@@ -114,7 +114,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(MineRock), "RPC_Hit")]
+        [HarmonyPatch(typeof(MineRock), nameof(MineRock.RPC_Hit))]
         static void OnDamage(MineRock __instance, HitData hit, int hitAreaIndex) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Rock, Main.showEnvStatus.Value)) return;
             //Debug.Log($"MineRock : {__instance.gameObject.name}");
@@ -127,7 +127,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(MineRock5), "RPC_Damage")]
+        [HarmonyPatch(typeof(MineRock5), nameof(MineRock5.RPC_Damage))]
         static void OnDamage(MineRock5 __instance, HitData hit) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Rock, Main.showEnvStatus.Value)) return;
             //Debug.Log($"MineRock piece : {__instance.gameObject.name}");
@@ -140,7 +140,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Plant), "GetHoverText")]
+        [HarmonyPatch(typeof(Plant), nameof(Plant.GetHoverText))]
         static void PatchPlantHoverText(ref string __result, Plant __instance) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Plant, Main.showEnvStatus.Value) || __instance == null) return;
             if (!__instance.m_nview.IsValid()) return;
@@ -150,7 +150,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Pickable), "GetHoverText")]
+        [HarmonyPatch(typeof(Pickable), nameof(Pickable.GetHoverText))]
         static void PatchPickableHoverText(ref string __result, Pickable __instance) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Bush, Main.showEnvStatus.Value) 
                 || !__instance.name.ToLower().Contains("bush")) return;
@@ -163,7 +163,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Beehive), "GetHoverText")]
+        [HarmonyPatch(typeof(Beehive), nameof(Beehive.GetHoverText))]
         static void PatchBeehiveHoverText(ref string __result, Beehive __instance) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Beehive, Main.showEnvStatus.Value)) return;
             if (!PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false)) {
@@ -186,7 +186,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Fireplace), "GetHoverText")]
+        [HarmonyPatch(typeof(Fireplace), nameof(Fireplace.GetHoverText))]
         static void PatchFireplaceHoverText(ref string __result, Fireplace __instance) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Fireplace, Main.showEnvStatus.Value)) return;
             if (!__instance.m_nview.IsValid()) {
@@ -209,7 +209,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(CookingStation), "GetHoverText")]
+        [HarmonyPatch(typeof(CookingStation), nameof(CookingStation.GetHoverText))]
         static void PatchCookingStationHoverText(ref string __result, CookingStation __instance) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.CookingStation, Main.showEnvStatus.Value)) return;
             if (!__instance.m_nview.IsValid()) {
@@ -244,9 +244,10 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Smelter), "UpdateHoverTexts")]
+        [HarmonyPatch(typeof(Smelter), nameof(Smelter.UpdateHoverTexts))]
         static void PatchSmelterHoverText(Smelter __instance) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Smelter, Main.showEnvStatus.Value)) return;
+            if (!__instance.m_nview.IsValid()) return;
             if (__instance.m_emptyOreSwitch && __instance.m_spawnStack) {
                 int processedQueueSize = __instance.GetProcessedQueueSize();
                 __instance.m_emptyOreSwitch.m_hoverText = $"{__instance.m_name} ({processedQueueSize} $piece_smelter_ready)\n[<color=yellow><b>$KEY_Use</b></color>] {__instance.m_emptyOreTooltip}";
@@ -254,11 +255,12 @@ namespace AlweStats {
             int queueSize = __instance.GetQueueSize();
             __instance.m_addOreSwitch.m_hoverText = $"{__instance.m_name} ({queueSize}/{__instance.m_maxOre}) ";
             if (queueSize > 0) {
-                float percentage = __instance.GetBakeTimer() * 100f / (__instance.m_secPerProduct * queueSize);
+                float percentage = __instance.GetBakeTimer() * 100f / (__instance.m_secPerProduct * (Main.showTotalOfQueue.Value ? queueSize : 1f));
+                double remainingTime = (__instance.m_secPerProduct * (Main.showTotalOfQueue.Value ? queueSize : 1f)) - __instance.GetBakeTimer();
                 __instance.m_addOreSwitch.m_hoverText += String.Format(
                     Main.processFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(percentage)}>"),
                     $"{percentage:0.#}",
-                    TimeSpan.FromSeconds(__instance.m_secPerProduct - __instance.GetBakeTimer()).ToString(@"hh\:mm\:ss")
+                    TimeSpan.FromSeconds(remainingTime).ToString(@"hh\:mm\:ss")
                 );
             }
             if (__instance.m_requiresRoof && !__instance.m_haveRoof && Mathf.Sin(Time.time * 10f) > 0f)
@@ -268,7 +270,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Fermenter), "GetHoverText")]
+        [HarmonyPatch(typeof(Fermenter), nameof(Fermenter.GetHoverText))]
         static void PatchFermenterHoverText(ref string __result, Fermenter __instance) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Fermenter, Main.showEnvStatus.Value)) return;
             if (!PrivateArea.CheckAccess(__instance.transform.position, 0f, false, false))

@@ -7,12 +7,14 @@ namespace AlweStats {
     [HarmonyPatch]
     public static class Commands {
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Terminal), "InitTerminal")]
+        [HarmonyPatch(typeof(Terminal), nameof(Terminal.InitTerminal))]
         static void InitCommands() {
             new Terminal.ConsoleCommand("alwe", "[command] [...argument/s] - General command to use all the subcommands of the AlweStats mod", (Terminal.ConsoleEventArgs args) => {
                 if (args.Length >= 2) {
                     List<WorldInfo> worlds = Utilities.GetWorldInfos();
-                    if (args[1] == "df") {
+                    if (args[1] == "reload") {
+                        Main.ReloadConfig();
+                    } else if (args[1] == "df") {
                         File.Delete(Main.statsFilePath);
                         args.Context.AddString("The AlweStats.json file was deleted successfully !");
                     } else if (args[1] == "cfp") {
@@ -84,6 +86,7 @@ namespace AlweStats {
                     Utilities.SetWorldInfos(worlds);
                 } else {
                     args.Context.AddString("List of valid subcommands :\n" + 
+                        "reload - Reload the configuration file to update changes in-game" +
                         "cfp [world] - Remove all the pins saved in the AlweStats.json file for a specific world\n" +
                         "df - Clear the entire AlweStats.json file by deleting it"/*\n" +
                         "gp [radius] - Group portal pins into one in the radius from the player position\n" +

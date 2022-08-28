@@ -6,7 +6,7 @@ using System.IO;
 using UnityEngine;
 
 namespace AlweStats {
-    [BepInPlugin("Alwe.AlweStats", "AlweStats", "4.3.1")]
+    [BepInPlugin("Alwe.AlweStats", "AlweStats", "4.4.0")]
     [BepInDependency("randyknapp.mods.auga", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("randyknapp.mods.minimalstatuseffects", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("marlthon.OdinShip", BepInDependency.DependencyFlags.SoftDependency)]
@@ -17,8 +17,8 @@ namespace AlweStats {
         public static string statsFilePath;
         //public static bool HasAuga => Auga.API.IsLoaded();
         public static ConfigEntry<bool> 
-            enableGameStats, enableWorldStats, enableWorldClock, enableShipStats, enableEnvStats, 
-            enablePlayerStats, customBowCharge, daysInWorldsList, worldClockFormat, enableShipStatus, 
+            enableGameStats, enableWorldStats, enableWorldClock, enableShipStats, enableEnvStats, enablePlayerInfos, 
+            enablePlayerStats, customBowCharge, daysInWorldsList, worldClockFormat, enableShipStatus, showTotalOfQueue, 
             showResetButton, customShowBiome, enableEntityStats, enableMapStats, showCursorCoordinates, 
             enableRotatingMinimap, showExploredPercentage, enableBedStatus, enablePortalStatus, systemClockFormat, 
             replaceBedPinIcon, showPingDistance, enableWeightStatus, enableSystemClock/*, showCustomMinimap*/;
@@ -40,7 +40,7 @@ namespace AlweStats {
             /*gameStatsFormat, worldStatsFormat,*/ shipStatsFormat;
 
         public void Awake() {
-            config = Config;
+            config = this.Config;
             config.SaveOnConfigSet = true;
 
             reloadPluginKey = Config.Bind("General", "ReloadPluginKey", KeyCode.F9, "Key to reload the plugin config file, set it to None to disable it");
@@ -70,8 +70,10 @@ namespace AlweStats {
             enablePortalStatus = Config.Bind("MapStats", "PortalStatus", true, "Toggle the status that shows the distance from the closer portal");
             enableShipStatus = Config.Bind("MapStats", "ShipStatus", true, "Toggle the status that shows the distance from the closer ship");
             enableWeightStatus = Config.Bind("PlayerStats", "WeightStatus", true, "Toggle the status that shows the player weight");
+            enablePlayerInfos = Config.Bind("PlayerStats", "PlayerInfos", true, "Toggle the player infos in character selection");
             replaceBedPinIcon = Config.Bind("MapStats", "ReplaceBedPinIcon", true, "Replace the default pin icon for the bed with the icon of the bed building piece");
             showPingDistance = Config.Bind("MapStats", "ShowPingDistance", true, "Toggle the distance to be shown when someone pings on the map");
+            showTotalOfQueue = Config.Bind("EnvStats", "ShowTotalOfQueue", true, "Show the total remaining time for the entire queue (true) or for a single item (false)");
 
             gameStatsColor = Config.Bind("GameStats", "Color", "255, 180, 90, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
@@ -183,7 +185,7 @@ namespace AlweStats {
                 "\n9 = container status" +
                 "\n10 = cooking station status" + 
                 "\n11 = smelter status");
-            showCustomPins = Config.Bind("MapStats", "ShowCustomPins", "1, 2, 3, 4, 5, 6, 7", 
+            showCustomPins = Config.Bind("MapStats", "ShowCustomPins", "1, 2, 3, 4, 5, 6, 7, 8", 
                 "Toggle specific custom pins, separate them with a comma (,)" +
                 "\n0 = disable all the custom pins" +
                 "\n1 = troll caves pins" +
@@ -192,7 +194,8 @@ namespace AlweStats {
                 "\n4 = portals pins" +
                 "\n5 = ships pins" +
                 "\n6 = carts pins" +
-                "\n7 = mountain caves pins");
+                "\n7 = mountain caves pins" +
+                "\n8 = runestone pins");
             showPinsTitles = Config.Bind("MapStats", "ShowPinsTitles", "4", 
                 "Toggle the title for specific custom pins, separate them with a comma (,)" +
                 "\n0 = disable for all custom pins" +
@@ -202,7 +205,8 @@ namespace AlweStats {
                 "\n4 = portals pins" +
                 "\n5 = ships pins" +
                 "\n6 = carts pins" +
-                "\n7 = mountain caves pins");
+                "\n7 = mountain caves pins" +
+                "\n8 = runestone pins");
             biggerPins = Config.Bind("MapStats", "BiggerPins", "4, 5, 6", 
                 "Double or not the size of specific custom pins, separate them with a comma (,)" +
                 "\n0 = disable for all custom pins" +
@@ -212,7 +216,8 @@ namespace AlweStats {
                 "\n4 = portals pins" +
                 "\n5 = ships pins" +
                 "\n6 = carts pins" +
-                "\n7 = mountain caves pins");
+                "\n7 = mountain caves pins" +
+                "\n8 = runestone pins");
 
             playerStatsFormat = Config.Bind("General", "PlayerStatsFormat", "Inventory slots : {0} / {1}\nInventory weight : {2} / {3}\nBow ammo : {4} / {5}\nSelected arrows : {6}", 
                 "The format of the string when showing the inventory slots and weight, bow ammo and selected arrows" +
@@ -257,10 +262,11 @@ namespace AlweStats {
                 "\n'{1}' and '{4}' stand for the y values" +
                 "\n'{2}' and '{5}' stand for the z values");
 
-            mapCoordinatesFormat = Config.Bind("General", "MapCoordinatesFormat", "Cursor (x: {0} | z: {1})", 
+            mapCoordinatesFormat = Config.Bind("General", "MapCoordinatesFormat", "Cursor (x: {0} | z: {1} | y: {2})", 
                 "The format of the string when showing the map coordinates where the cursor is pointing in the large map" + 
                 "\n'{0}' stands for the x value" +
-                "\n'{1}' stands for the z value");
+                "\n'{1}' stands for the z value" +
+                "\n'{2}' stands for the y value");
 
             processFormat = Config.Bind("General", "ProcessFormat", "(<color>{0} %</color>)\n{1}", 
                 "The format of the string when showing the process status of plants/bushes/fermenters/beehives/fireplaces" + 
@@ -270,7 +276,7 @@ namespace AlweStats {
 
             Logger.LogInfo($"{PluginInfo.PLUGIN_GUID} loaded successfully !");
 
-            statsFilePath = Path.Combine(Paths.PluginPath, "AlweStats.json");
+            statsFilePath = Path.Combine(Paths.ConfigPath, "AlweStats.json");
         }
 
         public void Start() { harmony.PatchAll(); }
@@ -280,6 +286,7 @@ namespace AlweStats {
         public static void ReloadConfig() { 
             if (File.Exists(config.ConfigFilePath)) {
                 config.Reload(); 
+                config.Save();
                 Debug.Log($"The config file of {PluginInfo.PLUGIN_GUID} was reloaded successfully !");
             } else Debug.Log($"The config file of {PluginInfo.PLUGIN_GUID} was not found !");
         }
@@ -289,7 +296,7 @@ namespace AlweStats {
             private static List<Block> blocks = null;
             
             [HarmonyPostfix]
-            [HarmonyPatch(typeof(Hud), "Awake")]
+            [HarmonyPatch(typeof(Hud), nameof(Hud.Awake))]
             private static void PatchHudStart() {
                 blocks = new();
 
@@ -307,7 +314,7 @@ namespace AlweStats {
             }
 
             [HarmonyPostfix]
-            [HarmonyPatch(typeof(Hud), "Update")]
+            [HarmonyPatch(typeof(Hud), nameof(Hud.Update))]
             private static void PatchHudUpdate() {
                 if (Input.GetKeyDown(reloadPluginKey.Value)) ReloadConfig();  
                 if (Input.GetKeyDown(Main.toggleEditMode.Value)) EditingMode.OnPress();
@@ -315,26 +322,26 @@ namespace AlweStats {
             }
 
             [HarmonyPostfix]
-            [HarmonyPatch(typeof(Hud), "UpdateCrosshair")]
+            [HarmonyPatch(typeof(Hud), nameof(Hud.UpdateCrosshair))]
             private static void PatchHudCrosshair() {
                 if (Main.enableEnvStats.Value && Utilities.CheckInEnum(EnvType.Piece, showEnvStatus.Value)) EnvStats.PatchHoveringPiece();
                 PlayerStats.PatchCrosshairColor();
             }
 
             [HarmonyPostfix]
-            [HarmonyPatch(typeof(FejdStartup), "Update")]
+            [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Update))]
             private static void PatchMainMenuUpdate() {
                 if (Input.GetKeyDown(reloadPluginKey.Value)) ReloadConfig();    
             }
 
             [HarmonyPostfix]
-            [HarmonyPatch(typeof(Menu), "Update")]
+            [HarmonyPatch(typeof(Menu), nameof(Menu.Update))]
             private static void PatchEscMenuUpdate() {
                 if (Input.GetKeyDown(KeyCode.Escape) && showResetButton.Value) EditingMode.ShowButton();
             }
 
             [HarmonyPostfix]
-            [HarmonyPatch(typeof(ZNetScene), "Update")]
+            [HarmonyPatch(typeof(ZNetScene), nameof(ZNetScene.Update))]
             private static void PatchGame() {
                 PlayerStats.Update();
                 if (enableWorldStats.Value) WorldStats.Update();
@@ -345,7 +352,7 @@ namespace AlweStats {
             }
 
             [HarmonyPrefix]
-            [HarmonyPatch(typeof(Game), "Shutdown")]
+            [HarmonyPatch(typeof(Game), nameof(Game.Shutdown))]
             static bool PatchWorldEnd() {
                 if (blocks != null) EditingMode.Destroy(blocks);
                 Utilities.UpdateWorldFile(MapStats.removedPins);

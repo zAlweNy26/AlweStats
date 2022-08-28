@@ -48,7 +48,7 @@ namespace AlweStats {
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(EnemyHud), "ShowHud")]
+        [HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.ShowHud))]
         static bool ShowHud(ref EnemyHud __instance, Character c, bool isMount) {
             if (!Main.enableEntityStats.Value) return true;
             EnemyHud.HudData hudData;
@@ -82,7 +82,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(EnemyHud), "UpdateHuds")]
+        [HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.UpdateHuds))]
         static void UpdateHuds(ref EnemyHud __instance, Player player, Sadle sadle, float dt) {
             if (!Main.enableEntityStats.Value) return;
             Character character = null;

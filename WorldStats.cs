@@ -43,13 +43,13 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(FejdStartup), "Start")]
+        [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Start))]
         private static void PatchMainMenuStart() {
             worldsList = Utilities.GetWorldInfos();
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(FejdStartup), "UpdateWorldList")]
+        [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.UpdateWorldList))]
         static bool PatchWorldList(FejdStartup __instance, bool centerSelection) {
             if (!Main.daysInWorldsList.Value) return true;
             __instance.m_worlds = World.GetWorldList();

@@ -229,7 +229,7 @@ namespace AlweStats {
                 entrySpacingEffects = entrySpacing.Value;
                 modConfig.TryGetEntry(new ("General", "IconSize"), out ConfigEntry<float> iconSize);
                 modConfig.TryGetEntry(new ("General", "FontSize"), out ConfigEntry<int> fontSize);
-                foreach (GameObject statusObj in myStatus) {
+                foreach (GameObject statusObj in myStatus.Where(obj => obj != null)) {
                     RectTransform nameRect = statusObj.transform.Find("Name") as RectTransform;
                     Text nameText = nameRect.GetComponent<Text>();
                     statusObj.transform.Find("TimeText").gameObject.SetActive(false);
@@ -255,7 +255,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Minimap), "Start")]
+        [HarmonyPatch(typeof(Minimap), nameof(Minimap.Start))]
         static void MinimapStart(Minimap __instance) {
             /*if (Main.showCustomMinimap.Value) {
                 Assembly assembly = Assembly.GetExecutingAssembly();
@@ -301,7 +301,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Minimap), "Update")]
+        [HarmonyPatch(typeof(Minimap), nameof(Minimap.Update))]
         static void MinimapUpdate(Minimap __instance) {
             Player localPlayer = Player.m_localPlayer;
             if (localPlayer == null) return;
@@ -323,7 +323,7 @@ namespace AlweStats {
 
             foreach (KeyValuePair<string, List<Vector3>> loc in locsFound) { 
                 foreach (Vector3 pos in loc.Value) {
-                    if (!locPins.ContainsKey(pos) && !removedPins.Contains(pos.Round()) && Vector3.Distance(pos, playerPos3) <= 75f) {
+                    if (!locPins.ContainsKey(pos) && !removedPins.Contains(pos.Round()) && Vector3.Distance(pos, playerPos3) <= 50f) {
                         KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => loc.Key.Contains(p.Key.name.ToLower())).FirstOrDefault();
                         string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? 
                             Regex.Replace(pair.Key.name, "([a-z])([A-Z])", "$1 $2") : "";
@@ -377,9 +377,10 @@ namespace AlweStats {
             }
             if (Main.showCursorCoordinates.Value && cursorObj != null && RectTransformUtility.RectangleContainsScreenPoint(mapRect, mousePos)) {
                 Vector3 cursor = __instance.ScreenToWorldPoint(mousePos);
+                cursor.y = WorldGenerator.instance.GetHeight(cursor.x, cursor.z);
                 cursorObj.GetComponent<Text>().text = String.Format(
                     Main.mapCoordinatesFormat.Value,
-                    $"{cursor.x:0.#}", $"{cursor.z:0.#}"
+                    $"{cursor.x:0.#}", $"{cursor.z:0.#}", $"{cursor.y:0.#}"
                 );
             }
             if (Main.enableRotatingMinimap.Value) {
@@ -402,16 +403,33 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Location), "Awake")]
+        [HarmonyPatch(typeof(RuneStone), nameof(RuneStone.Interact))]
+        static void AddRuneStonePin(RuneStone __instance) {
+            if (!Utilities.CheckInEnum(CustomPinType.RuneStone, Main.showCustomPins.Value)) return;
+            Minimap map = Minimap.instance;
+            if (__instance != null && map != null && string.IsNullOrEmpty(__instance.m_locationName)) {
+                Vector3 runePos = __instance.transform.position;
+                string pinTitle = Utilities.CheckInEnum(CustomPinType.RuneStone, Main.showPinsTitles.Value) ? 
+                    Localization.instance.Localize(__instance.m_name) : "";
+                if (!locPins.ContainsKey(runePos) && !removedPins.Contains(runePos.Round())) {
+                    Minimap.PinData runePin = map.AddPin(runePos, Minimap.PinType.Icon4, pinTitle, true, false);
+                    runePin.m_doubleSize = Utilities.CheckInEnum(CustomPinType.RuneStone, Main.biggerPins.Value);
+                    locPins.Add(runePos, runePin);
+                    Debug.Log($"Added runestone pin with position {runePos}");
+                }
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Location), nameof(Location.Awake))]
         static void AddDungeonPin(Location __instance) {
             LoadLocations();
             Location location = __instance.GetComponent<Location>();
-            Minimap map = Minimap.instance;
-            if (location != null && map != null) {
+            if (location != null) {
                 Vector3 locPos = location.transform.position;
                 string locName = location.name.ToLower();
-                if (!locPins.ContainsKey(locPos) && !removedPins.Contains(locPos.Round()) && !locsFound.Any(p => p.Value.Contains(locPos))
-                    && usedPins.Any(p => locName.Contains(p.Key.name.ToLower()))) {
+                if (!locPins.ContainsKey(locPos) && !removedPins.Contains(locPos.Round()) && 
+                    !locsFound.Any(p => p.Value.Contains(locPos)) && usedPins.Any(p => locName.Contains(p.Key.name.ToLower()))) {
                     if (locsFound.ContainsKey(locName)) {
                         locsFound.TryGetValue(locName, out List<Vector3> locations);
                         locations.Add(locPos);
@@ -422,7 +440,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(ZNetScene), "AddInstance")]
+        [HarmonyPatch(typeof(ZNetScene), methodName: nameof(ZNetScene.AddInstance))]
         static void PatchCreateZDO(ZNetScene __instance, ZDO zdo) {
             LoadZDOs();
             Minimap map = Minimap.instance;
@@ -438,7 +456,7 @@ namespace AlweStats {
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(ZNetScene), "Destroy")]
+        [HarmonyPatch(typeof(ZNetScene), nameof(ZNetScene.Destroy))]
         static bool PatchDestroyZDO(ZNetScene __instance, GameObject go) {
             if (!Utilities.CheckInEnum(CustomPinType.Disabled, Main.showCustomPins.Value) 
                 && !Main.enablePortalStatus.Value && !Main.enableShipStatus.Value) return true;
@@ -520,13 +538,13 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Minimap), "AddPin")]
+        [HarmonyPatch(typeof(Minimap), nameof(Minimap.AddPin))]
         static void PatchAddPin(ref Minimap.PinData __result, Minimap.PinType type) {
             if (Main.replaceBedPinIcon.Value && type == Minimap.PinType.Bed) __result.m_icon = Utilities.GetSprite("bed".GetStableHashCode(), true);
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(Minimap), "RemovePin", new Type[] { typeof(Minimap.PinData)})]
+        [HarmonyPatch(typeof(Minimap), nameof(Minimap.RemovePin), new Type[] { typeof(Minimap.PinData)})]
         static bool PatchRemovePin(Minimap __instance, Minimap.PinData pin) {
             Vector3 roundedVec = pin.m_pos.Round(); 
             if (!removedPins.Contains(roundedVec) && pinsDict.Any(pair => pair.Value.m_name == pin.m_type)) removedPins.Add(roundedVec);
@@ -536,7 +554,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Minimap), "Explore", new Type[] { typeof(int), typeof(int)})]
+        [HarmonyPatch(typeof(Minimap), nameof(Minimap.Explore), new Type[] { typeof(int), typeof(int)})]
         static void PatchExplore(ref bool __result) {
             if (Main.showExploredPercentage.Value && exploredObj != null && __result) {
                 exploredTotal += 1;
@@ -546,7 +564,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Minimap), "Reset")]
+        [HarmonyPatch(typeof(Minimap), nameof(Minimap.Reset))]
         static void PatchReset() {
             if (Main.showExploredPercentage.Value && exploredObj != null) {
                 exploredTotal = 0;
@@ -556,7 +574,7 @@ namespace AlweStats {
         }
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(Minimap), "OnMapDblClick")]
+        [HarmonyPatch(typeof(Minimap), nameof(Minimap.OnMapDblClick))]
         static bool PatchOnMapDoubleClick(Minimap __instance) {
             if (Utilities.CheckInEnum(CustomPinType.Disabled, Main.showCustomPins.Value)) return true;
             if (__instance.m_selectedType == Minimap.PinType.Death) return false;
@@ -573,7 +591,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Chat), "UpdateWorldTextField")]
+        [HarmonyPatch(typeof(Chat), nameof(Chat.UpdateWorldTextField))]
         static void PatchPingDistance(Chat.WorldTextInstance wt) {
             if (Main.showPingDistance.Value && wt.m_type == Talker.Type.Ping) {
                 float distance = Utils.DistanceXZ(Player.m_localPlayer.transform.position, wt.m_position);
@@ -627,7 +645,7 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(ZNet), "LoadWorld")]
+        [HarmonyPatch(typeof(ZNet), nameof(ZNet.LoadWorld))]
         static void PatchLoadWorld(ZNet __instance) {
             zdoCheck = locCheck = isOnBoat = false;
             zdoPins.Clear();

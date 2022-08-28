@@ -5,20 +5,18 @@ and [Nexus](https://www.nexusmods.com/valheim/mods/1822/).
 
 **Give a thumbs up if you like the mod and you have a GitHub account !**
 
+**Configuration file name changed from "AlweStats.cfg" to "Alwe.AlweStats.cfg", please update your config file name !**
+
 **If you encounter an error that says "FormatException: Input string was not in a correct format",
-try deleting the config file (AlweStats.cfg) and restart the game. If the error persists, 
+try deleting the config file (Alwe.AlweStats.cfg) and restart the game. If the error persists, 
 please create an issue on GitHub to let me know !** 
 
 **You may encounter incompatibilities in case there are other mods that modify the UI, 
 be sure to enable either one or the other equivalent section so they don't conflict in the same function**
 
 > For reasons inherent to the optimal functioning of the mod,
-> everything related to the pins and elements in the status effects list (BedStatus, PortalStatus and ShipStatus)
+> everything related to the pins and elements in the status effects list (like BedStatus, PortalStatus and ShipStatus, except for WeightStatus)
 > could cause a lowering of fps if the computer running the game is not very powerful.
-
-> As I don't know the proportions that the game uses,
-> I have established that the maximum **ship speed** is equal to **30 kts** and the maximum **wind speed** is equal to **100 km/h**,
-> so the values ​​are proportioned according to this.
 
 > Since the default day length declared in Valheim doesn't match the real one,
 > to successfully use the "Days passed" counter in the world selection panel you need to join in a world at least one time,
@@ -83,6 +81,7 @@ In the console or chat, now you can use these commands :
 List of valid subcommands :
 cfp [world] - Remove all the pins from the AlweStats.json file for a specific world
 df - Clear the entire AlweStats.json file by deleting it
+reload - Reload the configuration file to update changes in-game
 ```
 
 ### Things I want to do as soon as possible
@@ -90,6 +89,7 @@ df - Clear the entire AlweStats.json file by deleting it
 - Add detailed items informations
 - Add a compass
 - Add a custom minimap
+- Add compatibility with Project Auga
 - Fix the known issues
 
 ### Known issues
@@ -100,7 +100,19 @@ df - Clear the entire AlweStats.json file by deleting it
 
 ### Changelog
 
+**4.4.0**
+- Moved "AlweStats.json" path from "plugins" folder to "config" folder
+- Moved the player infos in character selection toggle in a new config setting called "PlayerInfos"
+- Added y value in the cursor coordinates showed in the large map (set the setting to default to see the change)
+- Added a console/chat subcommand "reload" to reload the AlweStats configuration file
+- Fixed a bug that was showing an error message related to the smelter
+- Added a config setting "ShowTotalOfQueue" to show the total remaining time for the entire queue or for a single item 
+- Added the rune stones to the custom pins (you have to interact with it to add the pin)
+- Fixed a bug that was causing an error if not all the custom status effects were enabled with "MinimalStatusEffects" mod enabled
+- Integrated dependencies "System.Data.dll" and "System.Runtime.Serialization.dll" (so now you can delete those two files)
+
 **4.3.1**
+- Changed configuration file name from "AlweStats.cfg" to "Alwe.AlweStats.cfg"
 - Added compatibility with "MinimalStatusEffects" mod
 - Added compatibility with "OdinShip" mod
 - Added cooking stations and smelters status strings in the EnvStats section

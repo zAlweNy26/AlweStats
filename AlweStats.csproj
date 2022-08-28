@@ -1,25 +1,35 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <TargetFramework>net48</TargetFramework>
     <AssemblyName>AlweStats</AssemblyName>
     <Description>Easily read stats about almost everything !</Description>
-    <Version>4.3.0</Version>
+    <Version>4.4.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Copyright>zAlweNy26</Copyright>
     <Authors>zAlweNy26</Authors>
-    <SignAssembly>False</SignAssembly>
-    <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <Optimize>True</Optimize>
-    <WarningLevel>5</WarningLevel>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <WarningLevel>5</WarningLevel>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
 
   <!--<ItemGroup>
@@ -56,6 +66,10 @@
     <Reference Include="BepInEx">
       <HintPath>.\dependencies\BepInEx.dll</HintPath>
     </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
       <HintPath>.\dependencies\UnityEngine.dll</HintPath>
     </Reference>
@@ -67,6 +81,9 @@
     </Reference>
     <!--<Reference Include="AugaAPI">
       <HintPath>.\dependencies\AugaAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="ServerSync">
+      <HintPath>.\dependencies\ServerSync.dll</HintPath>
     </Reference>-->
   </ItemGroup>
 

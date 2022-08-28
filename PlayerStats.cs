@@ -59,7 +59,7 @@ namespace AlweStats {
                 weightObj.transform.Find("TimeText").GetComponent<Text>().text = "0 %";
                 weightObj.SetActive(true);
             }
-            if (Chainloader.PluginInfos.ContainsKey("randyknapp.mods.minimalstatuseffects")) {
+            if (Chainloader.PluginInfos.ContainsKey("randyknapp.mods.minimalstatuseffects") && Main.enableWeightStatus.Value) {
                 isMinimalEffect = true;
                 Chainloader.PluginInfos.TryGetValue("randyknapp.mods.minimalstatuseffects", out BepInEx.PluginInfo modInfo);
                 ConfigFile modConfig = modInfo.Instance.Config;
@@ -173,6 +173,7 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(FejdStartup), "Awake")]
         static void PatchFejdAwake(ref FejdStartup __instance) {
+            if (!Main.enablePlayerInfos.Value) return;
             Vector3 sourcePos = __instance.m_csFileSource.transform.position;
             __instance.m_csFileSource.transform.position = new Vector3(sourcePos.x, sourcePos.y + 100f, sourcePos.z);
         }
@@ -180,13 +181,13 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(FejdStartup), "ShowCharacterSelection")]
         static void PatchCharacterSelectionShow(ref FejdStartup __instance) {
-            if (Main.enablePlayerStats.Value) PatchCharacterSelection(__instance);
+            if (Main.enablePlayerInfos.Value) PatchCharacterSelection(__instance);
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(FejdStartup), "UpdateCharacterList")]
         static void PatchCharacterSelectionUpdate(ref FejdStartup __instance) {
-            if (Main.enablePlayerStats.Value) PatchCharacterSelection(__instance);
+            if (Main.enablePlayerInfos.Value) PatchCharacterSelection(__instance);
         }
     }
 }

@@ -80,14 +80,15 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Ship), "OnTriggerEnter")]
+        [HarmonyPatch(typeof(Ship), nameof(Ship.OnTriggerEnter))]
         static void PatchShipEnter() {
             if (Main.enableShipStats.Value || Main.enableShipStatus.Value) Check();
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Ship), "OnDestroyed")]
-        static void PatchShipDestroyed() {
+        [HarmonyPatch(typeof(Ship), nameof(Ship.OnTriggerExit))]
+        [HarmonyPatch(typeof(Ship), nameof(Ship.OnDestroyed))]
+        static void PatchShipExitOrDestroyed() {
             if (Main.enableShipStats.Value && shipBlock != null) shipBlock.SetActive(false);
         }
     }
