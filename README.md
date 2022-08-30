@@ -107,7 +107,7 @@ reload - Reload the configuration file to update changes in-game
 - Added a console/chat subcommand "reload" to reload the AlweStats configuration file
 - Fixed a bug that was showing an error message related to the smelter
 - Added a config setting "ShowTotalOfQueue" to show the total remaining time for the entire queue or for a single item 
-- Added the rune stones to the custom pins (you have to interact with it to add the pin)
+- Added the runestones to the custom pins (you have to interact with it to add the pin)
 - Fixed a bug that was causing an error if not all the custom status effects were enabled with "MinimalStatusEffects" mod enabled
 - Integrated dependencies "System.Data.dll" and "System.Runtime.Serialization.dll" (so now you can delete those two files)
 
