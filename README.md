@@ -39,9 +39,9 @@ For each block, you can enable or disable it and you can also set :
 - Margin
 - Text color
 - Text size (also for the cursor coordinates and the explored percentage)
-- Text alignment (not for WorldClock)
+- Text alignment (not for WorldClock and SystemClock)
 
-Each block is also movable with your mouse while in-game thanks to the integrated editing mode (default key : F8).
+Each block is also movable and resizable with your mouse while in-game thanks to the integrated editing mode (default key : F8).
 
 You can reload the configuration file (default key : F9) while in-game to see changes.
 
@@ -97,8 +97,14 @@ reload - Reload the configuration file to update changes in-game
 - Health starts showing from the second hit for rocks and mine rocks
 - Name doesn't show for small environment elements
 - Remaining time doesn't work properly for beehives
+- Hud reload doesn't work properly
 
 ### Changelog
+
+**4.4.1**
+- Removed process filter to work in dedicated servers
+- Fixed the bug that was reloading config file instead of saving it on world shutdown
+- Set label name for those runes which have it
 
 **4.4.0**
 - Moved "AlweStats.json" path from "plugins" folder to "config" folder

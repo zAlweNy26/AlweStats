@@ -108,7 +108,8 @@ namespace AlweStats {
                 b.SetPosition(b.GetRect().pivot);
                 b.SetMargin(b.GetRect().anchoredPosition);
             }
-            Main.ReloadConfig();
+            Main.config.Save();
+            Debug.Log($"The config file of {PluginInfo.PLUGIN_GUID} was saved successfully !");
         }
 
         private static void Reset() {

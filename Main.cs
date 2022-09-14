@@ -6,11 +6,10 @@ using System.IO;
 using UnityEngine;
 
 namespace AlweStats {
-    [BepInPlugin("Alwe.AlweStats", "AlweStats", "4.4.0")]
+    [BepInPlugin("Alwe.AlweStats", "AlweStats", "4.4.1")]
     [BepInDependency("randyknapp.mods.auga", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("randyknapp.mods.minimalstatuseffects", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("marlthon.OdinShip", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInProcess("Valheim.exe")]
     public class Main : BaseUnityPlugin {
         private readonly Harmony harmony = new("zAlweNy26.AlweStats");
         public static ConfigFile config;

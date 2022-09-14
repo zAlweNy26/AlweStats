@@ -410,7 +410,9 @@ namespace AlweStats {
             if (__instance != null && map != null && string.IsNullOrEmpty(__instance.m_locationName)) {
                 Vector3 runePos = __instance.transform.position;
                 string pinTitle = Utilities.CheckInEnum(CustomPinType.RuneStone, Main.showPinsTitles.Value) ? 
-                    Localization.instance.Localize(__instance.m_name) : "";
+                    (String.IsNullOrEmpty(__instance.m_label) ? 
+                    Localization.instance.Localize(__instance.m_name) : 
+                    Localization.instance.Localize(__instance.m_label)) : "";
                 if (!locPins.ContainsKey(runePos) && !removedPins.Contains(runePos.Round())) {
                     Minimap.PinData runePin = map.AddPin(runePos, Minimap.PinType.Icon4, pinTitle, true, false);
                     runePin.m_doubleSize = Utilities.CheckInEnum(CustomPinType.RuneStone, Main.biggerPins.Value);
