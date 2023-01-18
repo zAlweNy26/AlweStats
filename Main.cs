@@ -6,7 +6,7 @@ using System.IO;
 using UnityEngine;
 
 namespace AlweStats {
-    [BepInPlugin("Alwe.AlweStats", "AlweStats", "4.4.1")]
+    [BepInPlugin("Alwe.AlweStats", "AlweStats", "4.5.0")]
     [BepInDependency("randyknapp.mods.auga", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("randyknapp.mods.minimalstatuseffects", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("marlthon.OdinShip", BepInDependency.DependencyFlags.SoftDependency)]
@@ -18,7 +18,7 @@ namespace AlweStats {
         public static ConfigEntry<bool> 
             enableGameStats, enableWorldStats, enableWorldClock, enableShipStats, enableEnvStats, enablePlayerInfos, 
             enablePlayerStats, customBowCharge, daysInWorldsList, worldClockFormat, enableShipStatus, showTotalOfQueue, 
-            showResetButton, customShowBiome, enableEntityStats, enableMapStats, showCursorCoordinates, 
+            showResetButton, customShowBiome, enableEntityStats, enableMapStats, showCursorCoordinates, showWorldSeed, 
             enableRotatingMinimap, showExploredPercentage, enableBedStatus, enablePortalStatus, systemClockFormat, 
             replaceBedPinIcon, showPingDistance, enableWeightStatus, enableSystemClock/*, showCustomMinimap*/;
         public static ConfigEntry<int> 
@@ -59,6 +59,7 @@ namespace AlweStats {
             systemClockFormat = Config.Bind("SystemClock", "TwelveHourFormat", false, "Toggle the clock in the 12h format with AM and PM");
             showResetButton = Config.Bind("General", "ShowResetButton", true, "Toggle a button in the pause menu to reset the AlweStats values");
             customShowBiome = Config.Bind("WorldStats", "CustomShowBiome", true, "Toggle the current biome in the WorldStats block instead of the top-left corner in minimap");
+            showWorldSeed = Config.Bind("WorldStats", "ShowWorldSeed", false, "Toggle the world seed in the WorldStats block");
             daysInWorldsList = Config.Bind("WorldStats", "DaysInWorldsList", true, "Toggle days passed counter in the world list panel");
             customBowCharge = Config.Bind("PlayerStats", "CustomBowCharge", true, "Toggle a custom bow charge bar instead of the vanilla circle that shrinks");
             //showCustomMinimap = Config.Bind("MapStats", "ShowCustomMinimap", true, "Toggle a custom circular minimap instead of the default one");
@@ -184,7 +185,7 @@ namespace AlweStats {
                 "\n9 = container status" +
                 "\n10 = cooking station status" + 
                 "\n11 = smelter status");
-            showCustomPins = Config.Bind("MapStats", "ShowCustomPins", "1, 2, 3, 4, 5, 6, 7, 8", 
+            showCustomPins = Config.Bind("MapStats", "ShowCustomPins", "1, 2, 3, 4, 5, 6, 7, 8, 9", 
                 "Toggle specific custom pins, separate them with a comma (,)" +
                 "\n0 = disable all the custom pins" +
                 "\n1 = troll caves pins" +
@@ -194,7 +195,8 @@ namespace AlweStats {
                 "\n5 = ships pins" +
                 "\n6 = carts pins" +
                 "\n7 = mountain caves pins" +
-                "\n8 = runestone pins");
+                "\n8 = runestone pins" +
+                "\n9 = infested mines pins");
             showPinsTitles = Config.Bind("MapStats", "ShowPinsTitles", "4", 
                 "Toggle the title for specific custom pins, separate them with a comma (,)" +
                 "\n0 = disable for all custom pins" +

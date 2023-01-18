@@ -143,7 +143,7 @@ namespace AlweStats {
         }
     }
 
-    public enum CustomPinType { Disabled, TrollCave, Crypt, FireHole, Portal, Ship, Cart, MountainCave, RuneStone }
+    public enum CustomPinType { Disabled, TrollCave, Crypt, FireHole, Portal, Ship, Cart, MountainCave, RuneStone, InfestedMine }
     public enum EnvType { Disabled, Rock, Tree, Bush, Plant, Beehive, Fermenter, Piece, Fireplace, Container, CookingStation, Smelter }
     public enum DistanceType { Disabled, Hovering, All }
 

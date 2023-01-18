@@ -14,112 +14,123 @@ namespace AlweStats {
         private static Block mapBlock = null;
         private static readonly Dictionary<CustomPinData, Minimap.SpriteData> pinsDict = new() {
             {   
-                new CustomPinData() { 
+                new CustomPinData { 
                     name = "SunkenCrypt",
                     hash = 0,
                     type = CustomPinType.Crypt 
                 }, 
-                new Minimap.SpriteData() { 
+                new Minimap.SpriteData { 
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length, 
                     m_icon = Utilities.GetSprite("TrophyDraugr".GetStableHashCode(), false) 
                 } 
             },
             {   
-                new CustomPinData() { 
+                new CustomPinData { 
                     name = "TrollCave", 
                     hash = 0,
                     type = CustomPinType.TrollCave 
                 }, 
-                new Minimap.SpriteData() { 
+                new Minimap.SpriteData { 
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 1, 
                     m_icon = Utilities.GetSprite("TrophyFrostTroll".GetStableHashCode(), false) 
                 } 
             },
             {   
-                new CustomPinData() { 
+                new CustomPinData { 
                     name = "FireHole", 
                     hash = 0,
                     type = CustomPinType.FireHole 
                 }, 
-                new Minimap.SpriteData() { 
+                new Minimap.SpriteData { 
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 2, 
                     m_icon = Utilities.GetSprite("TrophySurtling".GetStableHashCode(), false) 
                 } 
             },
             {   
-                new CustomPinData() { 
+                new CustomPinData { 
                     name = "Crypt",
                     hash = 0, 
                     type = CustomPinType.Crypt 
                 }, 
-                new Minimap.SpriteData() { 
+                new Minimap.SpriteData { 
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 3, 
                     m_icon = Utilities.GetSprite("TrophySkeleton".GetStableHashCode(), false) 
                 } 
             },
+            {   
+                new CustomPinData { 
+                    name = "Mistlands_DvergrTownEntrance", 
+                    hash = 0,
+                    type = CustomPinType.InfestedMine 
+                }, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 4, 
+                    m_icon = Utilities.GetSprite("TrophySeekerBrute".GetStableHashCode(), false) 
+                } 
+            },
             { 
-                new CustomPinData() { 
+                new CustomPinData { 
                     name = "Cart",
                     hash = "Cart".GetStableHashCode(),
                     type = CustomPinType.Cart 
                 }, 
-                new Minimap.SpriteData() { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 4, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 5, 
                     m_icon = Utilities.GetSprite("Cart".GetStableHashCode(), true) 
                 } 
             },
             { 
-                new CustomPinData() { 
+                new CustomPinData { 
                     name = "Raft", 
                     hash = "Raft".GetStableHashCode(),
                     type = CustomPinType.Ship 
                 },  
-                new Minimap.SpriteData() { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 5, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 6, 
                     m_icon = Utilities.GetSprite("Raft".GetStableHashCode(), true) 
                 } 
             },
             { 
-                new CustomPinData() { 
+                new CustomPinData { 
                     name = "Karve", 
                     hash = "Karve".GetStableHashCode(),
                     type = CustomPinType.Ship 
                 }, 
-                new Minimap.SpriteData() { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 6, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 7, 
                     m_icon = Utilities.GetSprite("Karve".GetStableHashCode(), true) 
                 } 
             },
             { 
-                new CustomPinData() { 
+                new CustomPinData { 
                     name = "Viking Ship", 
                     hash = "VikingShip".GetStableHashCode(),
                     type = CustomPinType.Ship 
                 }, 
-                new Minimap.SpriteData() { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 7, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 8, 
                     m_icon = Utilities.GetSprite("VikingShip".GetStableHashCode(), true) 
                 } 
             },
             { 
-                new CustomPinData() { 
+                new CustomPinData { 
                     name = "Portal", 
                     hash = "portal_wood".GetStableHashCode(),
                     type = CustomPinType.Portal 
                 }, 
-                new Minimap.SpriteData() { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 8, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 9, 
                     m_icon = Utilities.GetSprite("portal_wood".GetStableHashCode(), true) 
                 } 
             },
             {   
-                new CustomPinData() { 
+                new CustomPinData { 
                     name = "MountainCave", 
                     hash = 0,
                     type = CustomPinType.MountainCave 
                 }, 
-                new Minimap.SpriteData() { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 9, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 10, 
                     m_icon = Utilities.GetSprite("TrophyCultist".GetStableHashCode(), false) 
                 } 
             },
@@ -657,63 +668,64 @@ namespace AlweStats {
             portalsFound.Clear();
             usedPins = pinsDict.Keys.ToDictionary(k => k, v => pinsDict[v]);
             if (Chainloader.PluginInfos.ContainsKey("marlthon.OdinShip") && Utilities.CheckInEnum(CustomPinType.Ship, Main.showCustomPins.Value)) {
-                usedPins.Add(new CustomPinData() { 
+                usedPins.Add(new CustomPinData { 
                     name = "Cargo Ship", 
                     hash = "CargoShip".GetStableHashCode(),
                     type = CustomPinType.Ship
                 }, 
-                new Minimap.SpriteData() { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 10, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + pinsDict.Count, 
                     m_icon = Utilities.GetSprite("CargoShip".GetStableHashCode(), true) 
                 });
-                usedPins.Add(new CustomPinData() { 
+                usedPins.Add(new CustomPinData { 
                     name = "Big Cargo Ship", 
                     hash = "BigCargoShip".GetStableHashCode(),
                     type = CustomPinType.Ship
                 }, 
-                new Minimap.SpriteData() { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 11, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + pinsDict.Count + 1, 
                     m_icon = Utilities.GetSprite("BigCargoShip".GetStableHashCode(), true) 
                 });
-                usedPins.Add(new CustomPinData() { 
+                usedPins.Add(new CustomPinData { 
                     name = "War Ship", 
                     hash = "WarShip".GetStableHashCode(),
                     type = CustomPinType.Ship
                 }, 
-                new Minimap.SpriteData() { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 12, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + pinsDict.Count + 2, 
                     m_icon = Utilities.GetSprite("WarShip".GetStableHashCode(), true) 
                 });
-                usedPins.Add(new CustomPinData() { 
+                usedPins.Add(new CustomPinData { 
                     name = "Transporter Ship", 
                     hash = "TransporterShip".GetStableHashCode(),
                     type = CustomPinType.Ship
                 }, 
-                new Minimap.SpriteData() { 
-                    m_name = (Minimap.PinType) Enum.GetValues(enumType: typeof(Minimap.PinType)).Length + 13, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(enumType: typeof(Minimap.PinType)).Length + pinsDict.Count + 3, 
                     m_icon = Utilities.GetSprite("TransporterShip".GetStableHashCode(), true) 
                 });
-                usedPins.Add(new CustomPinData() { 
+                usedPins.Add(new CustomPinData { 
                     name = "Little Boat", 
                     hash = "LittleBoat".GetStableHashCode(),
                     type = CustomPinType.Ship
                 }, 
-                new Minimap.SpriteData() { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 14, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + pinsDict.Count + 4, 
                     m_icon = Utilities.GetSprite("LittleBoat".GetStableHashCode(), true) 
                 });
-                usedPins.Add(new CustomPinData() { 
+                usedPins.Add(new CustomPinData { 
                     name = "Fishing Boat", 
                     hash = "FishingBoat".GetStableHashCode(),
                     type = CustomPinType.Ship
                 }, 
-                new Minimap.SpriteData() { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 15, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + pinsDict.Count + 5, 
                     m_icon = Utilities.GetSprite("FishingBoat".GetStableHashCode(), true) 
                 });
             }
             if (!Utilities.CheckInEnum(CustomPinType.TrollCave, Main.showCustomPins.Value)) usedPins.Remove(usedPins.First(p => p.Key.name == "TrollCave").Key);
             if (!Utilities.CheckInEnum(CustomPinType.MountainCave, Main.showCustomPins.Value)) usedPins.Remove(usedPins.First(p => p.Key.name == "MountainCave").Key);
+            if (!Utilities.CheckInEnum(CustomPinType.InfestedMine, Main.showCustomPins.Value)) usedPins.Remove(usedPins.First(p => p.Key.name == "Mistlands_DvergrTownEntrance").Key);
             if (!Utilities.CheckInEnum(CustomPinType.Crypt, Main.showCustomPins.Value)) {
                 usedPins.Remove(usedPins.First(p => p.Key.name == "SunkenCrypt").Key);
                 usedPins.Remove(usedPins.First(p => p.Key.name == "Crypt").Key);

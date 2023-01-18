@@ -52,7 +52,7 @@ namespace AlweStats {
         static bool ShowHud(ref EnemyHud __instance, Character c, bool isMount) {
             if (!Main.enableEntityStats.Value) return true;
             EnemyHud.HudData hudData;
-	        if (__instance.m_huds.TryGetValue(c, out hudData)) return false;
+            if (__instance.m_huds.TryGetValue(c, out hudData)) return false;
             GameObject original;
             if (isMount) original = __instance.m_baseHudMount;
             else if (c.IsPlayer()) original = __instance.m_baseHudPlayer;
@@ -88,7 +88,7 @@ namespace AlweStats {
             Character character = null;
             foreach (KeyValuePair<Character, EnemyHud.HudData> keyValuePair in __instance.m_huds) {
                 EnemyHud.HudData value = keyValuePair.Value;
-                if (!value.m_character || !__instance.TestShow(value.m_character)) {
+                if (!value.m_character || !__instance.TestShow(value.m_character, true)) {
                     if (character == null) {
                         character = value.m_character;
                         UnityEngine.Object.Destroy(value.m_gui);
