@@ -22,6 +22,7 @@ namespace AlweStats {
                 Main.worldStatsMargin.Value,
                 Main.worldStatsAlign.Value
             );
+            Minimap.instance.m_biomeNameSmall.gameObject.SetActive(!Main.removeMinimapBiome.Value);
             return worldBlock;
         }
 
@@ -31,17 +32,14 @@ namespace AlweStats {
                 int daysPlayed = (int)Math.Floor(timePlayed / EnvMan.instance.m_dayLengthSec);
                 double minutesPlayed = timePlayed / 60;
                 double hoursPlayed = minutesPlayed / 60;
-                string currentBiome = "", currentSeed = "";
-                if (Main.showWorldSeed.Value) {
-                    int worldSeed = ZNet.m_world.m_seed;
-                    currentSeed = $"\nSeed : {worldSeed}";
-                }
-                if (Main.customShowBiome.Value) {
-                    currentBiome = $"\nBiome : {Minimap.instance.m_biomeNameSmall.text}";
-                    Minimap.instance.m_biomeNameSmall.gameObject.SetActive(false);
-                }
-                if (hoursPlayed < 1) worldBlock.SetText($"Days : {daysPlayed}\nPlay time : {minutesPlayed:0.##} m{currentBiome}{currentSeed}");
-                else worldBlock.SetText($"Days : {daysPlayed}\nPlay time : {hoursPlayed:0.##} h{currentBiome}{currentSeed}");
+                int worldSeed = ZNet.m_world.m_seed;
+                worldBlock.SetText(string.Format(Main.worldStatsFormat.Value, 
+                    daysPlayed, 
+                    hoursPlayed < 1 ? $"{minutesPlayed:0.##} m" : $"{hoursPlayed:0.##} h",
+                    Minimap.instance.m_biomeNameSmall.text,
+                    EnvMan.instance.m_currentEnv.m_name,
+                    worldSeed
+                ));
             }
         }
 

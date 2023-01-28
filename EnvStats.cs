@@ -50,7 +50,6 @@ namespace AlweStats {
                         wnt.m_health, 
                         $"{currentPercentage:0.#}"
                     );
-                    //Debug.Log($"{currentHealth:0.#} / {wnt.m_health} ({currentPercentage:0.#} %)");
                 } else pieceObj.SetActive(false);
             } else pieceObj.SetActive(false);
         }
@@ -75,7 +74,6 @@ namespace AlweStats {
         static void OnDamage(Destructible __instance, HitData hit) {
             if (!Main.enableEnvStats.Value || __instance == null) return;
             if (envObjsNew.Any(e => __instance.gameObject.name.ToLower().Contains(e))) {
-                //Debug.Log($"Destructible : {__instance.gameObject.name}");
                 ZNetView znv = __instance.m_nview;
                 Hoverable hoverable = __instance.gameObject.GetComponentInParent<Hoverable>();
                 string name = "";
@@ -91,7 +89,6 @@ namespace AlweStats {
         [HarmonyPatch(typeof(TreeBase), methodName: nameof(TreeBase.RPC_Damage))]
         static void OnDamage(TreeBase __instance, HitData hit) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Tree, Main.showEnvStatus.Value)) return;
-            //Debug.Log($"TreeBase : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             Hoverable hoverable = __instance.gameObject ? __instance.gameObject.GetComponentInParent<Hoverable>() : null;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f && hoverable != null) {
@@ -104,7 +101,6 @@ namespace AlweStats {
         [HarmonyPatch(typeof(TreeLog), methodName: nameof(TreeLog.RPC_Damage))]
         static void OnDamage(TreeLog __instance, HitData hit) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Tree, Main.showEnvStatus.Value)) return;
-            //Debug.Log($"TreeLog : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             Hoverable hoverable = __instance.gameObject ? __instance.gameObject.GetComponentInParent<Hoverable>() : null;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f && hoverable != null) {
@@ -117,7 +113,6 @@ namespace AlweStats {
         [HarmonyPatch(typeof(MineRock), nameof(MineRock.RPC_Hit))]
         static void OnDamage(MineRock __instance, HitData hit, int hitAreaIndex) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Rock, Main.showEnvStatus.Value)) return;
-            //Debug.Log($"MineRock : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
                 float initialTotalHealth = __instance.m_health * __instance.m_hitAreas.Length;
@@ -130,7 +125,6 @@ namespace AlweStats {
         [HarmonyPatch(typeof(MineRock5), nameof(MineRock5.RPC_Damage))]
         static void OnDamage(MineRock5 __instance, HitData hit) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Rock, Main.showEnvStatus.Value)) return;
-            //Debug.Log($"MineRock piece : {__instance.gameObject.name}");
             ZNetView znv = __instance.m_nview;
             if (znv.IsValid() && hit.GetTotalDamage() > 0f) {
                 float initialTotalHealth = __instance.m_health * __instance.m_hitAreas.Count;
@@ -307,7 +301,6 @@ namespace AlweStats {
 
         private static void SetHoverText(GameObject go, string name, float current, float total) {
             float percentage = current * 100f / total;
-            //Debug.Log($"Health : {current} / {total} ({perc} %)");
             HoverText hoverText = go.GetComponent<HoverText>();
             if (hoverText == null) hoverText = go.AddComponent<HoverText>();
             if (hoverText.m_text.Split('\n').Length == 1) initialText = $"{name}\n";

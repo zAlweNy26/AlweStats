@@ -19,14 +19,7 @@
                 ConnectPanel.instance.UpdateFps();
                 float fps = float.Parse(ConnectPanel.instance.m_fps.text);
                 if (fps != 9999f) {
-                    ZNet.instance.GetNetStats(out var lq, out var rq, out var ping, out var obs, out var ibs);
-                    int totalPlayers = ZNet.instance.GetNrOfPlayers();
-                    gameBlock.SetText(
-                        $"FPS : {fps:0}" +
-                        (ping != 0 ? $"\nPing : {ping:0} ms" : "") +
-                        (totalPlayers > 1 ? $"\nTotal players : {totalPlayers}" : "")
-                    );
-                    //Debug.Log($"FPS : {fps} | Ping : {ping:0} ms | Total players : {totalPlayers}");
+                    gameBlock.SetText(string.Format(Main.gameStatsFormat.Value, $"{fps:0}"));
                 }
             }
         }

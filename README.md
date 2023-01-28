@@ -17,7 +17,7 @@ be sure to enable either one or the other equivalent section so they don't confl
 > For reasons inherent to the optimal functioning of the mod,
 > everything related to the pins and elements in the status effects list (like BedStatus, PortalStatus and ShipStatus, except for WeightStatus)
 > could cause a lowering of fps if the computer running the game is not very powerful.
-
+>  
 > Since the default day length declared in Valheim doesn't match the real one,
 > to successfully use the "Days passed" counter in the world selection panel you need to join in a world at least one time,
 > The mod will then get the day length in that world and save it in the "AlweStats.json" file (you have to do it for each world).
@@ -60,12 +60,11 @@ In the config file you can also :
 - Change the color of the health bar for tamed animals
 - Toggle a reset button in the pause menu to reset the positions of all the blocks with their default values
 - Choose the clock format (12h or 24h)
-- Toggle the current biome text in the WorldStats block instead of the top-left corner in the minimap
-- Toggle the world seed in the WorldStats block
+- Toggle the current biome text in the top-right corner in the minimap
 - Set the string format for the health of environment elements, construction pieces and entities
 - Set the string format for the process status of bushes, plants, fireplaces, beehives and fermenters
 - Set the string format for the cursor coordinates string
-- Set the string format for the ShipStats and MapStats blocks
+- Set the string format for the ShipStats, MapStats, WorldStats, ServerStats and GameStats blocks
 - Set the color of the crosshair and the custom bow charge bar
 - Set the scale of the player marker and the crosshair
 - Toggle a weight fill percentage as an element in the status effects list
@@ -102,9 +101,27 @@ reload - Reload the configuration file to update changes in-game
 - Health starts showing from the second hit for rocks and mine rocks
 - Name doesn't show for small environment elements
 - Remaining time doesn't work properly for beehives
+- Pregnancy percentage doesn't work properly
 - Hud reload doesn't work properly
 
 ### Changelog
+
+v**5.0.0**
+
+- **Added new ServerStats block**
+- Moved ping and total players counter from GameStats to ServerStats block
+- Added dynamic list of players in range with relative stats (health, max health, percentage of health)
+- Added config setting "GameStatsFormat" to format text of GameStats block
+- Added config setting "ServerStatsFormat" to format text of ServerStats block
+- Added config setting "WorldStatsFormat" to format text of WorldStats block
+- Added config setting "RangeForPlayers" to change the range in which to scan for players
+- Added weather in the "WorldStatsFormat" config setting
+- Integrated the "ShowWorldSeed" config setting in the "WorldStatsFormat" one
+- Integrated the "CustomShowBiome" config setting in the "WorldStatsFormat" one
+- Added config setting "RemoveMinimapBiome" to remove the current biome label in the top-left corner in minimap
+- Added pregnancy percentage when hovering tameable animals
+- Added support for aedenthorn's "Extended Player Inventory" in the PlayerStats block
+- Fixed distance text, now it shows only on the hovered entity when ShowEntityDistance is set to 1
 
 v**4.5.0**
 

@@ -27,7 +27,6 @@ namespace AlweStats {
                     format12h = hours < 12 ? "AM" : "PM";
                     if (hours > 12) hours -= 12;
                 }
-                //Debug.Log($"Clock time : {hours}:{minutes} {format12h}");
                 string gameClock = $"{(hours < 10 ? "0" : "")}{hours}:{(minutes < 10 ? "0" : "")}{minutes} {format12h}";
                 clockBlock.SetText(gameClock);
             }

@@ -25,7 +25,7 @@ namespace AlweStats {
                 modSlots += moreSlots;
                 Debug.Log($"Found randyknapp's \"Equipment and quick slots\" mod, so added {moreSlots} more slots");
             }
-            /*if (Chainloader.PluginInfos.ContainsKey("aedenthorn.ExtendedPlayerInventory")) {
+            if (Chainloader.PluginInfos.ContainsKey("aedenthorn.ExtendedPlayerInventory")) {
                 Chainloader.PluginInfos.TryGetValue("aedenthorn.ExtendedPlayerInventory", out BepInEx.PluginInfo modInfo);
                 ConfigFile modConfig = modInfo.Instance.Config;
                 modConfig.TryGetEntry(new ("Toggles", "ExtraRows"), out ConfigEntry<int> extraRows);
@@ -33,7 +33,7 @@ namespace AlweStats {
                 int moreSlots = (extraRows.Value * 8) + (equipSlots.Value ? 8 : 0);
                 modSlots += moreSlots;
                 Debug.Log($"Found aedenthorn's \"Extended player inventory\" mod, so added {moreSlots} more slots");
-            }*/
+            }
             if (Main.enablePlayerStats.Value) {
                 playerBlock = new Block(
                     "PlayerStats",

@@ -428,7 +428,7 @@ namespace AlweStats {
                     Minimap.PinData runePin = map.AddPin(runePos, Minimap.PinType.Icon4, pinTitle, true, false);
                     runePin.m_doubleSize = Utilities.CheckInEnum(CustomPinType.RuneStone, Main.biggerPins.Value);
                     locPins.Add(runePos, runePin);
-                    Debug.Log($"Added runestone pin with position {runePos}");
+                    //Debug.Log($"Added runestone pin with position {runePos}");
                 }
             }
         }
@@ -460,10 +460,8 @@ namespace AlweStats {
             int prefabHash = zdo.GetPrefab();
             if (map != null && zdo.IsValid() && usedPins.Any(p => prefabHash == p.Key.hash)) SetElementPin(map, zdo);
             if (zdo.IsValid() && portalObj != null && prefabHash == "portal_wood".GetStableHashCode() && !portalsFound.Contains(zdo)) {
-                //Debug.Log($"ZDO aggiunto a portalsFound !");
                 portalsFound.Add(zdo);
             } else if (zdo.IsValid() && shipObj != null && shipsHashes.Contains(prefabHash) && !shipsFound.Contains(zdo)) {
-                //Debug.Log($"ZDO aggiunto a shipsFound !");
                 shipsFound.Add(zdo);
             }
         }
@@ -480,22 +478,18 @@ namespace AlweStats {
                 if (map && usedPins.Any(p => zdo.GetPrefab() == p.Key.hash)) {
                     Minimap.PinData customPin;
                     if (zdoPins.TryGetValue(zdo, out customPin)) {
-                        //Debug.Log($"ZDO rimosso da zdoPins !");
                         map.RemovePin(customPin);
                         zdoPins.Remove(zdo);
                     }
                     if (locPins.TryGetValue(zdo.GetPosition(), out customPin)) {
-                        //Debug.Log($"ZDO rimosso da locPins !");
                         map.RemovePin(customPin);
                         locPins.Remove(zdo.GetPosition());
                     }
                 }
                 if (shipsFound.Contains(zdo)) {
-                    //Debug.Log($"ZDO rimosso da shipsFound !");
                     shipsFound.Remove(zdo);
                 }
                 if (portalsFound.Contains(zdo)) {
-                    //Debug.Log($"ZDO rimosso da portalsFound !");
                     portalsFound.Remove(zdo);
                 }
                 component.ResetZDO();
@@ -546,7 +540,6 @@ namespace AlweStats {
                 if (zdoPin == null) zdoPin = map.AddPin(zdo.GetPosition(), pair.Value.m_name, pinTitle, true, false);
                 zdoPin.m_doubleSize = Utilities.CheckInEnum(pair.Key.type, Main.biggerPins.Value);
                 zdoPins.Add(zdo, zdoPin);
-                //Debug.Log($"ZDO aggiunto a zdoPins !");
             }
         }
 
@@ -619,7 +612,6 @@ namespace AlweStats {
                 List<ZoneSystem.LocationInstance> locations = Enumerable.ToList<ZoneSystem.LocationInstance>(ZoneSystem.instance.GetLocationList());
                 if (locations.Count > 0) locCheck = true;
                 foreach (ZoneSystem.LocationInstance loc in locations.Where(l => l.m_placed == true)) {
-                    //Debug.Log($"Location {loc.m_location.m_prefabName} | {loc.m_position} | {loc.m_placed}");
                     Vector3 locPos = loc.m_position;
                     string prefabName = loc.m_location.m_prefabName.ToLower();
                     if (!removedPins.Contains(locPos.Round()) && usedPins.Any(p => prefabName.Contains(p.Key.name.ToLower()))) {
@@ -646,10 +638,8 @@ namespace AlweStats {
                     Vector3 zdoPos = zdo.GetPosition().Round();
                     if (zdo.IsValid() && !removedPins.Contains(zdoPos) && usedPins.Any(p => p.Key.hash == prefabHash)) SetElementPin(map, zdo);
                     if (zdo.IsValid() && portalObj != null && prefabHash == "portal_wood".GetStableHashCode()) {
-                        //Debug.Log($"ZDO aggiunto a portalsFound !");    
                         portalsFound.Add(zdo);
                     } else if (zdo.IsValid() && shipObj != null && shipsHashes.Contains(prefabHash) && !shipsFound.Contains(zdo)) {
-                        //Debug.Log($"ZDO aggiunto a shipsFound !");
                         shipsFound.Add(zdo);
                     }
                 }

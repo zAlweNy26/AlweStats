@@ -82,10 +82,45 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
+        [HarmonyPatch(typeof(Character), nameof(Character.GetHoverText))]
+        static void PatchEntityHoverText(ref string __result, Character __instance) {
+            if (!Main.enableEntityStats.Value) return;
+            if (!__instance.m_nview.IsValid()) {
+                __result = "";
+                return;
+            }
+            Procreation procreation = __instance.m_baseAI.GetComponent<Procreation>();
+            Tameable tameable = __instance.GetComponent<Tameable>();
+            if (procreation && procreation.IsPregnant() && tameable) {
+                float pregnancyDur = procreation.m_pregnancyDuration;
+                long pregnancyProgress = __instance.m_nview.GetZDO().GetLong("pregnant", 0L);
+                double pregnancyPerc = Math.Round((ZNet.instance.GetTime() - new DateTime(pregnancyProgress)).TotalSeconds / pregnancyDur * 100.0, 1);
+                __result += $"\nPregnant : {pregnancyPerc:0.#} %";
+                /*__result = Localization.instance.Localize(__instance.m_name);
+                if (__instance.IsTamed()) {
+                    __result += Localization.instance.Localize(" ( $hud_tame, " + tameable.GetStatusString() + " )");
+                    __result += $"\nPregnant : {pregnancyPerc:0.#} %";
+                    __result += Localization.instance.Localize("\n[<color=yellow><b>$KEY_Use</b></color>] $hud_pet");
+                    __result += Localization.instance.Localize("\n[<color=yellow><b>$KEY_AltPlace + $KEY_Use</b></color>] $hud_rename");
+                    return;
+                }
+                int tameness = tameable.GetTameness();
+                if (tameness <= 0) {
+                    __result += Localization.instance.Localize(" ( $hud_wild, " + tameable.GetStatusString() + " )");
+                } else {
+                    __result += Localization.instance.Localize(string.Concat(new string[] {
+                        " ( $hud_tameness  ", tameness.ToString(), "%, ", tameable.GetStatusString(), " )"
+                    }));
+                }*/
+            }
+        }
+
+        [HarmonyPostfix]
         [HarmonyPatch(typeof(EnemyHud), nameof(EnemyHud.UpdateHuds))]
         static void UpdateHuds(ref EnemyHud __instance, Player player, Sadle sadle, float dt) {
             if (!Main.enableEntityStats.Value) return;
             Character character = null;
+            Character hoverCreature = player ? player.GetHoverCreature() : null;
             foreach (KeyValuePair<Character, EnemyHud.HudData> keyValuePair in __instance.m_huds) {
                 EnemyHud.HudData value = keyValuePair.Value;
                 if (!value.m_character || !__instance.TestShow(value.m_character, true)) {
@@ -94,7 +129,7 @@ namespace AlweStats {
                         UnityEngine.Object.Destroy(value.m_gui);
                     }
                 } else {
-                    if (value.m_isMount) {
+                    if (value.m_isMount && sadle.GetCharacter()) {
                         float staminaPercentage = sadle.GetCharacter().GetStaminaPercentage() * 100f;
                         int currentStamina = Mathf.CeilToInt(sadle.GetStamina());
                         int totalStamina = Mathf.CeilToInt(sadle.GetMaxStamina());
@@ -115,10 +150,8 @@ namespace AlweStats {
                         $"{healthPercentage:0.#}"
                     );
                     if (Utilities.CheckInEnum(DistanceType.Hovering, Main.showEntityDistance.Value) && player) {
-                        Character hoverCreature = player.GetHoverCreature();
-                        if (hoverCreature) {
+                        if (hoverCreature == value.m_character) {
                             float distance = Vector3.Distance(player.transform.position, hoverCreature.transform.position);
-                            //Debug.Log($"{hoverCreature.GetHoverName()} distance : {distance:0.#} m");
                             value.m_gui.transform.Find("Distance").GetComponent<Text>().text = $"{distance:0.#} m";
                             value.m_gui.transform.Find("Distance").gameObject.SetActive(true);
                         } else value.m_gui.transform.Find("Distance").gameObject.SetActive(false);
@@ -132,17 +165,9 @@ namespace AlweStats {
                         value.m_gui.transform.Find("Health/health_fast").GetComponent<GuiBar>().SetColor(Utilities.StringToColor(Main.tamedBarColor.Value));
                         value.m_gui.transform.Find("Health/health_slow").GetComponent<GuiBar>().SetColor(Utilities.StringToColor(Main.tamedBarColor.Value));
                     }
-                    /*
-                    Player player = (Player) c;
-                    float carryWeightPercentage = player.GetInventory().GetTotalWeight() / player.GetMaxCarryWeight() * 100f;
-                    Debug.Log($"Carry weight : {player.GetInventory().GetTotalWeight()} / {player.GetMaxCarryWeight()} ({carryWeightPercentage:0.#} %)");
-                    Debug.Log($"Stamina : {player.GetStamina()} / {player.GetMaxStamina()} ({player.GetStaminaPercentage()} %)");
-                    Debug.Log($"Level : {player.GetLevel()}");
-                    Debug.Log($"Armor : {player.GetBodyArmor()}");
-                    Debug.Log($"Owner : {player.GetOwner()}");
-                    Debug.Log($"God mode : {player.InGodMode()}");
-                    */
-                    //Debug.Log($"Health : {currentHealth:0.#} / {totalHealth} ({healthPercentage:0.#} %)");
+                    if (value.m_healthFastFriendly) {
+                        value.m_healthFastFriendly.gameObject.SetActive(false);
+                    }
                 }
             }
             if (character) __instance.m_huds.Remove(character);
