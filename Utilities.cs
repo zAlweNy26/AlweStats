@@ -102,7 +102,7 @@ namespace AlweStats {
             File.WriteAllText(Main.statsFilePath, worldsLines);
         }
 
-        public static List<WorldInfo> UpdateWorldFile(List<Vector3> pins = null, Dictionary<Minimap.PinData, List<ZDO>> hubs = null) {
+        public static List<WorldInfo> UpdateWorldFile(List<Vector3> pins = null/*, Dictionary<Minimap.PinData, List<ZDO>> hubs = null*/) {
             List<WorldInfo> worlds = GetWorldInfos();
             WorldInfo world = worlds.FirstOrDefault(w => w.worldName == ZNet.instance.GetWorldName());
             if (world == null) {
@@ -111,11 +111,11 @@ namespace AlweStats {
                     timePlayed = ZNet.instance.GetTimeSeconds(),
                     dayLength = EnvMan.instance.m_dayLengthSec,
                     removedPins = pins == null ? new() : pins,
-                    portalsHubs = hubs == null ? new() : hubs
+                    //portalsHubs = hubs == null ? new() : hubs
                 });
             } else {
                 if (pins != null) world.removedPins = pins;
-                if (hubs != null) world.portalsHubs = hubs;
+                //if (hubs != null) world.portalsHubs = hubs;
             }
             SetWorldInfos(worlds);
             return worlds;
@@ -157,7 +157,7 @@ namespace AlweStats {
         public string worldName { get; set; }
         public double timePlayed { get; set; }
         public long dayLength { get; set; }
-        public Dictionary<Minimap.PinData, List<ZDO>> portalsHubs { get; set; }
+        //public Dictionary<Minimap.PinData, List<ZDO>> portalsHubs { get; set; }
         public List<Vector3> removedPins { get; set; }
     }
 }

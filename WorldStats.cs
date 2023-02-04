@@ -32,13 +32,12 @@ namespace AlweStats {
                 int daysPlayed = (int)Math.Floor(timePlayed / EnvMan.instance.m_dayLengthSec);
                 double minutesPlayed = timePlayed / 60;
                 double hoursPlayed = minutesPlayed / 60;
-                int worldSeed = ZNet.m_world.m_seed;
                 worldBlock.SetText(string.Format(Main.worldStatsFormat.Value, 
                     daysPlayed, 
                     hoursPlayed < 1 ? $"{minutesPlayed:0.##} m" : $"{hoursPlayed:0.##} h",
                     Minimap.instance.m_biomeNameSmall.text,
                     EnvMan.instance.m_currentEnv.m_name,
-                    worldSeed
+                    ZNet.m_world.m_seedName
                 ));
             }
         }

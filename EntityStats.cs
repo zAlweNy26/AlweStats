@@ -20,19 +20,23 @@ namespace AlweStats {
                     healthObj.transform.SetParent(healthTransform);
                     healthObj.GetComponent<RectTransform>().anchoredPosition = Vector2.up;
                     healthObj.SetActive(true);
-                    Transform darken = healthTransform.Find("darken");
-                    Transform background = healthTransform.Find("bkg");
-                    Transform slow = healthTransform.Find("health_slow/bar");
-                    Transform fast = healthTransform.Find("health_fast/bar");
-                    if (slow) {
-                        if (slow.GetComponent<RectTransform>().sizeDelta.y < 12) {
-                            slow.GetComponent<RectTransform>().sizeDelta = new(100f, 12f);
-                            if (fast) fast.GetComponent<RectTransform>().sizeDelta = new(100f, 12f);
-                            if (darken) darken.GetComponent<RectTransform>().sizeDelta = new(15f, 15f);
-                            if (background) background.GetComponent<RectTransform>().sizeDelta = new(0f, 8f);
-                        }
-                        healthObj.GetComponent<Text>().fontSize = (int) slow.GetComponent<RectTransform>().sizeDelta.y;
-                    }
+                    healthObj.GetComponent<Text>().fontSize = Main.healthBarHeight.Value;
+
+                    Vector2 darkenRect = healthTransform.Find("darken").GetComponent<RectTransform>().sizeDelta;
+                    healthTransform.Find("darken").GetComponent<RectTransform>().sizeDelta = 
+                        new(darkenRect.x, Main.healthBarHeight.Value + 3);
+
+                    Vector2 bgRect = healthTransform.Find("bkg").GetComponent<RectTransform>().sizeDelta;
+                    healthTransform.Find("bkg").GetComponent<RectTransform>().sizeDelta = 
+                        new(bgRect.x, Math.Max(Main.healthBarHeight.Value - 4, 0));
+
+                    Vector2 slowRect = healthTransform.Find("health_slow/bar").GetComponent<RectTransform>().sizeDelta;
+                    healthTransform.Find("health_slow/bar").GetComponent<RectTransform>().sizeDelta = 
+                        new(slowRect.x, Main.healthBarHeight.Value);
+
+                    Vector2 fastRect = healthTransform.Find("health_fast/bar").GetComponent<RectTransform>().sizeDelta;
+                    healthTransform.Find("health_fast/bar").GetComponent<RectTransform>().sizeDelta = 
+                        new(fastRect.x, Main.healthBarHeight.Value);
                 }
                 if (!Utilities.CheckInEnum(DistanceType.Disabled, Main.showEntityDistance.Value) && nameTransform) {
                     GameObject distanceObj = UnityEngine.Object.Instantiate(originalName.gameObject, originalName);
@@ -161,13 +165,13 @@ namespace AlweStats {
                         value.m_gui.transform.Find("Distance").GetComponent<Text>().text = $"{distance:0.#} m";
                         value.m_gui.transform.Find("Distance").gameObject.SetActive(true);
                     }
+                    value.m_gui.transform.Find("Health/health_fast").GetComponent<GuiBar>().SetColor(Utilities.StringToColor(Main.healthBarColor.Value));
+                    value.m_gui.transform.Find("Health/health_slow").GetComponent<GuiBar>().SetColor(Utilities.StringToColor(Main.healthBarColor.Value));
                     if (value.m_character.IsTamed()) {
                         value.m_gui.transform.Find("Health/health_fast").GetComponent<GuiBar>().SetColor(Utilities.StringToColor(Main.tamedBarColor.Value));
                         value.m_gui.transform.Find("Health/health_slow").GetComponent<GuiBar>().SetColor(Utilities.StringToColor(Main.tamedBarColor.Value));
                     }
-                    if (value.m_healthFastFriendly) {
-                        value.m_healthFastFriendly.gameObject.SetActive(false);
-                    }
+                    value.m_gui.transform.Find("Health/health_fast_friendly").gameObject.SetActive(false);
                 }
             }
             if (character) __instance.m_huds.Remove(character);

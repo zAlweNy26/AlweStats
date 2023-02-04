@@ -143,7 +143,8 @@ namespace AlweStats {
         private static List<ZDO> shipsFound = new(), portalsFound = new();
         public static List<Vector3> removedPins = new();
         private static long exploredTotal = 0, mapSize = 0;
-        public static bool zdoCheck, locCheck, isOnBoat, isMinimalEffect = false;
+        private static bool zdoCheck, locCheck, isMinimalEffect = false;
+        public static bool isOnBoat;
         private static float entrySpacingEffects = 0.0f;
         private static readonly int[] shipsHashes = {
             "VikingShip".GetStableHashCode(),
@@ -170,6 +171,7 @@ namespace AlweStats {
                     Main.mapStatsAlign.Value
                 );
             }
+
             if (Main.showCursorCoordinates.Value) {
                 GameObject original = map.m_biomeNameLarge.gameObject;
                 cursorObj = UnityEngine.Object.Instantiate(original, original.transform);
@@ -182,6 +184,7 @@ namespace AlweStats {
                 cursorRect.anchoredPosition = new Vector2(15f, 5f);
                 cursorObj.SetActive(true);
             }
+
             if (Main.showExploredPercentage.Value) {
                 GameObject original = map.m_biomeNameLarge.gameObject;
                 exploredObj = UnityEngine.Object.Instantiate(original, original.transform);
@@ -194,6 +197,7 @@ namespace AlweStats {
                 exploredRect.anchoredPosition = new Vector2(15f, -5f);
                 exploredObj.SetActive(true);
             }
+
             if (Main.enableBedStatus.Value) {
                 GameObject template = Hud.instance.m_statusEffectTemplate.gameObject;
                 bedObj = UnityEngine.Object.Instantiate(template, template.transform);
@@ -206,6 +210,7 @@ namespace AlweStats {
                 bedObj.transform.Find("TimeText").GetComponent<Text>().text = "0 m";
                 bedObj.SetActive(false);
             }
+
             if (Main.enableShipStatus.Value) {
                 GameObject template = Hud.instance.m_statusEffectTemplate.gameObject;
                 shipObj = UnityEngine.Object.Instantiate(template, template.transform);
@@ -218,6 +223,7 @@ namespace AlweStats {
                 shipObj.transform.Find("TimeText").GetComponent<Text>().text = "0 m";
                 shipObj.SetActive(false);
             }
+
             if (Main.enablePortalStatus.Value) {
                 GameObject template = Hud.instance.m_statusEffectTemplate.gameObject;
                 portalObj = UnityEngine.Object.Instantiate(template, template.transform);
@@ -230,6 +236,7 @@ namespace AlweStats {
                 portalObj.transform.Find("TimeText").GetComponent<Text>().text = "0 m";
                 portalObj.SetActive(false);
             }
+
             if (Chainloader.PluginInfos.ContainsKey("randyknapp.mods.minimalstatuseffects")) {
                 isMinimalEffect = true;
                 GameObject[] myStatus = {bedObj, shipObj, portalObj};
@@ -262,6 +269,11 @@ namespace AlweStats {
                     iconRect.anchoredPosition = new Vector2(iconSize.Value, 0);
                 }
             }
+
+            foreach (Minimap.PinData pin in map.m_pins) {
+                if (pin.m_type == Minimap.PinType.Ping) map.RemovePin(pin);
+            }
+
             return mapBlock;
         }
 
@@ -557,6 +569,13 @@ namespace AlweStats {
             if (pin.m_uiElement) UnityEngine.Object.Destroy(pin.m_uiElement.gameObject);
             __instance.m_pins.Remove(pin);
             return false;
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Minimap), nameof(Minimap.SaveMapData))]
+        static bool PatchSaveMapData(Minimap __instance) {
+            __instance.m_pins = __instance.m_pins.Where(p => (int) p.m_type < Enum.GetValues(typeof(Minimap.PinType)).Length).ToList();
+            return true;
         }
 
         [HarmonyPostfix]

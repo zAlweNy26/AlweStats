@@ -6,7 +6,7 @@ using System.IO;
 using UnityEngine;
 
 namespace AlweStats {
-    [BepInPlugin("Alwe.AlweStats", "AlweStats", "5.0.0")]
+    [BepInPlugin("Alwe.AlweStats", "AlweStats", "5.1.0")]
     [BepInDependency("randyknapp.mods.auga", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("randyknapp.mods.minimalstatuseffects", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("randyknapp.mods.equipmentandquickslots", BepInDependency.DependencyFlags.SoftDependency)]
@@ -25,7 +25,7 @@ namespace AlweStats {
             replaceBedPinIcon, showPingDistance, enableWeightStatus, enableSystemClock, enableServerStats/*, showCustomMinimap*/;
         public static ConfigEntry<int> 
             gameStatsSize, worldStatsSize, worldClockSize, systemClockSize, serverStatsSize,
-            shipStatsSize, playerStatsSize, mapStatsSize, largeMapInfoSize;
+            shipStatsSize, playerStatsSize, mapStatsSize, largeMapInfoSize, healthBarHeight;
         public static ConfigEntry<float> playerMarkerScale, crosshairScale, rangeForPlayers;
         public static ConfigEntry<KeyCode> toggleEditMode, reloadPluginKey;
         public static ConfigEntry<string> 
@@ -37,7 +37,7 @@ namespace AlweStats {
             bowChargeBarColor, blocksBackgroundColor, blocksPadding, tamedBarColor, showEnvStatus,
             worldCoordinatesFormat, mapCoordinatesFormat, showCustomPins, showPinsTitles, biggerPins,
             playerStatsColor, playerStatsAlign, playerStatsPosition, playerStatsMargin, 
-            serverStatsColor, serverStatsAlign, serverStatsPosition, serverStatsMargin, 
+            serverStatsColor, serverStatsAlign, serverStatsPosition, serverStatsMargin, healthBarColor, 
             systemClockColor, systemClockPosition, systemClockMargin, playerStatsFormat, 
             gameStatsFormat, serverStatsFormat, worldStatsFormat, shipStatsFormat, playersInRangeFormat;
 
@@ -172,7 +172,9 @@ namespace AlweStats {
                 "The color of the background color for all the blocks\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
 
             tamedBarColor = Config.Bind("EntityStats", "TamedBarColor", "0, 0, 255, 255",
-                "The color of the background color for all the blocks\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
+                "The color of the health bar for tamed animals\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
+            healthBarColor = Config.Bind("EntityStats", "HealthBarColor", "255, 0, 0, 255",
+                "The color of the health bar for any entity\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
             crosshairColor = Config.Bind("PlayerStats", "CrosshairColor", "255, 255, 255, 255",
                 "The color of the crosshair\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
             largeMapInfoSize = Config.Bind("MapStats", "LargeMapInfoSize", 16,
@@ -183,6 +185,8 @@ namespace AlweStats {
                 "The multiplier for the scale of the crosshair image");
             rangeForPlayers = Config.Bind("ServerStats", "RangeForPlayers", 50f,
                 "The range in which to scan for players");
+            healthBarHeight = Config.Bind("EntityStats", "HealthBarHeight", 12,
+                "The height for all the health bars");
                 
             showEntityDistance = Config.Bind("EntityStats", "ShowEntityDistance", "1", 
                 "Toggle the text about the distance from the player and the entity" +
@@ -216,7 +220,6 @@ namespace AlweStats {
                 "\n9 = infested mines pins");
             showPinsTitles = Config.Bind("MapStats", "ShowPinsTitles", "4", 
                 "Toggle the title for specific custom pins, separate them with a comma (,)" +
-                "\n0 = disable for all custom pins" +
                 "\n1 = troll caves pins" +
                 "\n2 = crypts pins" +
                 "\n3 = fire holes pins" +
@@ -228,7 +231,6 @@ namespace AlweStats {
                 "\n9 = infested mines pins");
             biggerPins = Config.Bind("MapStats", "BiggerPins", "4, 5, 6", 
                 "Double or not the size of specific custom pins, separate them with a comma (,)" +
-                "\n0 = disable for all custom pins" +
                 "\n1 = troll caves pins" +
                 "\n2 = crypts pins" +
                 "\n3 = fire holes pins" +
@@ -302,8 +304,8 @@ namespace AlweStats {
                 "\n'{1}' stands for the z value" +
                 "\n'{2}' stands for the y value");
 
-            processFormat = Config.Bind("General", "ProcessFormat", "(<color>{0} %</color>)\n{1}", 
-                "The format of the string when showing the process status of plants/bushes/fermenters/beehives/fireplaces" + 
+            processFormat = Config.Bind("General", "ProcessFormat", "(<color>{0} %</color>) {1}", 
+                "The format of the string when showing the process status of plants/bushes/fermenters/beehives/fireplaces/smelters" + 
                 "\n'{0}' stands for the percentage" +
                 "\n'{1}' stands for the remaining time" +
                 "\n'<color>' and '</color>' mean that the text between them will be colored based on the process percentage");

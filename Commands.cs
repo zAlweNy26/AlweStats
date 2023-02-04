@@ -15,13 +15,20 @@ namespace AlweStats {
                     if (args[1] == "reload") {
                         Main.ReloadConfig();
                     } else if (args[1] == "df") {
-                        File.Delete(Main.statsFilePath);
-                        args.Context.AddString("The AlweStats.json file was deleted successfully !");
+                        try {
+                            File.Delete(Main.statsFilePath);
+                            args.Context.AddString("The AlweStats.json file was deleted successfully !");
+                        } catch (System.Exception) {
+                            args.Context.AddString("Unable to delete the AlweStats.json file !");
+                            throw;
+                        }
                     } else if (args[1] == "cfp") {
                         if (args.Length >= 3) {
-                            WorldInfo world = worlds.FirstOrDefault(w => w.worldName.ToLower() == args[2]);
-                            if (world != null) world.removedPins.Clear();
-                            args.Context.AddString($"Removed all the pins from the AlweStats.json file for {args[2]} !");
+                            WorldInfo world = worlds.Find(w => w.worldName == args[2]);
+                            if (world != null) {
+                                world.removedPins.Clear();
+                                args.Context.AddString($"Removed all the pins from the AlweStats.json file for {args[2]} !");
+                            } else args.Context.AddString($"The world {args[2]} wasn't found in the AlweStats.json file !");
                         } else args.Context.AddString("You have to specify a world to execute this command !");
                     }/* else if (args[1] == "gp") {
                         if (Minimap.instance == null || 
@@ -86,7 +93,7 @@ namespace AlweStats {
                     Utilities.SetWorldInfos(worlds);
                 } else {
                     args.Context.AddString("List of valid subcommands :\n" + 
-                        "reload - Reload the configuration file to update changes in-game" +
+                        "reload - Reload the configuration file to update changes in-game\n" +
                         "cfp [world] - Remove all the pins saved in the AlweStats.json file for a specific world\n" +
                         "df - Clear the entire AlweStats.json file by deleting it"/*\n" +
                         "gp [radius] - Group portal pins into one in the radius from the player position\n" +

@@ -106,6 +106,17 @@ reload - Reload the configuration file to update changes in-game
 
 ### Changelog
 
+v**5.1.0**
+
+- Updated commands to be less error-prone
+- Now custom pins are removed from the map save data on game exit
+- Fixed error with smelter hover text
+- Added remaining time and percentage for bathtubs
+- Removed middle bar for mobs
+- Added config setting "HealthBarHeight" to change the height of all the health bars
+- Added config setting "HealthBarColor" to change the color of all the health bars
+- Replaced seed number with seed name in WorldStats block
+
 v**5.0.0**
 
 - **Added new ServerStats block**

@@ -246,21 +246,39 @@ namespace AlweStats {
                 int processedQueueSize = __instance.GetProcessedQueueSize();
                 __instance.m_emptyOreSwitch.m_hoverText = $"{__instance.m_name} ({processedQueueSize} $piece_smelter_ready)\n[<color=yellow><b>$KEY_Use</b></color>] {__instance.m_emptyOreTooltip}";
             }
-            int queueSize = __instance.GetQueueSize();
-            __instance.m_addOreSwitch.m_hoverText = $"{__instance.m_name} ({queueSize}/{__instance.m_maxOre}) ";
-            if (queueSize > 0) {
-                float percentage = __instance.GetBakeTimer() * 100f / (__instance.m_secPerProduct * (Main.showTotalOfQueue.Value ? queueSize : 1f));
-                double remainingTime = (__instance.m_secPerProduct * (Main.showTotalOfQueue.Value ? queueSize : 1f)) - __instance.GetBakeTimer();
-                __instance.m_addOreSwitch.m_hoverText += String.Format(
-                    Main.processFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(percentage)}>"),
-                    $"{percentage:0.#}",
-                    TimeSpan.FromSeconds(remainingTime).ToString(@"hh\:mm\:ss")
-                );
+            if (__instance.m_addOreSwitch) {
+                int queueSize = __instance.GetQueueSize();
+                __instance.m_addOreSwitch.m_hoverText = $"{__instance.m_name} ({queueSize}/{__instance.m_maxOre}) ";
+                if (queueSize > 0) {
+                    float percentage = __instance.GetBakeTimer() * 100f / (__instance.m_secPerProduct * (Main.showTotalOfQueue.Value ? queueSize : 1f));
+                    double remainingTime = (__instance.m_secPerProduct * (Main.showTotalOfQueue.Value ? queueSize : 1f)) - __instance.GetBakeTimer();
+                    __instance.m_addOreSwitch.m_hoverText += String.Format(
+                        Main.processFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(percentage)}>"),
+                        $"{percentage:0.#}",
+                        TimeSpan.FromSeconds(remainingTime).ToString(@"hh\:mm\:ss")
+                    );
+                }
+                if (__instance.m_requiresRoof && !__instance.m_haveRoof && Mathf.Sin(Time.time * 10f) > 0f)
+                    __instance.m_addOreSwitch.m_hoverText += " <color=yellow>$piece_smelter_reqroof</color>";
+                Switch addOreSwitch = __instance.m_addOreSwitch;
+                addOreSwitch.m_hoverText = $"{addOreSwitch.m_hoverText}\n[<color=yellow><b>$KEY_Use</b></color>] {__instance.m_addOreTooltip}";
             }
-            if (__instance.m_requiresRoof && !__instance.m_haveRoof && Mathf.Sin(Time.time * 10f) > 0f)
-                __instance.m_addOreSwitch.m_hoverText += " <color=yellow>$piece_smelter_reqroof</color>";
-            Switch addOreSwitch = __instance.m_addOreSwitch;
-            addOreSwitch.m_hoverText = $"{addOreSwitch.m_hoverText}\n[<color=yellow><b>$KEY_Use</b></color>] {__instance.m_addOreTooltip}";
+            if (__instance.m_addWoodSwitch) {
+                float fuel = __instance.GetFuel();
+                string itemName = __instance.m_fuelItem.m_itemData.m_shared.m_name;
+                __instance.m_addWoodSwitch.m_hoverText = $"{__instance.m_name} ({itemName} {Mathf.Ceil(fuel)}/{__instance.m_maxFuel})\n";
+                if (fuel > 0f) {
+                    float secPerProduct = __instance.m_secPerProduct * __instance.m_fuelPerProduct * (Main.showTotalOfQueue.Value ? fuel : 1f);
+                    float percentage = (Main.showTotalOfQueue.Value ? fuel / __instance.m_maxFuel : (float)(fuel - Math.Truncate(fuel))) * 100f;
+                    __instance.m_addWoodSwitch.m_hoverText += String.Format(
+                        Main.processFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(percentage)}>"),
+                        $"{percentage:0.#}",
+                        TimeSpan.FromSeconds(secPerProduct).ToString(@"hh\:mm\:ss")
+                    );
+                }
+                Switch addWoodSwitch = __instance.m_addWoodSwitch;
+                addWoodSwitch.m_hoverText = $"{addWoodSwitch.m_hoverText}\n[<color=yellow><b>$KEY_Use</b></color>] $piece_smelter_add {itemName}";
+            }
         }
 
         [HarmonyPostfix]
