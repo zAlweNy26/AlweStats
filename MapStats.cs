@@ -16,6 +16,7 @@ namespace AlweStats {
             {   
                 new CustomPinData { 
                     name = "SunkenCrypt",
+                    title = "Sunken Crypt",
                     hash = 0,
                     type = CustomPinType.Crypt 
                 }, 
@@ -27,6 +28,7 @@ namespace AlweStats {
             {   
                 new CustomPinData { 
                     name = "TrollCave", 
+                    title = "Troll Cave",
                     hash = 0,
                     type = CustomPinType.TrollCave 
                 }, 
@@ -38,6 +40,7 @@ namespace AlweStats {
             {   
                 new CustomPinData { 
                     name = "FireHole", 
+                    title = "Fire Hole",
                     hash = 0,
                     type = CustomPinType.FireHole 
                 }, 
@@ -49,6 +52,7 @@ namespace AlweStats {
             {   
                 new CustomPinData { 
                     name = "Crypt",
+                    title = "Crypt",
                     hash = 0, 
                     type = CustomPinType.Crypt 
                 }, 
@@ -59,81 +63,88 @@ namespace AlweStats {
             },
             {   
                 new CustomPinData { 
+                    name = "MountainCave", 
+                    title = "Mountain Cave",
+                    hash = 0,
+                    type = CustomPinType.MountainCave 
+                }, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 4, 
+                    m_icon = Utilities.GetSprite("TrophyCultist".GetStableHashCode(), false) 
+                } 
+            },
+            {   
+                new CustomPinData { 
                     name = "Mistlands_DvergrTownEntrance", 
+                    title = "Infested Mine",
                     hash = 0,
                     type = CustomPinType.InfestedMine 
                 }, 
                 new Minimap.SpriteData { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 4, 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 5, 
                     m_icon = Utilities.GetSprite("TrophySeekerBrute".GetStableHashCode(), false) 
                 } 
             },
             { 
                 new CustomPinData { 
                     name = "Cart",
+                    title = "Cart",
                     hash = "Cart".GetStableHashCode(),
                     type = CustomPinType.Cart 
                 }, 
                 new Minimap.SpriteData { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 5, 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 6, 
                     m_icon = Utilities.GetSprite("Cart".GetStableHashCode(), true) 
                 } 
             },
             { 
                 new CustomPinData { 
                     name = "Raft", 
+                    title = "Raft",
                     hash = "Raft".GetStableHashCode(),
                     type = CustomPinType.Ship 
                 },  
                 new Minimap.SpriteData { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 6, 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 7, 
                     m_icon = Utilities.GetSprite("Raft".GetStableHashCode(), true) 
                 } 
             },
             { 
                 new CustomPinData { 
                     name = "Karve", 
+                    title = "Karve",
                     hash = "Karve".GetStableHashCode(),
                     type = CustomPinType.Ship 
                 }, 
                 new Minimap.SpriteData { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 7, 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 8, 
                     m_icon = Utilities.GetSprite("Karve".GetStableHashCode(), true) 
                 } 
             },
             { 
                 new CustomPinData { 
-                    name = "Viking Ship", 
+                    name = "Viking Ship",
+                    title = "Viking Ship",
                     hash = "VikingShip".GetStableHashCode(),
                     type = CustomPinType.Ship 
                 }, 
                 new Minimap.SpriteData { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 8, 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 9, 
                     m_icon = Utilities.GetSprite("VikingShip".GetStableHashCode(), true) 
                 } 
             },
             { 
                 new CustomPinData { 
                     name = "Portal", 
+                    title = "Portal",
                     hash = "portal_wood".GetStableHashCode(),
                     type = CustomPinType.Portal 
                 }, 
                 new Minimap.SpriteData { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 9, 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 10, 
                     m_icon = Utilities.GetSprite("portal_wood".GetStableHashCode(), true) 
                 } 
-            },
-            {   
-                new CustomPinData { 
-                    name = "MountainCave", 
-                    hash = 0,
-                    type = CustomPinType.MountainCave 
-                }, 
-                new Minimap.SpriteData { 
-                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 10, 
-                    m_icon = Utilities.GetSprite("TrophyCultist".GetStableHashCode(), false) 
-                } 
-            },
+            }
         };
         private static Dictionary<CustomPinData, Minimap.SpriteData> usedPins = new();
         private static GameObject cursorObj = null, exploredObj = null, bedObj = null, shipObj = null, portalObj = null;
@@ -348,8 +359,7 @@ namespace AlweStats {
                 foreach (Vector3 pos in loc.Value) {
                     if (!locPins.ContainsKey(pos) && !removedPins.Contains(pos.Round()) && Vector3.Distance(pos, playerPos3) <= 50f) {
                         KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => loc.Key.Contains(p.Key.name.ToLower())).FirstOrDefault();
-                        string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? 
-                            Regex.Replace(pair.Key.name, "([a-z])([A-Z])", "$1 $2") : "";
+                        string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? pair.Key.title : "";
                         if (!__instance.HavePinInRange(pos, 1f)) {
                             Minimap.PinData locPin = __instance.AddPin(pos, pair.Value.m_name, pinTitle, true, false);
                             locPin.m_doubleSize = Utilities.CheckInEnum(pair.Key.type, Main.biggerPins.Value);
@@ -523,8 +533,9 @@ namespace AlweStats {
                 ZDO closerZDO = list[distances.IndexOf(closer)];
                 Vector2 closerPos = new(closerZDO.GetPosition().x, closerZDO.GetPosition().z);
                 string prefabName = "";
-                if (list.All(shipsFound.Contains)) prefabName = usedPins.Where(p => p.Key.hash == closerZDO.GetPrefab()).FirstOrDefault().Key.name;
-                else if (list.All(portalsFound.Contains)) prefabName = Localization.instance.Localize("$piece_portal");
+                if (list.All(shipsFound.Contains)) {
+                    prefabName = usedPins.First(p => p.Key.hash == closerZDO.GetPrefab()).Key.title;
+                } else if (list.All(portalsFound.Contains)) prefabName = Localization.instance.Localize("$piece_portal");
                 Vector2 cameraForward = new(camera.forward.x, camera.forward.z);
                 Vector2 cameraRight = new(camera.right.x, camera.right.z);
                 float forwardAngle = Vector2.Angle(closerPos - playerPos, cameraForward);
@@ -547,7 +558,7 @@ namespace AlweStats {
         private static void SetElementPin(Minimap map, ZDO zdo) {
             if (!zdoPins.TryGetValue(zdo, out Minimap.PinData customPin)) {
                 KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => p.Key.hash == zdo.GetPrefab()).FirstOrDefault();
-                string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? pair.Key.name : "";
+                string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? pair.Key.title : "";
                 Minimap.PinData zdoPin = map.GetClosestPin(zdo.GetPosition(), 1f);
                 if (zdoPin == null) zdoPin = map.AddPin(zdo.GetPosition(), pair.Value.m_name, pinTitle, true, false);
                 zdoPin.m_doubleSize = Utilities.CheckInEnum(pair.Key.type, Main.biggerPins.Value);
@@ -635,8 +646,7 @@ namespace AlweStats {
                     string prefabName = loc.m_location.m_prefabName.ToLower();
                     if (!removedPins.Contains(locPos.Round()) && usedPins.Any(p => prefabName.Contains(p.Key.name.ToLower()))) {
                         KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => prefabName.Contains(p.Key.name.ToLower())).FirstOrDefault();
-                        string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? 
-                            Regex.Replace(pair.Key.name, "([a-z])([A-Z])", "$1 $2") : "";
+                        string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? pair.Key.title : "";
                         Minimap.PinData locPin = map.GetClosestPin(locPos, 1f);
                         if (locPin == null) locPin = map.AddPin(locPos, pair.Value.m_name, pinTitle, true, false);
                         locPin.m_doubleSize = Utilities.CheckInEnum(pair.Key.type, Main.biggerPins.Value); 

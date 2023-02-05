@@ -6,7 +6,7 @@ using System.IO;
 using UnityEngine;
 
 namespace AlweStats {
-    [BepInPlugin("Alwe.AlweStats", "AlweStats", "5.1.0")]
+    [BepInPlugin("Alwe.AlweStats", "AlweStats", "5.1.1")]
     [BepInDependency("randyknapp.mods.auga", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("randyknapp.mods.minimalstatuseffects", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("randyknapp.mods.equipmentandquickslots", BepInDependency.DependencyFlags.SoftDependency)]
@@ -330,6 +330,7 @@ namespace AlweStats {
         [HarmonyPatch]
         public static class PluginPatches {
             private static List<Block> blocks = null;
+            private static bool isConnected = false;
             
             [HarmonyPostfix]
             [HarmonyPatch(typeof(Hud), nameof(Hud.Awake))]
@@ -339,8 +340,6 @@ namespace AlweStats {
                 EntityStats.Start();
                 if (enableEnvStats.Value) EnvStats.Start();
                 if (enableGameStats.Value) blocks.Add(GameStats.Start());
-                if (enableServerStats.Value && ZNet.m_openServer) blocks.Add(ServerStats.Start());
-                if (enableWorldStats.Value) blocks.Add(WorldStats.Start());
                 if (enableWorldClock.Value) blocks.Add(WorldClock.Start());
                 if (enableSystemClock.Value) blocks.Add(SystemClock.Start());
                 if (enableShipStats.Value) blocks.Add(ShipStats.Start());
@@ -380,13 +379,20 @@ namespace AlweStats {
             [HarmonyPostfix]
             [HarmonyPatch(typeof(ZNetScene), nameof(ZNetScene.Update))]
             private static void PatchGame() {
+                if (!isConnected && ZNet.m_world != null) {
+                    if (enableWorldStats.Value) blocks.Add(WorldStats.Start());
+                    if (enableServerStats.Value && 
+                        (ZNet.instance.GetServerPing() != 0f || ZNet.m_openServer)) blocks.Add(ServerStats.Start());
+                    isConnected = true;
+                }
+
                 PlayerStats.Update();
                 if (enableWorldStats.Value) WorldStats.Update();
                 if (enableWorldClock.Value) WorldClock.Update();
                 if (enableSystemClock.Value) SystemClock.Update();
                 if (enableShipStats.Value) ShipStats.Update();
                 if (enableGameStats.Value) GameStats.Update();
-                if (enableServerStats.Value && ZNet.m_openServer) ServerStats.Update();
+                if (enableServerStats.Value) ServerStats.Update();
             }
 
             [HarmonyPrefix]

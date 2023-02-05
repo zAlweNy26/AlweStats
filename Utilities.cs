@@ -149,6 +149,7 @@ namespace AlweStats {
 
     public struct CustomPinData {
         public string name;
+        public string title;
         public int hash;
         public CustomPinType type;
     }

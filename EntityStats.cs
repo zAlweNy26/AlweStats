@@ -69,6 +69,10 @@ namespace AlweStats {
             hudData.m_gui.SetActive(true);
             hudData.m_healthFast = hudData.m_gui.transform.Find("Health/health_fast").GetComponent<GuiBar>();
             hudData.m_healthSlow = hudData.m_gui.transform.Find("Health/health_slow").GetComponent<GuiBar>();
+            Transform healthFastFriendly = hudData.m_gui.transform.Find("Health/health_fast_friendly");
+            if (healthFastFriendly) {
+                hudData.m_healthFastFriendly = healthFastFriendly.GetComponent<GuiBar>();
+            }
             if (isMount) {
                 hudData.m_stamina = hudData.m_gui.transform.Find("Stamina/stamina_fast").GetComponent<GuiBar>();
                 hudData.m_staminaText = hudData.m_gui.transform.Find("Stamina/StaminaText").GetComponent<Text>();
@@ -171,7 +175,9 @@ namespace AlweStats {
                         value.m_gui.transform.Find("Health/health_fast").GetComponent<GuiBar>().SetColor(Utilities.StringToColor(Main.tamedBarColor.Value));
                         value.m_gui.transform.Find("Health/health_slow").GetComponent<GuiBar>().SetColor(Utilities.StringToColor(Main.tamedBarColor.Value));
                     }
-                    value.m_gui.transform.Find("Health/health_fast_friendly").gameObject.SetActive(false);
+                    if (value.m_healthFastFriendly) {
+                        value.m_healthFastFriendly.gameObject.SetActive(value: false);
+                    }
                 }
             }
             if (character) __instance.m_huds.Remove(character);

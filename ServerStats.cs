@@ -4,10 +4,10 @@ using System.Linq;
 
 namespace AlweStats {
     public static class ServerStats {
-        private static Block gameBlock = null;
+        private static Block serverBlock = null;
 
         public static Block Start() {
-            gameBlock = new Block(
+            serverBlock = new Block(
                 "ServerStats", 
                 Main.serverStatsColor.Value, 
                 Main.serverStatsSize.Value, 
@@ -15,12 +15,12 @@ namespace AlweStats {
                 Main.serverStatsMargin.Value,
                 Main.serverStatsAlign.Value
             );
-            return gameBlock;
+            return serverBlock;
         }
 
         public static void Update() {
             Player localPlayer = Player.m_localPlayer;
-            if (gameBlock != null && ZNet.instance != null && localPlayer != null) {
+            if (serverBlock != null && localPlayer != null) {
                 ZNet.instance.GetNetStats(out var lq, out var rq, out var ping, out var obs, out var ibs);
                 int totalPlayers = ZNet.instance.GetNrOfPlayers();
                 List<Player> playersList = new List<Player>();
@@ -36,7 +36,7 @@ namespace AlweStats {
                         playerName, playerHealth, playerMaxHealth, $"{playerHealthPercentage:0.#}"
                     );
                 }).ToArray();
-                gameBlock.SetText(
+                serverBlock.SetText(
                     string.Format(Main.serverStatsFormat.Value, $"{ping:0} ms", totalPlayers) +
                     (playersList.Count > 0 ? $"\n{string.Join("\n", playersTexts)}" : "")
                 );
