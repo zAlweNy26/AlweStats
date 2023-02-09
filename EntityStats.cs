@@ -15,12 +15,20 @@ namespace AlweStats {
                 Transform nameTransform = t.Find("Name");   
                 if (Main.enableEntityStats.Value && healthTransform) {
                     if (healthTransform.Find("HealthText")) return;
-                    GameObject healthObj = UnityEngine.Object.Instantiate(originalHealthText.gameObject, originalHealthText);
-                    healthObj.name = "HealthText";
-                    healthObj.transform.SetParent(healthTransform);
-                    healthObj.GetComponent<RectTransform>().anchoredPosition = Vector2.up;
-                    healthObj.SetActive(true);
-                    healthObj.GetComponent<Text>().fontSize = Main.healthBarHeight.Value;
+                    GameObject healthObj = null;
+                    if (Main.HasAuga) {
+                        healthObj = UnityEngine.Object.Instantiate(nameTransform.gameObject, healthTransform);
+                    } else {
+                        healthObj = UnityEngine.Object.Instantiate(originalHealthText.gameObject, originalHealthText);
+                    }
+                    
+                    if (healthObj) {
+                        healthObj.name = "HealthText";
+                        healthObj.transform.SetParent(healthTransform);
+                        healthObj.GetComponent<RectTransform>().anchoredPosition = Vector2.up;
+                        healthObj.SetActive(true);
+                        healthObj.GetComponent<Text>().fontSize = Main.healthBarHeight.Value;
+                    }
 
                     Vector2 darkenRect = healthTransform.Find("darken").GetComponent<RectTransform>().sizeDelta;
                     healthTransform.Find("darken").GetComponent<RectTransform>().sizeDelta = 
@@ -103,7 +111,7 @@ namespace AlweStats {
                 float pregnancyDur = procreation.m_pregnancyDuration;
                 long pregnancyProgress = __instance.m_nview.GetZDO().GetLong("pregnant", 0L);
                 double pregnancyPerc = Math.Round((ZNet.instance.GetTime() - new DateTime(pregnancyProgress)).TotalSeconds / pregnancyDur * 100.0, 1);
-                __result += $"\nPregnant : {pregnancyPerc:0.#} %";
+                __result += Localization.instance.Localize($"\n$alwe_pregnant : {pregnancyPerc:0.#} %");
                 /*__result = Localization.instance.Localize(__instance.m_name);
                 if (__instance.IsTamed()) {
                     __result += Localization.instance.Localize(" ( $hud_tame, " + tameable.GetStatusString() + " )");

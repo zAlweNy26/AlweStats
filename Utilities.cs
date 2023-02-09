@@ -10,6 +10,18 @@ using Newtonsoft.Json;
 namespace AlweStats {
     public static class Utilities {
 
+        public static string ReplaceFirstOccurrence (string source, string find, string replace) {
+            int place = source.IndexOf(find);
+            string result = source.Remove(place, find.Length).Insert(place, replace);
+            return result;
+        }
+
+        public static string ReplaceLastOccurrence(string source, string find, string replace) {
+            int place = source.LastIndexOf(find);
+            string result = source.Remove(place, find.Length).Insert(place, replace);
+            return result;
+        }
+
         public static string GetColorString(float percentage) {
             string color = "";
             if (percentage >= 75f) color = "lime";

@@ -55,7 +55,7 @@ namespace AlweStats {
                 weightObj = UnityEngine.Object.Instantiate(template, template.transform.parent);
                 weightObj.name = "WeightStatus";
                 weightObj.GetComponentInChildren<Image>().sprite = Minimap.instance.GetLocationIcon("Vendor_BlackForest");
-                weightObj.transform.Find("Name").GetComponent<Text>().text = "Weight";
+                weightObj.transform.Find("Name").GetComponent<Text>().text = Localization.instance.Localize("$item_weight");
                 weightObj.transform.Find("TimeText").GetComponent<Text>().text = "0 %";
                 weightObj.SetActive(true);
             }
@@ -140,7 +140,7 @@ namespace AlweStats {
                     string hexColor = Mathf.RoundToInt(currentColor.r * 255f).ToString("X2") + 
                         Mathf.RoundToInt(currentColor.g * 255f).ToString("X2") +
                         Mathf.RoundToInt(currentColor.b * 255f).ToString("X2");
-                    nameText.text = $"Weight <color=#{hexColor}>{weightPerc:0.#} %</color>";
+                    nameText.text = Localization.instance.Localize($"$item_weight <color=#{hexColor}>{weightPerc:0.#} %</color>");
                 } else {
                     weightObj.GetComponent<RectTransform>().anchoredPosition = new Vector3(-4f - totEffects * Hud.instance.m_statusEffectSpacing, 0f);
                     weightText.text = $"{weightPerc:0.#} %";
@@ -162,7 +162,7 @@ namespace AlweStats {
                 PlayerProfile playerProfile = instance.m_profiles[instance.m_profileIndex];
                 PlayerProfile.PlayerStats playerStats = playerProfile.m_playerStats;
                 instance.m_csName.text = $"{playerProfile.GetName()}\n" +
-                    $"<size=20>Kills: {playerStats.m_kills}   Deaths: {playerStats.m_deaths}   Crafts: {playerStats.m_crafts}   Builds: {playerStats.m_builds}</size>";
+                    Localization.instance.Localize($"<size=20>$alwe_kills: {playerStats.m_kills}   $alwe_deaths: {playerStats.m_deaths}   $alwe_crafts: {playerStats.m_crafts}   $alwe_builds: {playerStats.m_builds}</size>");
                 instance.m_csName.gameObject.SetActive(true);
                 instance.SetupCharacterPreview(playerProfile);
                 return;

@@ -105,6 +105,13 @@ df - Clear the entire AlweStats.json file by deleting it
 
 ### Changelog
 
+v**5.2.0**
+
+- Added translations file called "AlweStats.translations.json" for some words
+- Fixed bug that wasn't showing editing overlay on some blocks
+- Added check when setting block text to not generate errors
+- Now the mod uses the in-game localization for pins and status effects
+
 v**5.1.1**
 
 - Fixed error when dealing with health bars of players

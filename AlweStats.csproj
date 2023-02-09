@@ -5,7 +5,7 @@
     <TargetFramework>net48</TargetFramework>
     <AssemblyName>AlweStats</AssemblyName>
     <Description>Easily read stats about almost everything !</Description>
-    <Version>5.1.1</Version>
+    <Version>5.2.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Copyright>zAlweNy26</Copyright>
@@ -40,6 +40,7 @@
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="All" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
+    <PackageReference Include="ILRepack" Version="2.0.18" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="UnityEngine.Modules" Version="2021.2.11" IncludeAssets="compile" />
@@ -91,7 +92,10 @@
 
   <PropertyGroup>
     <PostBuildEvent>
-      copy "$(TargetDir)AlweStats.dll" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\AlweStats.dll"
+      xcopy "$(TargetDir)AlweStats.dll" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" /q /y /i
+      xcopy "$(TargetDir)AugaAPI.dll" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" /q /y /i
+      xcopy "$(TargetDir)ServerSync.dll" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" /q /y /i
+      xcopy "$(SolutionDir)AlweStats.translations.json" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" /q /y /i
     </PostBuildEvent>
   </PropertyGroup>
 </Project>

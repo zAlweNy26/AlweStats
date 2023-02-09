@@ -76,7 +76,7 @@ namespace AlweStats {
             isEditing = !isEditing;
             if (templateObjs == null) return;
             if (isEditing) {
-                //Debug.Log("Editing mode : ON !");
+                Debug.Log($"{PluginInfo.PLUGIN_GUID} - Editing mode : ON !");
                 foreach (GameObject g in templateObjs) {
                     Transform original = g.transform.parent.Find(g.name.Replace("Template", ""));
                     RectTransform originalRect = original.GetComponent<RectTransform>();
@@ -88,7 +88,7 @@ namespace AlweStats {
                     if (original.gameObject.activeSelf) g.SetActive(true);
                 }
             } else if (!isEditing) {
-                //Debug.Log("Editing mode : OFF !");
+                Debug.Log($"{PluginInfo.PLUGIN_GUID} - Editing mode : OFF !");
                 foreach (GameObject g in templateObjs) {
                     Transform original = g.transform.parent.Find(g.name.Replace("Template", ""));
                     RectTransform originalRect = original.GetComponent<RectTransform>();
@@ -125,16 +125,16 @@ namespace AlweStats {
 
         public static void ShowButton() {
             if (resetObj == null && Menu.instance.m_menuDialog.Find("ResetAlweStats") == null) {
-                GameObject originalObj = Menu.instance.m_menuDialog.Find("Close").gameObject;
+                GameObject originalObj = Menu.instance.m_menuDialog.Find(n: Main.HasAuga ? "Exit" : "Close").gameObject;
                 resetObj = UnityEngine.Object.Instantiate(originalObj, originalObj.transform);
                 resetObj.name = "ResetAlweStats";
                 resetObj.transform.SetParent(originalObj.transform.parent);
                 resetObj.transform.localPosition = new Vector3(0, originalObj.transform.localPosition.y - 40f, 0f);
-                resetObj.GetComponentInChildren<Text>().text = "Reset AlweStats";
+                resetObj.GetComponentInChildren<Text>().text = Localization.instance.Localize("$alwe_reset");
                 resetObj.transform.Find("LeftKnot").localPosition = new Vector3(-110f, 0f, 0f);
                 resetObj.transform.Find("RightKnot").localPosition = new Vector3(110f, 0f, 0f);
-                resetObj.GetComponent<Button>().onClick.RemoveAllListeners();
-                resetObj.GetComponent<Button>().onClick.AddListener(Reset);
+                resetObj.GetComponentInChildren<Button>().onClick.RemoveAllListeners();
+                resetObj.GetComponentInChildren<Button>().onClick.AddListener(Reset);
                 resetObj.SetActive(true);
             }
         }

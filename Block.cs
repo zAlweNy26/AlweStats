@@ -51,7 +51,8 @@ namespace AlweStats {
         }
 
         public void SetText(string text) {
-            blockObj.GetComponentInChildren<Text>().text = text;
+            try { blockObj.GetComponentInChildren<Text>().text = text; } 
+            catch (Exception) {}
         }
 
         public Text GetText() {

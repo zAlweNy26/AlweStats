@@ -4,7 +4,6 @@ using System;
 using UnityEngine.UI;
 using System.Linq;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 
@@ -16,7 +15,7 @@ namespace AlweStats {
             {   
                 new CustomPinData { 
                     name = "SunkenCrypt",
-                    title = "Sunken Crypt",
+                    title = "$location_sunkencrypt",
                     hash = 0,
                     type = CustomPinType.Crypt 
                 }, 
@@ -28,7 +27,7 @@ namespace AlweStats {
             {   
                 new CustomPinData { 
                     name = "TrollCave", 
-                    title = "Troll Cave",
+                    title = "$location_forestcave",
                     hash = 0,
                     type = CustomPinType.TrollCave 
                 }, 
@@ -40,7 +39,7 @@ namespace AlweStats {
             {   
                 new CustomPinData { 
                     name = "FireHole", 
-                    title = "Fire Hole",
+                    title = "$enemy_surtling",
                     hash = 0,
                     type = CustomPinType.FireHole 
                 }, 
@@ -52,7 +51,7 @@ namespace AlweStats {
             {   
                 new CustomPinData { 
                     name = "Crypt",
-                    title = "Crypt",
+                    title = "$location_forestcrypt",
                     hash = 0, 
                     type = CustomPinType.Crypt 
                 }, 
@@ -64,7 +63,7 @@ namespace AlweStats {
             {   
                 new CustomPinData { 
                     name = "MountainCave", 
-                    title = "Mountain Cave",
+                    title = "$location_mountaincave",
                     hash = 0,
                     type = CustomPinType.MountainCave 
                 }, 
@@ -76,7 +75,7 @@ namespace AlweStats {
             {   
                 new CustomPinData { 
                     name = "Mistlands_DvergrTownEntrance", 
-                    title = "Infested Mine",
+                    title = "$location_dvergrtown",
                     hash = 0,
                     type = CustomPinType.InfestedMine 
                 }, 
@@ -88,7 +87,7 @@ namespace AlweStats {
             { 
                 new CustomPinData { 
                     name = "Cart",
-                    title = "Cart",
+                    title = "$tool_cart",
                     hash = "Cart".GetStableHashCode(),
                     type = CustomPinType.Cart 
                 }, 
@@ -100,7 +99,7 @@ namespace AlweStats {
             { 
                 new CustomPinData { 
                     name = "Raft", 
-                    title = "Raft",
+                    title = "$ship_raft",
                     hash = "Raft".GetStableHashCode(),
                     type = CustomPinType.Ship 
                 },  
@@ -112,7 +111,7 @@ namespace AlweStats {
             { 
                 new CustomPinData { 
                     name = "Karve", 
-                    title = "Karve",
+                    title = "$ship_karve",
                     hash = "Karve".GetStableHashCode(),
                     type = CustomPinType.Ship 
                 }, 
@@ -124,7 +123,7 @@ namespace AlweStats {
             { 
                 new CustomPinData { 
                     name = "Viking Ship",
-                    title = "Viking Ship",
+                    title = "$ship_longship",
                     hash = "VikingShip".GetStableHashCode(),
                     type = CustomPinType.Ship 
                 }, 
@@ -136,7 +135,7 @@ namespace AlweStats {
             { 
                 new CustomPinData { 
                     name = "Portal", 
-                    title = "Portal",
+                    title = "$piece_portal",
                     hash = "portal_wood".GetStableHashCode(),
                     type = CustomPinType.Portal 
                 }, 
@@ -361,7 +360,7 @@ namespace AlweStats {
                         KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => loc.Key.Contains(p.Key.name.ToLower())).FirstOrDefault();
                         string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? pair.Key.title : "";
                         if (!__instance.HavePinInRange(pos, 1f)) {
-                            Minimap.PinData locPin = __instance.AddPin(pos, pair.Value.m_name, pinTitle, true, false);
+                            Minimap.PinData locPin = __instance.AddPin(pos, pair.Value.m_name, Localization.instance.Localize(pinTitle), true, false);
                             locPin.m_doubleSize = Utilities.CheckInEnum(pair.Key.type, Main.biggerPins.Value);
                             locPins.Add(pos, locPin);
                         }
@@ -532,10 +531,7 @@ namespace AlweStats {
                 string distance = closer < 1000f ? $"{closer:0.#} m" : $"{(closer / 1000f):0.#} km";
                 ZDO closerZDO = list[distances.IndexOf(closer)];
                 Vector2 closerPos = new(closerZDO.GetPosition().x, closerZDO.GetPosition().z);
-                string prefabName = "";
-                if (list.All(shipsFound.Contains)) {
-                    prefabName = usedPins.First(p => p.Key.hash == closerZDO.GetPrefab()).Key.title;
-                } else if (list.All(portalsFound.Contains)) prefabName = Localization.instance.Localize("$piece_portal");
+                string prefabName = Localization.instance.Localize(usedPins.First(p => p.Key.hash == closerZDO.GetPrefab()).Key.title);
                 Vector2 cameraForward = new(camera.forward.x, camera.forward.z);
                 Vector2 cameraRight = new(camera.right.x, camera.right.z);
                 float forwardAngle = Vector2.Angle(closerPos - playerPos, cameraForward);
@@ -560,7 +556,7 @@ namespace AlweStats {
                 KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => p.Key.hash == zdo.GetPrefab()).FirstOrDefault();
                 string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? pair.Key.title : "";
                 Minimap.PinData zdoPin = map.GetClosestPin(zdo.GetPosition(), 1f);
-                if (zdoPin == null) zdoPin = map.AddPin(zdo.GetPosition(), pair.Value.m_name, pinTitle, true, false);
+                if (zdoPin == null) zdoPin = map.AddPin(zdo.GetPosition(), pair.Value.m_name, name: Localization.instance.Localize(pinTitle), true, false);
                 zdoPin.m_doubleSize = Utilities.CheckInEnum(pair.Key.type, Main.biggerPins.Value);
                 zdoPins.Add(zdo, zdoPin);
             }
@@ -595,7 +591,7 @@ namespace AlweStats {
             if (Main.showExploredPercentage.Value && exploredObj != null && __result) {
                 exploredTotal += 1;
                 float exploredYouPercentage = exploredTotal * 100f / mapSize;
-                exploredObj.GetComponent<Text>().text = $"Explored : {exploredYouPercentage:0.##} %";
+                exploredObj.GetComponent<Text>().text = Localization.instance.Localize(text: $"$alwe_explored : {exploredYouPercentage:0.##} %");
             }
         }
 
@@ -605,7 +601,7 @@ namespace AlweStats {
             if (Main.showExploredPercentage.Value && exploredObj != null) {
                 exploredTotal = 0;
                 float exploredYouPercentage = exploredTotal * 100f / mapSize;
-                exploredObj.GetComponent<Text>().text = $"Explored : {exploredYouPercentage:0.##} %";
+                exploredObj.GetComponent<Text>().text = Localization.instance.Localize(text: $"$alwe_explored : {exploredYouPercentage:0.##} %");
             }
         }
 
@@ -648,7 +644,7 @@ namespace AlweStats {
                         KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => prefabName.Contains(p.Key.name.ToLower())).FirstOrDefault();
                         string pinTitle = Utilities.CheckInEnum(pair.Key.type, Main.showPinsTitles.Value) ? pair.Key.title : "";
                         Minimap.PinData locPin = map.GetClosestPin(locPos, 1f);
-                        if (locPin == null) locPin = map.AddPin(locPos, pair.Value.m_name, pinTitle, true, false);
+                        if (locPin == null) locPin = map.AddPin(locPos, pair.Value.m_name, Localization.instance.Localize(pinTitle), true, false);
                         locPin.m_doubleSize = Utilities.CheckInEnum(pair.Key.type, Main.biggerPins.Value); 
                         locPins.Add(locPos, locPin);
                     }

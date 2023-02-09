@@ -31,9 +31,13 @@ namespace AlweStats {
                     int playerHealth = Mathf.CeilToInt(p.GetHealth());
                     int playerMaxHealth = Mathf.CeilToInt(p.GetMaxHealth());
                     float playerHealthPercentage = p.GetHealthPercentage() * 100f;
+                    //int playerStamina = Mathf.CeilToInt(p.GetStamina());
+                    //int playerMaxStamina = Mathf.CeilToInt(p.GetMaxStamina());
+                    //float playerStaminaPercentage = p.GetStaminaPercentage() * 100f;
                     return string.Format(
-                        Main.playersInRangeFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(playerHealthPercentage)}>"), 
-                        playerName, playerHealth, playerMaxHealth, $"{playerHealthPercentage:0.#}"
+                        Main.playersInRangeFormat.Value.Replace(
+                            "<color>", $"<color={Utilities.GetColorString(playerHealthPercentage)}>"
+                        ), playerName, playerHealth, playerMaxHealth, $"{playerHealthPercentage:0.#}"
                     );
                 }).ToArray();
                 serverBlock.SetText(

@@ -1,12 +1,14 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using UnityEngine;
 
 namespace AlweStats {
-    [BepInPlugin("Alwe.AlweStats", "AlweStats", "5.1.1")]
+    [BepInPlugin("Alwe.AlweStats", "AlweStats", "5.2.0")]
     [BepInDependency("randyknapp.mods.auga", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("randyknapp.mods.minimalstatuseffects", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("randyknapp.mods.equipmentandquickslots", BepInDependency.DependencyFlags.SoftDependency)]
@@ -16,7 +18,7 @@ namespace AlweStats {
         private readonly Harmony harmony = new("zAlweNy26.AlweStats");
         public static ConfigFile config;
         public static string statsFilePath;
-        //public static bool HasAuga => Auga.API.IsLoaded();
+        public static bool HasAuga { get; private set; }
         public static ConfigEntry<bool> 
             enableGameStats, enableWorldStats, enableWorldClock, enableShipStats, enableEnvStats, enablePlayerInfos, 
             enablePlayerStats, customBowCharge, daysInWorldsList, worldClockFormat, enableShipStatus, showTotalOfQueue, 
@@ -86,9 +88,9 @@ namespace AlweStats {
             gameStatsAlign = Config.Bind("GameStats", "Align", "LowerLeft",
                 "The alignment of the text showed\nPossible values : LowerLeft, LowerCenter, LowerRight, MiddleLeft, MiddleCenter, MiddleRight, UpperLeft, UpperCenter, UpperRight");
             gameStatsPosition = Config.Bind("GameStats", "Position", "0, 0",
-                "The position of the text showed\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between");
+                "The position of the block\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between, where [0, 0] is the bottom-left corner and [1, 1] is the top-right corner of your screen");
             gameStatsMargin = Config.Bind("GameStats", "Margin", "0, 0",
-                "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
+                "The margin from the position\nThe format is : [X], [Y]\nThe range of possible values for x and y are [-(your screen size in pixels), +(your screen size in pixels)]");
 
             serverStatsColor = Config.Bind("ServerStats", "Color", "255, 180, 90, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
@@ -97,9 +99,9 @@ namespace AlweStats {
             serverStatsAlign = Config.Bind("ServerStats", "Align", "UpperCenter",
                 "The alignment of the text showed\nPossible values : LowerLeft, LowerCenter, LowerRight, MiddleLeft, MiddleCenter, MiddleRight, UpperLeft, UpperCenter, UpperRight");
             serverStatsPosition = Config.Bind("ServerStats", "Position", "0.5, 1",
-                "The position of the text showed\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between");
+                "The position of the block\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between, where [0, 0] is the bottom-left corner and [1, 1] is the top-right corner of your screen");
             serverStatsMargin = Config.Bind("ServerStats", "Margin", "0, -50",
-                "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
+                "The margin from the position\nThe format is : [X], [Y]\nThe range of possible values for x and y are [-(your screen size in pixels), +(your screen size in pixels)]");
 
             worldStatsColor = Config.Bind("WorldStats", "Color", "255, 180, 90, 255",
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
@@ -108,9 +110,9 @@ namespace AlweStats {
             worldStatsAlign = Config.Bind("WorldStats", "Align", "LowerRight",
                 "The alignment of the text showed\nPossible values : LowerLeft, LowerCenter, LowerRight, MiddleLeft, MiddleCenter, MiddleRight, UpperLeft, UpperCenter, UpperRight");
             worldStatsPosition = Config.Bind("WorldStats", "Position", "1, 0",
-                "The position of the text showed\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between");
+                "The position of the block\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between, where [0, 0] is the bottom-left corner and [1, 1] is the top-right corner of your screen");
             worldStatsMargin = Config.Bind("WorldStats", "Margin", "0, 0",
-                "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
+                "The margin from the position\nThe format is : [X], [Y]\nThe range of possible values for x and y are [-(your screen size in pixels), +(your screen size in pixels)]");
 
             shipStatsColor = Config.Bind("ShipStats", "Color", "255, 180, 90, 255",
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
@@ -119,27 +121,27 @@ namespace AlweStats {
             shipStatsAlign = Config.Bind("ShipStats", "Align", "MiddleRight",
                 "The alignment of the text showed\nPossible values : LowerLeft, LowerCenter, LowerRight, MiddleLeft, MiddleCenter, MiddleRight, UpperLeft, UpperCenter, UpperRight");
             shipStatsPosition = Config.Bind("ShipStats", "Position", "1, 0.25",
-                "The position of the text showed\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between");
+                "The position of the block\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between, where [0, 0] is the bottom-left corner and [1, 1] is the top-right corner of your screen");
             shipStatsMargin = Config.Bind("ShipStats", "Margin", "0, 0",
-                "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
+                "The margin from the position\nThe format is : [X], [Y]\nThe range of possible values for x and y are [-(your screen size in pixels), +(your screen size in pixels)]");
 
             worldClockColor = Config.Bind("WorldClock", "Color", "255, 180, 90, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
             worldClockSize = Config.Bind("WorldClock", "Size", 24, 
                 "The size of the text showed\nThe range of possible values is from 0 to the amount of your blindness");
             worldClockPosition = Config.Bind("WorldClock", "Position", "0.5, 1", 
-                "The position of the text showed\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between");
+                "The position of the block\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between, where [0, 0] is the bottom-left corner and [1, 1] is the top-right corner of your screen");
             worldClockMargin = Config.Bind("WorldClock", "Margin", "0, 0", 
-                "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
+                "The margin from the position\nThe format is : [X], [Y]\nThe range of possible values for x and y are [-(your screen size in pixels), +(your screen size in pixels)]");
 
             systemClockColor = Config.Bind("SystemClock", "Color", "165, 70, 250, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
             systemClockSize = Config.Bind("SystemClock", "Size", 18, 
                 "The size of the text showed\nThe range of possible values is from 0 to the amount of your blindness");
             systemClockPosition = Config.Bind("SystemClock", "Position", "0.5, 0", 
-                "The position of the text showed\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between");
+                "The position of the block\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between, where [0, 0] is the bottom-left corner and [1, 1] is the top-right corner of your screen");
             systemClockMargin = Config.Bind("SystemClock", "Margin", "0, 0", 
-                "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
+                "The margin from the position\nThe format is : [X], [Y]\nThe range of possible values for x and y are [-(your screen size in pixels), +(your screen size in pixels)]");
 
             playerStatsColor = Config.Bind("PlayerStats", "Color", "255, 180, 90, 255",
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
@@ -148,9 +150,9 @@ namespace AlweStats {
             playerStatsAlign = Config.Bind("PlayerStats", "Align", "MiddleLeft",
                 "The alignment of the text showed\nPossible values : LowerLeft, LowerCenter, LowerRight, MiddleLeft, MiddleCenter, MiddleRight, UpperLeft, UpperCenter, UpperRight");
             playerStatsPosition = Config.Bind("PlayerStats", "Position", "0, 0.5",
-                "The position of the text showed\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between");
+                "The position of the block\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between, where [0, 0] is the bottom-left corner and [1, 1] is the top-right corner of your screen");
             playerStatsMargin = Config.Bind("PlayerStats", "Margin", "0, 0",
-                "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
+                "The margin from the position\nThe format is : [X], [Y]\nThe range of possible values for x and y are [-(your screen size in pixels), +(your screen size in pixels)]");
 
             mapStatsColor = Config.Bind("MapStats", "Color", "255, 180, 90, 255",
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
@@ -159,9 +161,9 @@ namespace AlweStats {
             mapStatsAlign = Config.Bind("MapStats", "Align", "MiddleRight",
                 "The alignment of the text showed\nPossible values : LowerLeft, LowerCenter, LowerRight, MiddleLeft, MiddleCenter, MiddleRight, UpperLeft, UpperCenter, UpperRight");
             mapStatsPosition = Config.Bind("MapStats", "Position", "1, 1",
-                "The position of the text showed\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between");
+                "The position of the block\nThe format is : [X], [Y]\nThe possible values are 0 and 1 and all values between, where [0, 0] is the bottom-left corner and [1, 1] is the top-right corner of your screen, where [0, 0] is the bottom-left corner and [1, 1] is the top-right corner of your screen");
             mapStatsMargin = Config.Bind("MapStats", "Margin", "0, 0",
-                "The margin from its position of the text showed\nThe format is : [X], [Y]\nThe range of possible values is [-(your screen size in pixels), +(your screen size in pixels)]");
+                "The margin from the position\nThe format is : [X], [Y]\nThe range of possible values for x and y are [-(your screen size in pixels), +(your screen size in pixels)]");
 
             bowChargeBarColor = Config.Bind("PlayerStats", "ChargeBarColor", "255, 180, 90, 255",
                 "The color of the bow charge bar\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
@@ -283,7 +285,7 @@ namespace AlweStats {
                 "\n'{2}' stands for the ship total health" +
                 "\n'{3}' stands for the wind speed in km/h" +
                 "\n'{4}' stands for the wind direction");
-            
+
             healthFormat = Config.Bind("General", "HealthFormat", "{0} / {1} (<color>{2} %</color>)", 
                 "The format of the string when showing the health of environment elements, construction pieces and living entities" + 
                 "\nThis string is also used for the stamina of mountable creatures" +
@@ -310,14 +312,36 @@ namespace AlweStats {
                 "\n'{1}' stands for the remaining time" +
                 "\n'<color>' and '</color>' mean that the text between them will be colored based on the process percentage");
 
-            Logger.LogInfo($"{PluginInfo.PLUGIN_GUID} loaded successfully !");
+            Logger.LogInfo($"{PluginInfo.PLUGIN_GUID} was loaded successfully !");
 
             statsFilePath = Path.Combine(Paths.ConfigPath, "AlweStats.json");
+
+            HasAuga = false;//Auga.API.IsLoaded();
+
+            LoadTranslations();
         }
 
         public void Start() { harmony.PatchAll(); }
-        
+
         public void OnDestroy() { harmony.UnpatchSelf(); }
+
+        private static void LoadTranslations() {
+            Dictionary<string, string> translations = JsonConvert.DeserializeObject<Dictionary<string, string>>(
+                File.ReadAllText(Path.Combine(
+                    Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), 
+                    "AlweStats.translations.json"
+                )),
+                new JsonSerializerSettings { Error = (se, ev) => { ev.ErrorContext.Handled = true; } }
+            );
+
+            foreach (var translation in translations) {
+                if (!string.IsNullOrEmpty(translation.Key) && !string.IsNullOrEmpty(translation.Value)) {
+                    Localization.instance.AddWord("alwe_" + translation.Key, translation.Value);
+                }
+            }
+
+            Debug.Log($"{PluginInfo.PLUGIN_GUID} loaded {translations.Count} translations successfully !");
+        }
 
         public static void ReloadConfig() { 
             if (File.Exists(config.ConfigFilePath)) {
@@ -343,9 +367,10 @@ namespace AlweStats {
                 if (enableWorldClock.Value) blocks.Add(WorldClock.Start());
                 if (enableSystemClock.Value) blocks.Add(SystemClock.Start());
                 if (enableShipStats.Value) blocks.Add(ShipStats.Start());
+                if (enableWorldStats.Value) blocks.Add(WorldStats.Start());
                 if (enableMapStats.Value) blocks.Add(MapStats.Start()); else MapStats.Start();
                 if (enablePlayerStats.Value) blocks.Add(PlayerStats.Start()); else PlayerStats.Start();
-
+                
                 EditingMode.Start(blocks);
             }
 
@@ -373,17 +398,18 @@ namespace AlweStats {
             [HarmonyPostfix]
             [HarmonyPatch(typeof(Menu), nameof(Menu.Update))]
             private static void PatchEscMenuUpdate() {
-                if (Input.GetKeyDown(KeyCode.Escape) && showResetButton.Value) EditingMode.ShowButton();
+                if (Menu.IsVisible() && showResetButton.Value) EditingMode.ShowButton();
             }
 
             [HarmonyPostfix]
             [HarmonyPatch(typeof(ZNetScene), nameof(ZNetScene.Update))]
             private static void PatchGame() {
-                if (!isConnected && ZNet.m_world != null) {
-                    if (enableWorldStats.Value) blocks.Add(WorldStats.Start());
-                    if (enableServerStats.Value && 
-                        (ZNet.instance.GetServerPing() != 0f || ZNet.m_openServer)) blocks.Add(ServerStats.Start());
-                    isConnected = true;
+                if (!isConnected && enableServerStats.Value) {
+                    if (ZNet.instance.GetServerPing() != 0f || ZNet.m_openServer) {
+                        blocks.Add(ServerStats.Start());
+                        EditingMode.Start(blocks);
+                        isConnected = true;
+                    }
                 }
 
                 PlayerStats.Update();
