@@ -143,7 +143,43 @@ namespace AlweStats {
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 10, 
                     m_icon = Utilities.GetSprite("portal_wood".GetStableHashCode(), true) 
                 } 
-            }
+            }/*,
+            { 
+                new CustomPinData { 
+                    name = "Boar", 
+                    title = "Boar",
+                    hash = 0,
+                    type = CustomPinType.TamedAnimal 
+                }, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 11, 
+                    m_icon = Utilities.GetSprite("TrophyBoar".GetStableHashCode(), false) 
+                } 
+            },
+            { 
+                new CustomPinData { 
+                    name = "Wolf", 
+                    title = "Wolf",
+                    hash = 0,
+                    type = CustomPinType.TamedAnimal 
+                }, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 12, 
+                    m_icon = Utilities.GetSprite("TrophyWolf".GetStableHashCode(), false) 
+                } 
+            },
+            { 
+                new CustomPinData { 
+                    name = "Lox", 
+                    title = "Lox",
+                    hash = 0,
+                    type = CustomPinType.TamedAnimal 
+                }, 
+                new Minimap.SpriteData { 
+                    m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + 13, 
+                    m_icon = Utilities.GetSprite("TrophyLox".GetStableHashCode(), false) 
+                } 
+            }*/
         };
         private static Dictionary<CustomPinData, Minimap.SpriteData> usedPins = new();
         private static GameObject cursorObj = null, exploredObj = null, bedObj = null, shipObj = null, portalObj = null;
@@ -152,6 +188,8 @@ namespace AlweStats {
         private static Dictionary<string, List<Vector3>> locsFound = new();
         private static List<ZDO> shipsFound = new(), portalsFound = new();
         public static List<Vector3> removedPins = new();
+        private static List<Character> tempTamedAnimals = new();
+        private static List<Minimap.PinData> tamedAnimalsPins = new();
         private static long exploredTotal = 0, mapSize = 0;
         private static bool zdoCheck, locCheck, isMinimalEffect = false;
         public static bool isOnBoat;
@@ -531,7 +569,10 @@ namespace AlweStats {
                 string distance = closer < 1000f ? $"{closer:0.#} m" : $"{(closer / 1000f):0.#} km";
                 ZDO closerZDO = list[distances.IndexOf(closer)];
                 Vector2 closerPos = new(closerZDO.GetPosition().x, closerZDO.GetPosition().z);
-                string prefabName = Localization.instance.Localize(usedPins.First(p => p.Key.hash == closerZDO.GetPrefab()).Key.title);
+                string prefabName = "";
+                if (list.All(shipsFound.Contains)) {
+                    prefabName = Localization.instance.Localize(usedPins.First(p => p.Key.hash == closerZDO.GetPrefab()).Key.title);
+                } else if (list.All(portalsFound.Contains)) prefabName = Localization.instance.Localize("$piece_portal");
                 Vector2 cameraForward = new(camera.forward.x, camera.forward.z);
                 Vector2 cameraRight = new(camera.right.x, camera.right.z);
                 float forwardAngle = Vector2.Angle(closerPos - playerPos, cameraForward);
@@ -562,6 +603,46 @@ namespace AlweStats {
             }
         }
 
+        /*[HarmonyPostfix]
+        [HarmonyPatch(typeof(Minimap), nameof(Minimap.UpdateDynamicPins))]
+        static void PatchDynamicPins(Minimap __instance, float dt) {
+            if (Utilities.CheckInEnum(CustomPinType.TamedAnimal, Main.showCustomPins.Value) && Minimap.IsOpen()) {
+                tempTamedAnimals.Clear();
+                tempTamedAnimals = Character.GetAllCharacters().Where(c => c.IsTamed() && !c.IsPlayer() && !c.name.Contains("Hen")).ToList();
+                if (tamedAnimalsPins.Count != tempTamedAnimals.Count) {
+                    foreach (Minimap.PinData pin in tamedAnimalsPins) {
+                        __instance.RemovePin(pin);
+                    }
+                    tamedAnimalsPins.Clear();
+                    foreach (Character animal in tempTamedAnimals) {
+                        Minimap.PinType pinType = Minimap.PinType.Icon3;
+                        try {
+                            KeyValuePair<CustomPinData, Minimap.SpriteData> pair = usedPins.Where(p => animal.name.Contains(p.Key.name)).First();
+                            pinType = pair.Value.m_name;
+                        } catch (Exception) {
+                            pinType = Minimap.PinType.Icon3;
+                        }
+                        string localizedName = Localization.instance.Localize(animal.m_name);
+                        string pinTitle = Utilities.CheckInEnum(CustomPinType.TamedAnimal, Main.showPinsTitles.Value) &&
+                            animal.GetHoverName() != localizedName ? animal.GetHoverName() : "";
+                        Minimap.PinData pin =  __instance.AddPin(animal.GetCenterPoint(), pinType, pinTitle, true, false);
+                        pin.m_doubleSize = Utilities.CheckInEnum(CustomPinType.TamedAnimal, Main.biggerPins.Value);
+                        tamedAnimalsPins.Add(pin);
+                    }
+                }
+                for (int i = 0; i < tempTamedAnimals.Count; i++) {
+                    Minimap.PinData pinData = tamedAnimalsPins[i];
+                    Character tamedAnimal = tempTamedAnimals[i];
+                    if (pinData.m_name == tamedAnimal.GetHoverName()) {
+                        pinData.m_pos = Vector3.MoveTowards(pinData.m_pos, tamedAnimal.GetCenterPoint(), 200f * dt);
+                    } else {
+                        pinData.m_name = tamedAnimal.m_name;
+                        pinData.m_pos = tamedAnimal.GetCenterPoint();
+                    }
+                }
+            }
+        }*/
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Minimap), nameof(Minimap.AddPin))]
         static void PatchAddPin(ref Minimap.PinData __result, Minimap.PinType type) {
@@ -578,13 +659,6 @@ namespace AlweStats {
             return false;
         }
 
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(Minimap), nameof(Minimap.SaveMapData))]
-        static bool PatchSaveMapData(Minimap __instance) {
-            __instance.m_pins = __instance.m_pins.Where(p => (int) p.m_type < Enum.GetValues(typeof(Minimap.PinType)).Length).ToList();
-            return true;
-        }
-
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Minimap), nameof(Minimap.Explore), new Type[] { typeof(int), typeof(int)})]
         static void PatchExplore(ref bool __result) {
@@ -593,6 +667,15 @@ namespace AlweStats {
                 float exploredYouPercentage = exploredTotal * 100f / mapSize;
                 exploredObj.GetComponent<Text>().text = Localization.instance.Localize(text: $"$alwe_explored : {exploredYouPercentage:0.##} %");
             }
+        }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Minimap), nameof(Minimap.GetMapData))]
+        static bool PatchGetMapData(Minimap __instance) {
+            __instance.m_pins.ForEach(p => {
+                if ((int) p.m_type >= Enum.GetValues(typeof(Minimap.PinType)).Length) p.m_save = false;
+            });
+            return true;
         }
 
         [HarmonyPostfix]
@@ -684,7 +767,8 @@ namespace AlweStats {
             usedPins = pinsDict.Keys.ToDictionary(k => k, v => pinsDict[v]);
             if (Chainloader.PluginInfos.ContainsKey("marlthon.OdinShip") && Utilities.CheckInEnum(CustomPinType.Ship, Main.showCustomPins.Value)) {
                 usedPins.Add(new CustomPinData { 
-                    name = "Cargo Ship", 
+                    name = "Cargo Ship",
+                    title = "Cargo Ship",
                     hash = "CargoShip".GetStableHashCode(),
                     type = CustomPinType.Ship
                 }, 
@@ -694,6 +778,7 @@ namespace AlweStats {
                 });
                 usedPins.Add(new CustomPinData { 
                     name = "Big Cargo Ship", 
+                    title = "Big Cargo Ship",
                     hash = "BigCargoShip".GetStableHashCode(),
                     type = CustomPinType.Ship
                 }, 
@@ -703,6 +788,7 @@ namespace AlweStats {
                 });
                 usedPins.Add(new CustomPinData { 
                     name = "War Ship", 
+                    title = "War Ship",
                     hash = "WarShip".GetStableHashCode(),
                     type = CustomPinType.Ship
                 }, 
@@ -710,8 +796,9 @@ namespace AlweStats {
                     m_name = (Minimap.PinType) Enum.GetValues(typeof(Minimap.PinType)).Length + pinsDict.Count + 2, 
                     m_icon = Utilities.GetSprite("WarShip".GetStableHashCode(), true) 
                 });
-                usedPins.Add(new CustomPinData { 
+                usedPins.Add(key: new CustomPinData { 
                     name = "Transporter Ship", 
+                    title = "Transporter Ship",
                     hash = "TransporterShip".GetStableHashCode(),
                     type = CustomPinType.Ship
                 }, 
@@ -721,6 +808,7 @@ namespace AlweStats {
                 });
                 usedPins.Add(new CustomPinData { 
                     name = "Little Boat", 
+                    title = "Little Boat",
                     hash = "LittleBoat".GetStableHashCode(),
                     type = CustomPinType.Ship
                 }, 
@@ -730,6 +818,7 @@ namespace AlweStats {
                 });
                 usedPins.Add(new CustomPinData { 
                     name = "Fishing Boat", 
+                    title = "Fishing Boat",
                     hash = "FishingBoat".GetStableHashCode(),
                     type = CustomPinType.Ship
                 }, 
@@ -753,6 +842,11 @@ namespace AlweStats {
                 usedPins.Remove(usedPins.First(p => p.Key.name == "Viking Ship").Key);
             }
             if (!Utilities.CheckInEnum(CustomPinType.Cart, Main.showCustomPins.Value)) usedPins.Remove(usedPins.First(p => p.Key.name == "Cart").Key);
+            /*if (!Utilities.CheckInEnum(CustomPinType.TamedAnimal, Main.showCustomPins.Value)) {
+                usedPins.Remove(usedPins.First(p => p.Key.name == "Boar").Key);
+                usedPins.Remove(usedPins.First(p => p.Key.name == "Wolf").Key);
+                usedPins.Remove(usedPins.First(p => p.Key.name == "Lox").Key);
+            }*/
             List<WorldInfo> worldInfos = Utilities.GetWorldInfos();
             if (worldInfos != null) {
                 WorldInfo worldInfo = worldInfos.FirstOrDefault(wi => wi.worldName == ZNet.instance.GetWorldName());

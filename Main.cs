@@ -8,7 +8,7 @@ using System.Reflection;
 using UnityEngine;
 
 namespace AlweStats {
-    [BepInPlugin("Alwe.AlweStats", "AlweStats", "5.2.0")]
+    [BepInPlugin("Alwe.AlweStats", "AlweStats", "5.2.1")]
     [BepInDependency("randyknapp.mods.auga", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("randyknapp.mods.minimalstatuseffects", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("randyknapp.mods.equipmentandquickslots", BepInDependency.DependencyFlags.SoftDependency)]
@@ -219,7 +219,8 @@ namespace AlweStats {
                 "\n6 = carts pins" +
                 "\n7 = mountain caves pins" +
                 "\n8 = runestone pins" +
-                "\n9 = infested mines pins");
+                "\n9 = infested mines pins"/* +
+                "\n10 = tamed animals"*/);
             showPinsTitles = Config.Bind("MapStats", "ShowPinsTitles", "4", 
                 "Toggle the title for specific custom pins, separate them with a comma (,)" +
                 "\n1 = troll caves pins" +
@@ -230,7 +231,8 @@ namespace AlweStats {
                 "\n6 = carts pins" +
                 "\n7 = mountain caves pins" +
                 "\n8 = runestone pins" +
-                "\n9 = infested mines pins");
+                "\n9 = infested mines pins"/* +
+                "\n10 = tamed animals"*/);
             biggerPins = Config.Bind("MapStats", "BiggerPins", "4, 5, 6", 
                 "Double or not the size of specific custom pins, separate them with a comma (,)" +
                 "\n1 = troll caves pins" +
@@ -241,7 +243,8 @@ namespace AlweStats {
                 "\n6 = carts pins" +
                 "\n7 = mountain caves pins" +
                 "\n8 = runestone pins" +
-                "\n9 = infested mines pins");
+                "\n9 = infested mines pins"/* +
+                "\n10 = tamed animals"*/);
 
             playerStatsFormat = Config.Bind("General", "PlayerStatsFormat", "Inventory slots : {0} / {1}\nInventory weight : {2} / {3}\nBow ammo : {4} / {5}\nSelected arrows : {6}", 
                 "The format of the string when showing the inventory slots and weight, bow ammo and selected arrows" +
@@ -353,13 +356,13 @@ namespace AlweStats {
 
         [HarmonyPatch]
         public static class PluginPatches {
-            private static List<Block> blocks = null;
+            private static List<Block> blocks = new();
             private static bool isConnected = false;
             
             [HarmonyPostfix]
             [HarmonyPatch(typeof(Hud), nameof(Hud.Awake))]
             private static void PatchHudStart() {
-                blocks = new();
+                blocks.Clear();
 
                 EntityStats.Start();
                 if (enableEnvStats.Value) EnvStats.Start();
@@ -424,6 +427,7 @@ namespace AlweStats {
             [HarmonyPrefix]
             [HarmonyPatch(typeof(Game), nameof(Game.Shutdown))]
             static bool PatchWorldEnd() {
+                if (Game.instance.m_shuttingDown) return false;
                 if (blocks != null) EditingMode.Destroy(blocks);
                 Utilities.UpdateWorldFile(MapStats.removedPins);
                 Debug.Log("Updating the worlds file...");

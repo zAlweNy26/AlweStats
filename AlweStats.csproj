@@ -5,7 +5,7 @@
     <TargetFramework>net48</TargetFramework>
     <AssemblyName>AlweStats</AssemblyName>
     <Description>Easily read stats about almost everything !</Description>
-    <Version>5.2.0</Version>
+    <Version>5.2.1</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Copyright>zAlweNy26</Copyright>
@@ -93,6 +93,7 @@
   <PropertyGroup>
     <PostBuildEvent>
       xcopy "$(TargetDir)AlweStats.dll" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" /q /y /i
+      xcopy "$(TargetDir)Newtonsoft.Json.dll" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" /q /y /i
       xcopy "$(TargetDir)AugaAPI.dll" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" /q /y /i
       xcopy "$(TargetDir)ServerSync.dll" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" /q /y /i
       xcopy "$(SolutionDir)AlweStats.translations.json" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" /q /y /i

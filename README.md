@@ -87,13 +87,14 @@ cfp [world] - Remove all the pins from the AlweStats.json file for a specific wo
 df - Clear the entire AlweStats.json file by deleting it
 ```
 
-## Things I want to do as soon as possible
+## To-do list
 
 - Add detailed items informations
 - Add a compass
 - Add a custom minimap
 - Add compatibility with Project Auga
 - Fix the known issues
+- Pack all dlls in just one
 
 ### Known issues
 
@@ -104,6 +105,12 @@ df - Clear the entire AlweStats.json file by deleting it
 - Config reload doesn't work properly
 
 ### Changelog
+
+v**5.2.1**
+
+- Fixed error with custom status effects
+- Assured that blocks are destroyed on game exit
+- Correctly removed custom pins from map data
 
 v**5.2.0**
 

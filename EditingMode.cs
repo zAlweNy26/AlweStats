@@ -107,6 +107,7 @@ namespace AlweStats {
                 b.SetSize(b.GetText().fontSize);
                 b.SetPosition(b.GetRect().pivot);
                 b.SetMargin(b.GetRect().anchoredPosition);
+                UnityEngine.Object.Destroy(b.GetGameObject());
             }
             Main.config.Save();
             Debug.Log($"The config file of {PluginInfo.PLUGIN_GUID} was saved successfully !");
