@@ -2,49 +2,25 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net4.8</TargetFramework>
     <AssemblyName>AlweStats</AssemblyName>
     <Description>Easily read stats about almost everything !</Description>
-    <Version>5.2.1</Version>
+    <Version>6.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Copyright>zAlweNy26</Copyright>
     <Authors>zAlweNy26</Authors>
+    <RootNamespace>AlweStats</RootNamespace>
+    <DoILRepack>false</DoILRepack>
   </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-
-  <!--<ItemGroup>
-    <EmbeddedResource Include="resources/CircleMask.png" />
-  </ItemGroup>-->
 
   <ItemGroup>
-    <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="All" />
-    <PackageReference Include="BepInEx.Core" Version="5.*" />
-    <PackageReference Include="BepInEx.PluginInfoProps" Version="1.*" />
-    <PackageReference Include="ILRepack" Version="2.0.18" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <EmbeddedResource Include="resources/CircleMask.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="UnityEngine.Modules" Version="2021.2.11" IncludeAssets="compile" />
-    <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.18.2" />
+    <PackageReference Include="ILRepack.Lib.MSBuild" Version="2.1.18" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
@@ -52,8 +28,14 @@
   </ItemGroup>
   
   <ItemGroup>
+    <Reference Include="BepInEx">
+      <HintPath>.\dependencies\BepInEx.dll</HintPath>
+    </Reference>
     <Reference Include="0Harmony">
       <HintPath>.\dependencies\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="BepInEx.Harmony">
+      <HintPath>.\dependencies\BepInEx.Harmony.dll</HintPath>
     </Reference>
     <Reference Include="GuiUtils">
       <HintPath>.\dependencies\assembly_guiutils_publicized.dll</HintPath>
@@ -64,39 +46,67 @@
     <Reference Include="Valheim">
       <HintPath>.\dependencies\assembly_valheim_publicized.dll</HintPath>
     </Reference>
-    <Reference Include="BepInEx">
-      <HintPath>.\dependencies\BepInEx.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
       <HintPath>.\dependencies\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>.\dependencies\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>.\dependencies\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>.\dependencies\UnityEngine.UI.dll</HintPath>
     </Reference>
-    <!--<Reference Include="AugaAPI">
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>.\dependencies\UnityEngine.IMGUIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>.\dependencies\UnityEngine.InputLegacyModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>.\dependencies\UnityEngine.AnimationModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>.\dependencies\UnityEngine.UIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>.\dependencies\UnityEngine.TextRenderingModule.dll</HintPath>
+    </Reference>
+    <Reference Include="AugaAPI">
       <HintPath>.\dependencies\AugaAPI.dll</HintPath>
     </Reference>
-    <Reference Include="ServerSync">
-      <HintPath>.\dependencies\ServerSync.dll</HintPath>
-    </Reference>-->
   </ItemGroup>
 
-  <Import Project=".\valheim.targets" />
+  <Target Name="ILRepacker" AfterTargets="Build">
+    <ItemGroup>
+      <InputAssemblies Include="$(TargetPath)" />
+      <InputAssemblies Include="$(OutputPath)Newtonsoft.Json.dll" />
+      <InputAssemblies Include="$(OutputPath)AugaAPI.dll" />
+    </ItemGroup>
 
-  <PropertyGroup>
-    <PostBuildEvent>
-      xcopy "$(TargetDir)AlweStats.dll" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" /q /y /i
-      xcopy "$(TargetDir)Newtonsoft.Json.dll" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" /q /y /i
-      xcopy "$(TargetDir)AugaAPI.dll" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" /q /y /i
-      xcopy "$(TargetDir)ServerSync.dll" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" /q /y /i
-      xcopy "$(SolutionDir)AlweStats.translations.json" "C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" /q /y /i
-    </PostBuildEvent>
-  </PropertyGroup>
+    <Message Text="MERGING: @(InputAssemblies->'%(Filename)') into $(OutputAssembly)" Importance="High" />
+    
+    <ILRepack
+      Parallel="true"
+      Internalize="true"
+      DebugInfo="true"
+      InputAssemblies="@(InputAssemblies)"
+      TargetKind="SameAsPrimaryAssembly"
+      OutputFile="$(TargetPath)"
+      LibraryPath="$(OutputPath)" 
+    />
+  </Target>
+  <Target Name="CopyDLL" AfterTargets="ILRepacker">
+    <ItemGroup>
+      <Files Include="$(TargetDir)$(ProjectName).dll"/>
+      <Files Include="$(SolutionDir)AlweStats.translations.json"/>
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(Files)"
+      DestinationFolder="C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" />
+
+    <Message Text="Copied to Valheim plugins folder." Importance="High" />
+  </Target>
 </Project>

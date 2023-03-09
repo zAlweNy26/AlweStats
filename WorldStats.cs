@@ -27,7 +27,7 @@ namespace AlweStats {
         }
 
         public static void Update() {
-            if (worldBlock != null && EnvMan.instance != null && Minimap.instance != null) {
+            if (worldBlock != null && EnvMan.instance != null && Minimap.instance != null && ZNet.m_world != null) {
                 double timePlayed = ZNet.instance.GetTimeSeconds();
                 int daysPlayed = (int)Math.Floor(timePlayed / EnvMan.instance.m_dayLengthSec);
                 double minutesPlayed = timePlayed / 60;

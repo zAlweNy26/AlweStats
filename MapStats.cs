@@ -182,16 +182,16 @@ namespace AlweStats {
             }*/
         };
         private static Dictionary<CustomPinData, Minimap.SpriteData> usedPins = new();
-        private static GameObject cursorObj = null, exploredObj = null, bedObj = null, shipObj = null, portalObj = null;
+        private static GameObject cursorObj = null, exploredObj = null, bedObj = null, shipObj = null, portalObj = null, tombObj = null;
         public static Dictionary<ZDO, Minimap.PinData> zdoPins = new();
         private static Dictionary<Vector3, Minimap.PinData> locPins = new();
         private static Dictionary<string, List<Vector3>> locsFound = new();
-        private static List<ZDO> shipsFound = new(), portalsFound = new();
+        private static List<ZDO> shipsFound = new(), portalsFound = new(), tombsFound = new();
         public static List<Vector3> removedPins = new();
         private static List<Character> tempTamedAnimals = new();
         private static List<Minimap.PinData> tamedAnimalsPins = new();
         private static long exploredTotal = 0, mapSize = 0;
-        private static bool zdoCheck, locCheck, isMinimalEffect = false;
+        private static bool isMinimalEffect = false;
         public static bool isOnBoat;
         private static float entrySpacingEffects = 0.0f;
         private static readonly int[] shipsHashes = {
@@ -285,9 +285,22 @@ namespace AlweStats {
                 portalObj.SetActive(false);
             }
 
+            if (Main.enableTombStatus.Value) {
+                GameObject template = Hud.instance.m_statusEffectTemplate.gameObject;
+                tombObj = UnityEngine.Object.Instantiate(template, template.transform);
+                tombObj.name = "TombStatus";
+                tombObj.transform.SetParent(template.transform.parent);
+                tombObj.GetComponentInChildren<Image>().sprite = map.m_windMarker.GetComponent<Image>().sprite;
+                Outline statusOutline = tombObj.transform.Find("Icon").gameObject.AddComponent<Outline>();
+                statusOutline.effectColor = Color.black;
+                tombObj.transform.Find("Name").GetComponent<Text>().text = Localization.instance.Localize("$alwe_tombstone");
+                tombObj.transform.Find("TimeText").GetComponent<Text>().text = "0 m";
+                tombObj.SetActive(false);
+            }
+
             if (Chainloader.PluginInfos.ContainsKey("randyknapp.mods.minimalstatuseffects")) {
                 isMinimalEffect = true;
-                GameObject[] myStatus = {bedObj, shipObj, portalObj};
+                GameObject[] myStatus = { bedObj, shipObj, portalObj, tombObj };
                 Chainloader.PluginInfos.TryGetValue("randyknapp.mods.minimalstatuseffects", out BepInEx.PluginInfo modInfo);
                 ConfigFile modConfig = modInfo.Instance.Config;
                 modConfig.TryGetEntry(new ("General", "ListSize"), out ConfigEntry<Vector2> listSize);
@@ -339,7 +352,8 @@ namespace AlweStats {
                 }
                 Texture2D bmp = new Texture2D(__instance.m_textureSize, __instance.m_textureSize, TextureFormat.RGBA32, false);
                 bmp.name = "CircleTexture";
-                bmp.LoadImage(byteArray);
+                bmp.LoadRawTextureData(byteArray);
+                bmp.Apply();
                 Sprite spt = Sprite.Create(bmp, new Rect(0, 0, __instance.m_textureSize, __instance.m_textureSize), Vector2.zero);
                 spt.name = "CircleSprite";
 
@@ -382,9 +396,6 @@ namespace AlweStats {
             Vector3 playerPos3 = localPlayer.transform.position;
             Vector2 playerPos = new(playerPos3.x, playerPos3.z);
             Transform cameraTransform = Utils.GetMainCamera().transform;
-
-            LoadLocations();
-            LoadZDOs();
 
             foreach (KeyValuePair<ZDO, Minimap.PinData> pin in zdoPins) {
                 if (pin.Key.GetPrefab() == "portal_wood".GetStableHashCode()
@@ -429,14 +440,24 @@ namespace AlweStats {
                     bedObj.SetActive(true);
                 } else bedObj.SetActive(false);
             }
+
             if (Main.enablePortalStatus.Value && portalObj != null) {
                 int space = totEffects + (bedObj != null ? (bedObj.activeSelf ? 1 : 0) : 0);
                 SetElementStatus(portalObj, portalsFound, playerPos, cameraTransform, space);
             }
+
             if (Main.enableShipStatus.Value && shipObj != null && !isOnBoat) {
-                int space = totEffects + (bedObj != null ? (bedObj.activeSelf ? 1 : 0) : 0) + (portalObj != null ? (portalObj.activeSelf ? 1 : 0) : 0);
+                int space = totEffects + (bedObj != null ? (bedObj.activeSelf ? 1 : 0) : 0) + 
+                    (portalObj != null ? (portalObj.activeSelf ? 1 : 0) : 0);
                 SetElementStatus(shipObj, shipsFound, playerPos, cameraTransform, space);
             } else if (Main.enableShipStatus.Value && shipObj != null && isOnBoat) shipObj.SetActive(false);
+
+            if (Main.enableTombStatus.Value && tombObj != null) {
+                int space = totEffects + (bedObj != null ? (bedObj.activeSelf ? 1 : 0) : 0) + 
+                    (portalObj != null ? (portalObj.activeSelf ? 1 : 0) : 0) + (shipObj != null ? (shipObj.activeSelf ? 1 : 0) : 0);
+                SetElementStatus(tombObj, tombsFound, playerPos, cameraTransform, space);
+            }
+
             if (Main.enableMapStats.Value && mapBlock != null) {
                 Physics.Raycast(cameraTransform.position, cameraTransform.forward, out RaycastHit hit);
                 mapBlock.SetText(String.Format(
@@ -445,6 +466,7 @@ namespace AlweStats {
                     $"{hit.point.x:0.#}", $"{hit.point.y:0.#}", $"{hit.point.z:0.#}"
                 ));
             }
+
             if (Main.showCursorCoordinates.Value && cursorObj != null && RectTransformUtility.RectangleContainsScreenPoint(mapRect, mousePos)) {
                 Vector3 cursor = __instance.ScreenToWorldPoint(mousePos);
                 cursor.y = WorldGenerator.instance.GetHeight(cursor.x, cursor.z);
@@ -453,6 +475,7 @@ namespace AlweStats {
                     $"{cursor.x:0.#}", $"{cursor.z:0.#}", $"{cursor.y:0.#}"
                 );
             }
+
             if (Main.enableRotatingMinimap.Value) {
                 Vector3 playerAngles = localPlayer.m_eye.transform.rotation.eulerAngles;
                 __instance.m_mapImageSmall.transform.rotation = Quaternion.Euler(0f, 0f, playerAngles.y);
@@ -495,7 +518,6 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Location), nameof(Location.Awake))]
         static void AddDungeonPin(Location __instance) {
-            LoadLocations();
             Location location = __instance.GetComponent<Location>();
             if (location != null) {
                 Vector3 locPos = location.transform.position;
@@ -513,16 +535,19 @@ namespace AlweStats {
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ZNetScene), methodName: nameof(ZNetScene.AddInstance))]
-        static void PatchCreateZDO(ZNetScene __instance, ZDO zdo) {
-            LoadZDOs();
+        static void PatchCreateZDO(ZNetScene __instance, ZDO zdo, ZNetView nview) {
             Minimap map = Minimap.instance;
             int prefabHash = zdo.GetPrefab();
             if (map != null && zdo.IsValid() && usedPins.Any(p => prefabHash == p.Key.hash)) SetElementPin(map, zdo);
+            TombStone tombComp = nview.gameObject.GetComponent<TombStone>();
             if (zdo.IsValid() && portalObj != null && prefabHash == "portal_wood".GetStableHashCode() && !portalsFound.Contains(zdo)) {
                 portalsFound.Add(zdo);
             } else if (zdo.IsValid() && shipObj != null && shipsHashes.Contains(prefabHash) && !shipsFound.Contains(zdo)) {
                 shipsFound.Add(zdo);
-            }
+            } else if (zdo.IsValid() && tombObj != null && prefabHash == "Player_tombstone".GetStableHashCode() 
+                && !tombsFound.Contains(zdo) && tombComp != null) {
+                if ((Main.onlyOwnTomb.Value && tombComp.IsOwner()) || !Main.onlyOwnTomb.Value) tombsFound.Add(zdo);
+            } 
         }
 
         [HarmonyPrefix]
@@ -551,6 +576,9 @@ namespace AlweStats {
                 if (portalsFound.Contains(zdo)) {
                     portalsFound.Remove(zdo);
                 }
+                if (tombsFound.Contains(zdo)) {
+                    tombsFound.Remove(zdo);
+                }
                 component.ResetZDO();
                 __instance.m_instances.Remove(zdo);
                 if (zdo.IsOwner()) ZDOMan.instance.DestroyZDO(zdo);
@@ -571,8 +599,9 @@ namespace AlweStats {
                 Vector2 closerPos = new(closerZDO.GetPosition().x, closerZDO.GetPosition().z);
                 string prefabName = "";
                 if (list.All(shipsFound.Contains)) {
-                    prefabName = Localization.instance.Localize(usedPins.First(p => p.Key.hash == closerZDO.GetPrefab()).Key.title);
+                    prefabName = Localization.instance.Localize(usedPins.FirstOrDefault(p => p.Key.hash == closerZDO.GetPrefab()).Key.title);
                 } else if (list.All(portalsFound.Contains)) prefabName = Localization.instance.Localize("$piece_portal");
+                else if (list.All(tombsFound.Contains)) prefabName = Localization.instance.Localize("$alwe_tombstone");
                 Vector2 cameraForward = new(camera.forward.x, camera.forward.z);
                 Vector2 cameraRight = new(camera.right.x, camera.right.z);
                 float forwardAngle = Vector2.Angle(closerPos - playerPos, cameraForward);
@@ -659,6 +688,23 @@ namespace AlweStats {
             return false;
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(Minimap), nameof(Minimap.GetMapData))]
+        static bool PatchGetMapData(Minimap __instance) {
+            __instance.m_pins.ForEach(p => {
+                if ((int) p.m_type >= Enum.GetValues(typeof(Minimap.PinType)).Length) p.m_save = false;
+            });
+            return true;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Minimap), nameof(Minimap.LoadMapData))]
+        static void PatchLoadMapData(Minimap __instance) {
+            LoadLocations();
+            LoadZDOs();
+            LoadTombs();
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Minimap), nameof(Minimap.Explore), new Type[] { typeof(int), typeof(int)})]
         static void PatchExplore(ref bool __result) {
@@ -667,15 +713,6 @@ namespace AlweStats {
                 float exploredYouPercentage = exploredTotal * 100f / mapSize;
                 exploredObj.GetComponent<Text>().text = Localization.instance.Localize(text: $"$alwe_explored : {exploredYouPercentage:0.##} %");
             }
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(Minimap), nameof(Minimap.GetMapData))]
-        static bool PatchGetMapData(Minimap __instance) {
-            __instance.m_pins.ForEach(p => {
-                if ((int) p.m_type >= Enum.GetValues(typeof(Minimap.PinType)).Length) p.m_save = false;
-            });
-            return true;
         }
 
         [HarmonyPostfix]
@@ -717,9 +754,8 @@ namespace AlweStats {
 
         private static void LoadLocations() {
             Minimap map = Minimap.instance;
-            if (!Utilities.CheckInEnum(CustomPinType.Disabled, Main.showCustomPins.Value) && !locCheck && map != null) {
+            if (!Utilities.CheckInEnum(CustomPinType.Disabled, Main.showCustomPins.Value) && map != null) {
                 List<ZoneSystem.LocationInstance> locations = Enumerable.ToList<ZoneSystem.LocationInstance>(ZoneSystem.instance.GetLocationList());
-                if (locations.Count > 0) locCheck = true;
                 foreach (ZoneSystem.LocationInstance loc in locations.Where(l => l.m_placed == true)) {
                     Vector3 locPos = loc.m_position;
                     string prefabName = loc.m_location.m_prefabName.ToLower();
@@ -736,11 +772,20 @@ namespace AlweStats {
             }
         }
 
+        private static void LoadTombs() {
+            if (Main.enableTombStatus.Value && tombObj != null) {
+                TombStone[] tombs = UnityEngine.Object.FindObjectsOfType<TombStone>();
+                foreach (TombStone tomb in tombs) {
+                    ZDO zdo = tomb.GetComponent<ZNetView>().GetZDO();
+                    if (zdo.IsValid()) tombsFound.Add(zdo);
+                }
+            }
+        }
+
         private static void LoadZDOs() {
             Minimap map = Minimap.instance;
             if ((!Utilities.CheckInEnum(CustomPinType.Disabled, Main.showCustomPins.Value) || Main.enablePortalStatus.Value 
-                || Main.enableShipStatus.Value) && !zdoCheck && map != null) {
-                if (ZDOMan.instance.m_objectsByID.Count > 0) zdoCheck = true;
+                || Main.enableShipStatus.Value) && map != null) {
                 foreach (ZDO zdo in ZDOMan.instance.m_objectsByID.Values.ToList()) {
                     int prefabHash = zdo.GetPrefab();
                     Vector3 zdoPos = zdo.GetPosition().Round();
@@ -758,12 +803,13 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(ZNet), nameof(ZNet.LoadWorld))]
         static void PatchLoadWorld(ZNet __instance) {
-            zdoCheck = locCheck = isOnBoat = false;
+            isOnBoat = false;
             zdoPins.Clear();
             locPins.Clear();
             locsFound.Clear();
             shipsFound.Clear();
             portalsFound.Clear();
+            tombsFound.Clear();
             usedPins = pinsDict.Keys.ToDictionary(k => k, v => pinsDict[v]);
             if (Chainloader.PluginInfos.ContainsKey("marlthon.OdinShip") && Utilities.CheckInEnum(CustomPinType.Ship, Main.showCustomPins.Value)) {
                 usedPins.Add(new CustomPinData { 

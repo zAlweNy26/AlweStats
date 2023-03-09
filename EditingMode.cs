@@ -7,15 +7,19 @@ namespace AlweStats {
     public static class EditingMode {
         private static GameObject resetObj = null;
         private static bool isEditing = false;
-        private static List<GameObject> templateObjs = null;
-        private static List<Block> blockObjs = null;
+        private static List<GameObject> templateObjs = new();
+        private static List<Block> blockObjs = new();
         private static Vector3 lastMousePos = Vector3.zero;
         private static string currentlyDragging = "";
         private static float lastScrollPos = 0f;
 
         public static void Start(List<Block> blocks) {
-            templateObjs = new();
-            blockObjs = blocks;
+            foreach (GameObject go in templateObjs) {
+                UnityEngine.Object.Destroy(go);
+            }
+            templateObjs.Clear();
+            blockObjs.Clear();
+            blockObjs.AddRange(blocks);
             foreach (Block b in blocks) {
                 GameObject templateObj = UnityEngine.Object.Instantiate(b.GetGameObject(), b.GetTransform());
                 templateObj.name = $"{b.GetName()}Template";
@@ -76,7 +80,7 @@ namespace AlweStats {
             isEditing = !isEditing;
             if (templateObjs == null) return;
             if (isEditing) {
-                Debug.Log($"{PluginInfo.PLUGIN_GUID} - Editing mode : ON !");
+                //Debug.Log($"{PluginInfo.PLUGIN_GUID} - Editing mode : ON !");
                 foreach (GameObject g in templateObjs) {
                     Transform original = g.transform.parent.Find(g.name.Replace("Template", ""));
                     RectTransform originalRect = original.GetComponent<RectTransform>();
@@ -88,7 +92,7 @@ namespace AlweStats {
                     if (original.gameObject.activeSelf) g.SetActive(true);
                 }
             } else if (!isEditing) {
-                Debug.Log($"{PluginInfo.PLUGIN_GUID} - Editing mode : OFF !");
+                //Debug.Log($"{PluginInfo.PLUGIN_GUID} - Editing mode : OFF !");
                 foreach (GameObject g in templateObjs) {
                     Transform original = g.transform.parent.Find(g.name.Replace("Template", ""));
                     RectTransform originalRect = original.GetComponent<RectTransform>();
@@ -103,6 +107,8 @@ namespace AlweStats {
         }
 
         public static void Destroy(List<Block> blocks) {
+            isEditing = true;
+            OnPress();
             foreach (Block b in blocks) {
                 b.SetSize(b.GetText().fontSize);
                 b.SetPosition(b.GetRect().pivot);
@@ -110,14 +116,13 @@ namespace AlweStats {
                 UnityEngine.Object.Destroy(b.GetGameObject());
             }
             Main.config.Save();
-            Debug.Log($"The config file of {PluginInfo.PLUGIN_GUID} was saved successfully !");
+            Debug.Log($"The config file of {Main.Plugin_GUID} was saved successfully !");
         }
 
         private static void Reset() {
             isEditing = true;
             OnPress();
             foreach (Block b in blockObjs) {
-                b.SetSize((int) b.GetConfigValue<int>(b.GetName(), "Size").DefaultValue);
                 b.SetPosition(b.GetConfigValue<string>(b.GetName(), "Position").DefaultValue.ToString());
                 b.SetMargin(b.GetConfigValue<string>(b.GetName(), "Margin").DefaultValue.ToString());
             }

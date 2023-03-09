@@ -15,7 +15,7 @@ be sure to enable either one or the other equivalent section so they don't confl
 "aedenthorn's Extended Player Inventory" and "marlthon's OdinShip" mods.**
 
 > For reasons inherent to the optimal functioning of the mod,
-> everything related to the pins and elements in the status effects list (like BedStatus, PortalStatus and ShipStatus, except for WeightStatus)
+> everything related to the pins and elements in the status effects list (BedStatus, PortalStatus, ShipStatus and TombStatus, except for WeightStatus)
 > could cause a lowering of fps if the computer running the game is not very powerful.
 >  
 > Since the default day length declared in Valheim doesn't match the real one,
@@ -71,7 +71,7 @@ In the config file you can also :
 - Toggle the hover status separately for rock, trees, bushes, plants, beehives, fireplaces, fermenters, containers, cooking stations and smelters
 - Toggle the cursor coordinates and the explored percentage in the large map
 - Toggle the rotation of the minimap that follows the player camera rotation
-- Toggle the distance and direction from claimed bed, closer portal and closer ship shown as elements in the status effects list
+- Toggle the distance and direction from claimed bed, closer portal, closer ship and closer tomb shown as elements in the status effects list
 - Toggle the custom bow charge bar instead of the vanilla circle that shrinks
 - Toggle pins for ships, dungeons (troll caves, mountain caves, crypts, fire holes and infested mines), carts and portals
 - Toggle the title of the custom pins
@@ -89,12 +89,10 @@ df - Clear the entire AlweStats.json file by deleting it
 
 ## To-do list
 
-- Add detailed items informations
 - Add a compass
 - Add a custom minimap
 - Add compatibility with Project Auga
 - Fix the known issues
-- Pack all dlls in just one
 
 ### Known issues
 
@@ -105,6 +103,17 @@ df - Clear the entire AlweStats.json file by deleting it
 - Config reload doesn't work properly
 
 ### Changelog
+
+v**6.0.0**
+
+- **Packed all dependencies in one dll**
+- Added "TombStatus" to the custom status effects in the MapStats section
+- Now custom status effects are disabled by default
+- Fixed position of Distance object in EntityStats
+- Now the "HealthBarHeight" config setting also changes the Distance object font size
+- Added config setting "ShowOtherPlayersHealth" to toggle the players in range health
+- Added more checks to the ServerStats and WorldStats blocks
+- Now the reset button in pause menu doesn't reset the size of the blocks
 
 v**5.2.1**
 

@@ -8,13 +8,16 @@ using System.Reflection;
 using UnityEngine;
 
 namespace AlweStats {
-    [BepInPlugin("Alwe.AlweStats", "AlweStats", "5.2.1")]
+    [BepInPlugin(Plugin_GUID, Plugin_Name, Plugin_Version)]
     [BepInDependency("randyknapp.mods.auga", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("randyknapp.mods.minimalstatuseffects", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("randyknapp.mods.equipmentandquickslots", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("aedenthorn.ExtendedPlayerInventory", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("marlthon.OdinShip", BepInDependency.DependencyFlags.SoftDependency)]
     public class Main : BaseUnityPlugin {
+        public const string Plugin_GUID = "Alwe.AlweStats";
+        public const string Plugin_Name = "AlweStats";
+        public const string Plugin_Version = "6.0.0";
         private readonly Harmony harmony = new("zAlweNy26.AlweStats");
         public static ConfigFile config;
         public static string statsFilePath;
@@ -23,8 +26,9 @@ namespace AlweStats {
             enableGameStats, enableWorldStats, enableWorldClock, enableShipStats, enableEnvStats, enablePlayerInfos, 
             enablePlayerStats, customBowCharge, daysInWorldsList, worldClockFormat, enableShipStatus, showTotalOfQueue, 
             showResetButton, removeMinimapBiome, enableEntityStats, enableMapStats, showCursorCoordinates, showEntityPregnancy, 
-            enableRotatingMinimap, showExploredPercentage, enableBedStatus, enablePortalStatus, systemClockFormat, 
-            replaceBedPinIcon, showPingDistance, enableWeightStatus, enableSystemClock, enableServerStats/*, showCustomMinimap*/;
+            enableRotatingMinimap, showExploredPercentage, enableBedStatus, enablePortalStatus, systemClockFormat,
+            replaceBedPinIcon, showPingDistance, enableWeightStatus, enableSystemClock, enableServerStats, onlyOwnTomb,
+            enableTombStatus, showOtherPlayersHealth/*, showCustomMinimap*/;
         public static ConfigEntry<int> 
             gameStatsSize, worldStatsSize, worldClockSize, systemClockSize, serverStatsSize,
             shipStatsSize, playerStatsSize, mapStatsSize, largeMapInfoSize, healthBarHeight;
@@ -63,7 +67,7 @@ namespace AlweStats {
 
             worldClockFormat = Config.Bind("WorldClock", "TwelveHourFormat", false, "Toggle the clock in the 12h format with AM and PM");
             systemClockFormat = Config.Bind("SystemClock", "TwelveHourFormat", false, "Toggle the clock in the 12h format with AM and PM");
-            showResetButton = Config.Bind("General", "ShowResetButton", true, "Toggle a button in the pause menu to reset the AlweStats values");
+            showResetButton = Config.Bind("General", "ShowResetButton", true, "Toggle a button in the pause menu to reset the AlweStats blocks positions");
             removeMinimapBiome = Config.Bind("WorldStats", "RemoveMinimapBiome", true, "Toggle the current biome in the top-left corner in minimap");
             daysInWorldsList = Config.Bind("WorldStats", "DaysInWorldsList", true, "Toggle days passed counter in the world list panel");
             customBowCharge = Config.Bind("PlayerStats", "CustomBowCharge", true, "Toggle a custom bow charge bar instead of the vanilla circle that shrinks");
@@ -72,14 +76,17 @@ namespace AlweStats {
             showCursorCoordinates = Config.Bind("MapStats", "ShowCursorCoordinates", true, "Toggle the cursor coordinates in the bottom-left corner of the large map");
             showEntityPregnancy = Config.Bind("EntityStats", "ShowEntityPregnancy", true, "Toggle the pregnancy percentage when hovering a tamed animal");
             showExploredPercentage = Config.Bind("MapStats", "ShowExploredPercentage", true, "Toggle the explored percentage in the top-left corner of the large map");
-            enableBedStatus = Config.Bind("MapStats", "BedStatus", true, "Toggle the status that shows the distance from the claimed bed");
-            enablePortalStatus = Config.Bind("MapStats", "PortalStatus", true, "Toggle the status that shows the distance from the closer portal");
-            enableShipStatus = Config.Bind("MapStats", "ShipStatus", true, "Toggle the status that shows the distance from the closer ship");
-            enableWeightStatus = Config.Bind("PlayerStats", "WeightStatus", true, "Toggle the status that shows the player weight");
+            enableBedStatus = Config.Bind("MapStats", "BedStatus", false, "Toggle the status that shows the distance from the claimed bed");
+            enablePortalStatus = Config.Bind("MapStats", "PortalStatus", false, "Toggle the status that shows the distance from the closer portal");
+            enableShipStatus = Config.Bind("MapStats", "ShipStatus", false, "Toggle the status that shows the distance from the closer ship");
+            enableTombStatus = Config.Bind("MapStats", "TombStatus", false, "Toggle the status that shows the distance from the closer tomb");
+            enableWeightStatus = Config.Bind("PlayerStats", "WeightStatus", false, "Toggle the status that shows the player weight");
             enablePlayerInfos = Config.Bind("PlayerStats", "PlayerInfos", true, "Toggle the player infos in character selection");
             replaceBedPinIcon = Config.Bind("MapStats", "ReplaceBedPinIcon", true, "Replace the default pin icon for the bed with the icon of the bed building piece");
             showPingDistance = Config.Bind("MapStats", "ShowPingDistance", true, "Toggle the distance to be shown when someone pings on the map");
             showTotalOfQueue = Config.Bind("EnvStats", "ShowTotalOfQueue", true, "Show the total remaining time for the entire queue (true) or for a single item (false)");
+            onlyOwnTomb = Config.Bind("MapStats", "OnlyOwnTomb", true, "Points only at own tombs and not those of all");
+            showOtherPlayersHealth = Config.Bind("ServerStats", "ShowOtherPlayersHealth", true, "Toggle the health values of players in range");
 
             gameStatsColor = Config.Bind("GameStats", "Color", "255, 180, 90, 255", 
                 "The color of the text showed\nThe format is : [Red], [Green], [Blue], [Alpha]\nThe range of possible values is from 0 to 255");
@@ -187,7 +194,7 @@ namespace AlweStats {
                 "The multiplier for the scale of the crosshair image");
             rangeForPlayers = Config.Bind("ServerStats", "RangeForPlayers", 50f,
                 "The range in which to scan for players");
-            healthBarHeight = Config.Bind("EntityStats", "HealthBarHeight", 12,
+            healthBarHeight = Config.Bind("EntityStats", "HealthBarHeight", 14,
                 "The height for all the health bars");
                 
             showEntityDistance = Config.Bind("EntityStats", "ShowEntityDistance", "1", 
@@ -315,11 +322,11 @@ namespace AlweStats {
                 "\n'{1}' stands for the remaining time" +
                 "\n'<color>' and '</color>' mean that the text between them will be colored based on the process percentage");
 
-            Logger.LogInfo($"{PluginInfo.PLUGIN_GUID} was loaded successfully !");
+            Logger.LogInfo($"{Plugin_GUID} was loaded successfully !");
 
             statsFilePath = Path.Combine(Paths.ConfigPath, "AlweStats.json");
 
-            HasAuga = false;//Auga.API.IsLoaded();
+            HasAuga = Auga.API.IsLoaded();
 
             LoadTranslations();
         }
@@ -343,15 +350,15 @@ namespace AlweStats {
                 }
             }
 
-            Debug.Log($"{PluginInfo.PLUGIN_GUID} loaded {translations.Count} translations successfully !");
+            Debug.Log($"{Plugin_GUID} loaded {translations.Count} translations successfully !");
         }
 
         public static void ReloadConfig() { 
             if (File.Exists(config.ConfigFilePath)) {
                 config.Reload(); 
                 config.Save();
-                Debug.Log($"The config file of {PluginInfo.PLUGIN_GUID} was reloaded successfully !");
-            } else Debug.Log($"The config file of {PluginInfo.PLUGIN_GUID} was not found !");
+                Debug.Log($"The config file of {Plugin_GUID} was reloaded successfully !");
+            } else Debug.Log($"The config file of {Plugin_GUID} was not found !");
         }
 
         [HarmonyPatch]
@@ -431,6 +438,7 @@ namespace AlweStats {
                 if (blocks != null) EditingMode.Destroy(blocks);
                 Utilities.UpdateWorldFile(MapStats.removedPins);
                 Debug.Log("Updating the worlds file...");
+                isConnected = false;
                 return true;
             }
         }

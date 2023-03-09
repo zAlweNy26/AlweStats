@@ -9,7 +9,6 @@ namespace AlweStats {
     public static class EntityStats {
         public static void Start() {
             Transform originalHealthText = EnemyHud.instance.m_baseHudMount.transform.Find("Health/HealthText");
-            Transform originalName = EnemyHud.instance.m_baseHudMount.transform.Find("Name");
             foreach (Transform t in EnemyHud.instance.m_hudRoot.transform) {
                 Transform healthTransform = t.Find("Health");
                 Transform nameTransform = t.Find("Name");   
@@ -47,13 +46,13 @@ namespace AlweStats {
                         new(fastRect.x, Main.healthBarHeight.Value);
                 }
                 if (!Utilities.CheckInEnum(DistanceType.Disabled, Main.showEntityDistance.Value) && nameTransform) {
-                    GameObject distanceObj = UnityEngine.Object.Instantiate(originalName.gameObject, originalName);
+                    GameObject distanceObj = UnityEngine.Object.Instantiate(originalHealthText.gameObject, originalHealthText);
                     distanceObj.name = "Distance";
                     distanceObj.transform.SetParent(nameTransform.parent);
-                    Vector2 originalNamePos = nameTransform.GetComponent<RectTransform>().anchoredPosition;
-                    distanceObj.GetComponent<Text>().fontSize = 14;
+                    Rect healthBarRect = healthTransform.Find("bkg").GetComponent<RectTransform>().rect;
+                    distanceObj.GetComponent<Text>().fontSize = Main.healthBarHeight.Value;
                     distanceObj.GetComponent<Text>().text = "0 m";
-                    distanceObj.GetComponent<RectTransform>().anchoredPosition = new(originalNamePos.x, -(originalNamePos.y / 2));
+                    distanceObj.GetComponent<RectTransform>().anchoredPosition = new(0, -healthBarRect.height);
                     distanceObj.SetActive(false);
                 }
             }
