@@ -17,7 +17,7 @@ namespace AlweStats {
     public class Main : BaseUnityPlugin {
         public const string Plugin_GUID = "Alwe.AlweStats";
         public const string Plugin_Name = "AlweStats";
-        public const string Plugin_Version = "6.0.0";
+        public const string Plugin_Version = "6.0.1";
         private readonly Harmony harmony = new("zAlweNy26.AlweStats");
         public static ConfigFile config;
         public static string statsFilePath;
@@ -322,7 +322,7 @@ namespace AlweStats {
                 "\n'{1}' stands for the remaining time" +
                 "\n'<color>' and '</color>' mean that the text between them will be colored based on the process percentage");
 
-            Logger.LogInfo($"{Plugin_GUID} was loaded successfully !");
+            Logger.LogInfo($"{Plugin_Name} was loaded successfully !");
 
             statsFilePath = Path.Combine(Paths.ConfigPath, "AlweStats.json");
 
@@ -350,15 +350,15 @@ namespace AlweStats {
                 }
             }
 
-            Debug.Log($"{Plugin_GUID} loaded {translations.Count} translations successfully !");
+            Debug.Log($"{Plugin_Name} loaded {translations.Count} translations successfully !");
         }
 
         public static void ReloadConfig() { 
             if (File.Exists(config.ConfigFilePath)) {
                 config.Reload(); 
                 config.Save();
-                Debug.Log($"The config file of {Plugin_GUID} was reloaded successfully !");
-            } else Debug.Log($"The config file of {Plugin_GUID} was not found !");
+                Debug.Log($"The config file of {Plugin_Name} was reloaded successfully !");
+            } else Debug.Log($"The config file of {Plugin_Name} was not found !");
         }
 
         [HarmonyPatch]
@@ -368,7 +368,7 @@ namespace AlweStats {
             
             [HarmonyPostfix]
             [HarmonyPatch(typeof(Hud), nameof(Hud.Awake))]
-            private static void PatchHudStart() {
+            private static void PatchHudAwake() {
                 blocks.Clear();
 
                 EntityStats.Start();
@@ -382,6 +382,12 @@ namespace AlweStats {
                 if (enablePlayerStats.Value) blocks.Add(PlayerStats.Start()); else PlayerStats.Start();
                 
                 EditingMode.Start(blocks);
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(Menu), nameof(Menu.Start))]
+            private static void PatchPauseMenuStart() {
+                if (showResetButton.Value) EditingMode.AddButton();
             }
 
             [HarmonyPostfix]
@@ -403,12 +409,6 @@ namespace AlweStats {
             [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Update))]
             private static void PatchMainMenuUpdate() {
                 if (Input.GetKeyDown(reloadPluginKey.Value)) ReloadConfig();    
-            }
-
-            [HarmonyPostfix]
-            [HarmonyPatch(typeof(Menu), nameof(Menu.Update))]
-            private static void PatchEscMenuUpdate() {
-                if (Menu.IsVisible() && showResetButton.Value) EditingMode.ShowButton();
             }
 
             [HarmonyPostfix]

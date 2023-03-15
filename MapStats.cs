@@ -6,6 +6,7 @@ using System.Linq;
 using System.Collections.Generic;
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
+using TMPro;
 
 namespace AlweStats {
     [HarmonyPatch]
@@ -225,8 +226,8 @@ namespace AlweStats {
                 cursorObj = UnityEngine.Object.Instantiate(original, original.transform);
                 cursorObj.name = "CursorCoordinates";
                 cursorObj.transform.SetParent(original.transform.parent);
-                cursorObj.GetComponent<Text>().alignment = TextAnchor.MiddleLeft;
-                cursorObj.GetComponent<Text>().fontSize = Main.largeMapInfoSize.Value;
+                cursorObj.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.MidlineLeft;
+                cursorObj.GetComponent<TextMeshProUGUI>().fontSize = Main.largeMapInfoSize.Value;
                 RectTransform cursorRect = cursorObj.GetComponent<RectTransform>();
                 cursorRect.anchorMin = cursorRect.anchorMax = cursorRect.pivot = Vector2.zero;
                 cursorRect.anchoredPosition = new Vector2(15f, 5f);
@@ -238,8 +239,8 @@ namespace AlweStats {
                 exploredObj = UnityEngine.Object.Instantiate(original, original.transform);
                 exploredObj.name = "ExploredPercentage";
                 exploredObj.transform.SetParent(original.transform.parent);
-                exploredObj.GetComponent<Text>().alignment = TextAnchor.MiddleLeft;
-                exploredObj.GetComponent<Text>().fontSize = Main.largeMapInfoSize.Value;
+                exploredObj.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.MidlineLeft;
+                exploredObj.GetComponent<TextMeshProUGUI>().fontSize = Main.largeMapInfoSize.Value;
                 RectTransform exploredRect = exploredObj.GetComponent<RectTransform>();
                 exploredRect.anchorMin = exploredRect.anchorMax = exploredRect.pivot = Vector2.up;
                 exploredRect.anchoredPosition = new Vector2(15f, -5f);
@@ -470,7 +471,7 @@ namespace AlweStats {
             if (Main.showCursorCoordinates.Value && cursorObj != null && RectTransformUtility.RectangleContainsScreenPoint(mapRect, mousePos)) {
                 Vector3 cursor = __instance.ScreenToWorldPoint(mousePos);
                 cursor.y = WorldGenerator.instance.GetHeight(cursor.x, cursor.z);
-                cursorObj.GetComponent<Text>().text = String.Format(
+                cursorObj.GetComponent<TextMeshProUGUI>().text = String.Format(
                     Main.mapCoordinatesFormat.Value,
                     $"{cursor.x:0.#}", $"{cursor.z:0.#}", $"{cursor.y:0.#}"
                 );
@@ -711,7 +712,7 @@ namespace AlweStats {
             if (Main.showExploredPercentage.Value && exploredObj != null && __result) {
                 exploredTotal += 1;
                 float exploredYouPercentage = exploredTotal * 100f / mapSize;
-                exploredObj.GetComponent<Text>().text = Localization.instance.Localize(text: $"$alwe_explored : {exploredYouPercentage:0.##} %");
+                exploredObj.GetComponent<TextMeshProUGUI>().text = Localization.instance.Localize(text: $"$alwe_explored : {exploredYouPercentage:0.##} %");
             }
         }
 
@@ -721,7 +722,7 @@ namespace AlweStats {
             if (Main.showExploredPercentage.Value && exploredObj != null) {
                 exploredTotal = 0;
                 float exploredYouPercentage = exploredTotal * 100f / mapSize;
-                exploredObj.GetComponent<Text>().text = Localization.instance.Localize(text: $"$alwe_explored : {exploredYouPercentage:0.##} %");
+                exploredObj.GetComponent<TextMeshProUGUI>().text = Localization.instance.Localize(text: $"$alwe_explored : {exploredYouPercentage:0.##} %");
             }
         }
 
@@ -748,7 +749,7 @@ namespace AlweStats {
             if (Main.showPingDistance.Value && wt.m_type == Talker.Type.Ping) {
                 float distance = Utils.DistanceXZ(Player.m_localPlayer.transform.position, wt.m_position);
                 string distanceText = distance < 1000f ? $"\n{distance:0.#} m" : $"\n{(distance / 1000f):0.#} km";
-                wt.m_textField.text += distanceText;
+                wt.m_textMeshField.text += distanceText;
             }
         }
 

@@ -9,17 +9,21 @@ namespace AlweStats {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(Terminal), nameof(Terminal.InitTerminal))]
         static void InitCommands() {
-            new Terminal.ConsoleCommand("alwe", "[command] [...argument/s] - General command to use all the subcommands of the AlweStats mod", (Terminal.ConsoleEventArgs args) => {
+            new Terminal.ConsoleCommand("alwe", "[command] [...argument/s] - General command to use all the subcommands of the AlweStats mod", delegate (Terminal.ConsoleEventArgs args) {
                 if (args.Length >= 2) {
                     List<WorldInfo> worlds = Utilities.GetWorldInfos();
                     if (args[1] == "reload") {
                         Main.ReloadConfig();
+                        args.Context.AddString("The Alwe.AlweStats.json file was reloaded successfully !");
+                    } else if (args[1] == "reset") {
+                        EditingMode.Reset();
+                        args.Context.AddString("The blocks positions were resetted successfully !");
                     } else if (args[1] == "df") {
                         try {
                             File.Delete(Main.statsFilePath);
-                            args.Context.AddString("The AlweStats.json file was deleted successfully !");
+                            args.Context.AddString("The Alwe.AlweStats.json file was deleted successfully !");
                         } catch (System.Exception) {
-                            args.Context.AddString("Unable to delete the AlweStats.json file !");
+                            args.Context.AddString("Unable to delete the Alwe.AlweStats.json file !");
                             throw;
                         }
                     } else if (args[1] == "cfp") {
@@ -27,8 +31,8 @@ namespace AlweStats {
                             WorldInfo world = worlds.Find(w => w.worldName == args[2]);
                             if (world != null) {
                                 world.removedPins.Clear();
-                                args.Context.AddString($"Removed all the pins from the AlweStats.json file for {args[2]} !");
-                            } else args.Context.AddString($"The world {args[2]} wasn't found in the AlweStats.json file !");
+                                args.Context.AddString($"Removed all the pins from the Alwe.AlweStats.json file for {args[2]} !");
+                            } else args.Context.AddString($"The world {args[2]} wasn't found in the Alwe.AlweStats.json file !");
                         } else args.Context.AddString("You have to specify a world to execute this command !");
                     }/* else if (args[1] == "gp") {
                         if (Minimap.instance == null || 
@@ -94,6 +98,7 @@ namespace AlweStats {
                 } else {
                     args.Context.AddString("List of valid subcommands :\n" + 
                         "reload - Reload the configuration file to update changes in-game\n" +
+                        "reset - Reset the blocks positions\n" + 
                         "cfp [world] - Remove all the pins saved in the AlweStats.json file for a specific world\n" +
                         "df - Clear the entire AlweStats.json file by deleting it"/*\n" +
                         "gp [radius] - Group portal pins into one in the radius from the player position\n" +

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 using UnityEngine.UI;
+using TMPro;
 
 namespace AlweStats {
     [HarmonyPatch]
@@ -43,8 +44,12 @@ namespace AlweStats {
                     float currentPercentage = wnt.GetHealthPercentage() * 100f;
                     pieceObj.SetActive(true);
                     Hud.instance.m_pieceHealthBar.SetValue(currentPercentage / 100f);
-                    Hud.instance.m_pieceHealthBar.SetColor(Color.Lerp(new Color(1f, 0f, 0f, 1f), new Color(0f, 1f, 0f, 1f), currentPercentage / 100f));
-                    pieceObj.GetComponent<Text>().text = String.Format(
+                    Hud.instance.m_pieceHealthBar.SetColor(Color.Lerp(
+                        new Color(1f, 0f, 0f, 1f), 
+                        new Color(0f, 1f, 0f, 1f), 
+                        currentPercentage / 100f
+                    ));
+                    pieceObj.GetComponent<TextMeshProUGUI>().text = String.Format(
                         Main.healthFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(currentPercentage)}>"), 
                         $"{currentHealth:0.#}", 
                         wnt.m_health, 

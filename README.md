@@ -83,6 +83,7 @@ In the console or chat, now you can use these commands :
 > alwe (or /alwe in chat)
 List of valid subcommands :
 reload - Reload the configuration file to update changes in-game
+reset - Reset the blocks positions
 cfp [world] - Remove all the pins from the AlweStats.json file for a specific world
 df - Clear the entire AlweStats.json file by deleting it
 ```
@@ -103,6 +104,12 @@ df - Clear the entire AlweStats.json file by deleting it
 - Config reload doesn't work properly
 
 ### Changelog
+
+v**6.0.1**
+
+- **Now compatible with game version 0.214.2**
+- Added reset functionality as console command "alwe reset"
+- Now the reset button knots change positions based on text length
 
 v**6.0.0**
 

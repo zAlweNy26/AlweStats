@@ -10,25 +10,13 @@ using Newtonsoft.Json;
 namespace AlweStats {
     public static class Utilities {
 
-        public static string ReplaceFirstOccurrence (string source, string find, string replace) {
-            int place = source.IndexOf(find);
-            string result = source.Remove(place, find.Length).Insert(place, replace);
-            return result;
-        }
-
-        public static string ReplaceLastOccurrence(string source, string find, string replace) {
-            int place = source.LastIndexOf(find);
-            string result = source.Remove(place, find.Length).Insert(place, replace);
-            return result;
-        }
-
         public static string GetColorString(float percentage) {
-            string color = "";
-            if (percentage >= 75f) color = "lime";
-            else if (percentage >= 50f) color = "yellow";
-            else if (percentage >= 25f) color = "orange";
-            else color = "red";
-            return color;
+            Color percentageColor = Color.Lerp(
+                new Color(1f, 0f, 0f, 1f), 
+                new Color(0f, 1f, 0f, 1f), 
+                percentage / 100f
+            );
+            return $"#{ColorUtility.ToHtmlStringRGB(percentageColor)}";
         }
 
         public static T GetCultureInvariant<T>(object num) {

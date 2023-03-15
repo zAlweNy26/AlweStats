@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using HarmonyLib;
 using UnityEngine.UI;
+using TMPro;
 
 namespace AlweStats {
     [HarmonyPatch]
@@ -26,7 +27,7 @@ namespace AlweStats {
                         healthObj.transform.SetParent(healthTransform);
                         healthObj.GetComponent<RectTransform>().anchoredPosition = Vector2.up;
                         healthObj.SetActive(true);
-                        healthObj.GetComponent<Text>().fontSize = Main.healthBarHeight.Value;
+                        healthObj.GetComponent<TextMeshProUGUI>().fontSize = Main.healthBarHeight.Value;
                     }
 
                     Vector2 darkenRect = healthTransform.Find("darken").GetComponent<RectTransform>().sizeDelta;
@@ -50,8 +51,8 @@ namespace AlweStats {
                     distanceObj.name = "Distance";
                     distanceObj.transform.SetParent(nameTransform.parent);
                     Rect healthBarRect = healthTransform.Find("bkg").GetComponent<RectTransform>().rect;
-                    distanceObj.GetComponent<Text>().fontSize = Main.healthBarHeight.Value;
-                    distanceObj.GetComponent<Text>().text = "0 m";
+                    distanceObj.GetComponent<TextMeshProUGUI>().fontSize = Main.healthBarHeight.Value;
+                    distanceObj.GetComponent<TextMeshProUGUI>().text = "0 m";
                     distanceObj.GetComponent<RectTransform>().anchoredPosition = new(0, -healthBarRect.height);
                     distanceObj.SetActive(false);
                 }
@@ -82,14 +83,14 @@ namespace AlweStats {
             }
             if (isMount) {
                 hudData.m_stamina = hudData.m_gui.transform.Find("Stamina/stamina_fast").GetComponent<GuiBar>();
-                hudData.m_staminaText = hudData.m_gui.transform.Find("Stamina/StaminaText").GetComponent<Text>();
+                hudData.m_staminaText = hudData.m_gui.transform.Find("Stamina/StaminaText").GetComponent<TextMeshProUGUI>();
             }
-            hudData.m_healthText = hudData.m_gui.transform.Find("Health/HealthText").GetComponent<Text>();
+            hudData.m_healthText = hudData.m_gui.transform.Find("Health/HealthText").GetComponent<TextMeshProUGUI>();
             hudData.m_level2 = hudData.m_gui.transform.Find("level_2") as RectTransform;
             hudData.m_level3 = hudData.m_gui.transform.Find("level_3") as RectTransform;
             hudData.m_alerted = hudData.m_gui.transform.Find("Alerted") as RectTransform;
             hudData.m_aware = hudData.m_gui.transform.Find("Aware") as RectTransform;
-            hudData.m_name = hudData.m_gui.transform.Find("Name").GetComponent<Text>();
+            hudData.m_name = hudData.m_gui.transform.Find("Name").GetComponent<TextMeshProUGUI>();
             hudData.m_name.text = Localization.instance.Localize(c.GetHoverName());
             hudData.m_isMount = isMount;
             __instance.m_huds.Add(c, hudData);
@@ -167,13 +168,13 @@ namespace AlweStats {
                     if (Utilities.CheckInEnum(DistanceType.Hovering, Main.showEntityDistance.Value) && player) {
                         if (hoverCreature == value.m_character) {
                             float distance = Vector3.Distance(player.transform.position, hoverCreature.transform.position);
-                            value.m_gui.transform.Find("Distance").GetComponent<Text>().text = $"{distance:0.#} m";
+                            value.m_gui.transform.Find("Distance").GetComponent<TextMeshProUGUI>().text = $"{distance:0.#} m";
                             value.m_gui.transform.Find("Distance").gameObject.SetActive(true);
                         } else value.m_gui.transform.Find("Distance").gameObject.SetActive(false);
                     }
                     if (Utilities.CheckInEnum(DistanceType.All, Main.showEntityDistance.Value) && player) {
                         float distance = Vector3.Distance(player.transform.position, value.m_character.transform.position);
-                        value.m_gui.transform.Find("Distance").GetComponent<Text>().text = $"{distance:0.#} m";
+                        value.m_gui.transform.Find("Distance").GetComponent<TextMeshProUGUI>().text = $"{distance:0.#} m";
                         value.m_gui.transform.Find("Distance").gameObject.SetActive(true);
                     }
                     value.m_gui.transform.Find("Health/health_fast").GetComponent<GuiBar>().SetColor(Utilities.StringToColor(Main.healthBarColor.Value));
