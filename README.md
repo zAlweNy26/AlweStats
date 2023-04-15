@@ -105,6 +105,11 @@ df - Clear the entire AlweStats.json file by deleting it
 
 ### Changelog
 
+v**6.0.2**
+
+- Updated game version reference to 0.215.2
+- Fixed a problem that did not allow the list of worlds to be used
+
 v**6.0.1**
 
 - **Now compatible with game version 0.214.2**
