@@ -600,7 +600,10 @@ namespace AlweStats {
                 Vector2 closerPos = new(closerZDO.GetPosition().x, closerZDO.GetPosition().z);
                 string prefabName = "";
                 if (list.All(shipsFound.Contains)) {
-                    prefabName = Localization.instance.Localize(usedPins.FirstOrDefault(p => p.Key.hash == closerZDO.GetPrefab()).Key.title);
+                    try {
+                        var locPin = usedPins.Where(p => p.Key.hash == closerZDO.GetPrefab()).First();
+                        prefabName = Localization.instance.Localize(locPin.Key.title);
+                    } catch (System.Exception) { prefabName = "Ship"; }
                 } else if (list.All(portalsFound.Contains)) prefabName = Localization.instance.Localize("$piece_portal");
                 else if (list.All(tombsFound.Contains)) prefabName = Localization.instance.Localize("$alwe_tombstone");
                 Vector2 cameraForward = new(camera.forward.x, camera.forward.z);
@@ -679,14 +682,12 @@ namespace AlweStats {
             if (Main.replaceBedPinIcon.Value && type == Minimap.PinType.Bed) __result.m_icon = Utilities.GetSprite("bed".GetStableHashCode(), true);
         }
 
-        [HarmonyPrefix]
+        [HarmonyPostfix]
         [HarmonyPatch(typeof(Minimap), nameof(Minimap.RemovePin), new Type[] { typeof(Minimap.PinData)})]
-        static bool PatchRemovePin(Minimap __instance, Minimap.PinData pin) {
+        static void PatchRemovePin(Minimap __instance, Minimap.PinData pin) {
             Vector3 roundedVec = pin.m_pos.Round(); 
-            if (!removedPins.Contains(roundedVec) && pinsDict.Any(pair => pair.Value.m_name == pin.m_type)) removedPins.Add(roundedVec);
-            if (pin.m_uiElement) UnityEngine.Object.Destroy(pin.m_uiElement.gameObject);
-            __instance.m_pins.Remove(pin);
-            return false;
+            if (!removedPins.Contains(roundedVec) 
+                && pinsDict.Any(pair => pair.Value.m_name == pin.m_type)) removedPins.Add(roundedVec);
         }
 
         [HarmonyPrefix]
@@ -734,13 +735,12 @@ namespace AlweStats {
             Vector3 pos = __instance.ScreenToWorldPoint(Input.mousePosition);
             Minimap.PinData closestPin = __instance.GetClosestPin(pos, __instance.m_removeRadius * (__instance.m_largeZoom * 2f));
             if (closestPin != null) {
-                if (closestPin.m_ownerID != 0L) {
-                    closestPin.m_ownerID = 0L;
+                if (closestPin.m_ownerID == 0L && (int) closestPin.m_type >= Enum.GetValues(typeof(Minimap.PinType)).Length) {
+                    __instance.ShowPinNameInput(closestPin);
                     return false;
                 }
-                if ((int) closestPin.m_type >= Enum.GetValues(typeof(Minimap.PinType)).Length) __instance.ShowPinNameInput(closestPin);
-            } else __instance.ShowPinNameInput(__instance.AddPin(pos, __instance.m_selectedType, "", true, false));
-            return false;
+            }
+            return true;
         }
 
         [HarmonyPostfix]

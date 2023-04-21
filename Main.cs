@@ -17,7 +17,7 @@ namespace AlweStats {
     public class Main : BaseUnityPlugin {
         public const string Plugin_GUID = "Alwe.AlweStats";
         public const string Plugin_Name = "AlweStats";
-        public const string Plugin_Version = "6.0.2";
+        public const string Plugin_Version = "6.0.3";
         private readonly Harmony harmony = new("zAlweNy26.AlweStats");
         public static ConfigFile config;
         public static string statsFilePath;

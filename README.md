@@ -105,6 +105,10 @@ df - Clear the entire AlweStats.json file by deleting it
 
 ### Changelog
 
+v**6.0.3**
+
+- Fixed bug that was not removing the title when deleting the pin
+
 v**6.0.2**
 
 - Updated game version reference to 0.215.2

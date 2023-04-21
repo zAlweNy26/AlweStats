@@ -5,7 +5,7 @@
     <TargetFramework>net4.8</TargetFramework>
     <AssemblyName>AlweStats</AssemblyName>
     <Description>Easily read stats about almost everything !</Description>
-    <Version>6.0.2</Version>
+    <Version>6.0.3</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Copyright>zAlweNy26</Copyright>
@@ -108,7 +108,7 @@
 
     <Copy
       SourceFiles="@(Files)"
-      DestinationFolder="C:\Cracked Games\Valheim\BepInEx\plugins\AlweStats\" />
+      DestinationFolder="C:\Users\danyn\AppData\Roaming\r2modmanPlus-local\Valheim\profiles\Default\BepInEx\plugins\Padank-AlweStats\" />
 
     <Message Text="Copied to Valheim plugins folder." Importance="High" />
   </Target>
