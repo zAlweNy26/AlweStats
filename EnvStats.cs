@@ -228,7 +228,7 @@ namespace AlweStats {
                             cookingItems += $"\n{itemConversion.m_to.GetHoverName()}: <color=red>{time}</color>";
                         } else {
                             string time = $"{(num * 100f / (itemConversion.m_cookTime)):0.#} %";
-                            cookingItems += $"\n{itemConversion.m_from.GetHoverName()}: <color=lime>{time}</color>";
+                            cookingItems += $"\n{itemConversion.m_from.GetHoverName()}: <color=green>{time}</color>";
                         }
                     }
                 }
@@ -243,47 +243,55 @@ namespace AlweStats {
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(Smelter), nameof(Smelter.UpdateHoverTexts))]
-        static void PatchSmelterHoverText(Smelter __instance) {
+        [HarmonyPatch(typeof(Smelter), nameof(Smelter.OnHoverAddFuel))]
+        static void PatchSmelterHoverAddFuel(ref string __result, Smelter __instance) {
             if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Smelter, Main.showEnvStatus.Value)) return;
-            if (!__instance.m_nview.IsValid()) return;
-            if (__instance.m_emptyOreSwitch && __instance.m_spawnStack) {
-                int processedQueueSize = __instance.GetProcessedQueueSize();
-                __instance.m_emptyOreSwitch.m_hoverText = $"{__instance.m_name} ({processedQueueSize} $piece_smelter_ready)\n[<color=yellow><b>$KEY_Use</b></color>] {__instance.m_emptyOreTooltip}";
+            if (!__instance.m_nview.IsValid()) {
+                __result = "";
+                return;
             }
-            if (__instance.m_addOreSwitch) {
-                int queueSize = __instance.GetQueueSize();
-                __instance.m_addOreSwitch.m_hoverText = $"{__instance.m_name} ({queueSize}/{__instance.m_maxOre}) ";
-                if (queueSize > 0) {
-                    float percentage = __instance.GetBakeTimer() * 100f / (__instance.m_secPerProduct * (Main.showTotalOfQueue.Value ? queueSize : 1f));
-                    double remainingTime = (__instance.m_secPerProduct * (Main.showTotalOfQueue.Value ? queueSize : 1f)) - __instance.GetBakeTimer();
-                    __instance.m_addOreSwitch.m_hoverText += String.Format(
-                        Main.processFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(percentage)}>"),
-                        $"{percentage:0.#}",
-                        TimeSpan.FromSeconds(remainingTime).ToString(@"hh\:mm\:ss")
-                    );
-                }
-                if (__instance.m_requiresRoof && !__instance.m_haveRoof && Mathf.Sin(Time.time * 10f) > 0f)
-                    __instance.m_addOreSwitch.m_hoverText += " <color=yellow>$piece_smelter_reqroof</color>";
-                Switch addOreSwitch = __instance.m_addOreSwitch;
-                addOreSwitch.m_hoverText = $"{addOreSwitch.m_hoverText}\n[<color=yellow><b>$KEY_Use</b></color>] {__instance.m_addOreTooltip}";
+            float fuel = __instance.GetFuel();
+            string itemName = __instance.m_fuelItem.m_itemData.m_shared.m_name;
+            __result = string.Format("{0} ({1} {2}/{3})\n", __instance.m_name, itemName, Mathf.Ceil(fuel), __instance.m_maxFuel);
+            if (fuel > 0f) {
+                float secPerProduct = __instance.m_secPerProduct * __instance.m_fuelPerProduct * (Main.showTotalOfQueue.Value ? fuel : 1f);
+                float percentage = (Main.showTotalOfQueue.Value ? fuel / __instance.m_maxFuel : (float)(fuel - Math.Truncate(fuel))) * 100f;
+                __result += String.Format(
+                    Main.processFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(percentage)}>"),
+                    $"{percentage:0.#}",
+                    TimeSpan.FromSeconds(secPerProduct).ToString(@"hh\:mm\:ss")
+                );
+                __result += "\n";
             }
-            if (__instance.m_addWoodSwitch) {
-                float fuel = __instance.GetFuel();
-                string itemName = __instance.m_fuelItem.m_itemData.m_shared.m_name;
-                __instance.m_addWoodSwitch.m_hoverText = $"{__instance.m_name} ({itemName} {Mathf.Ceil(fuel)}/{__instance.m_maxFuel})\n";
-                if (fuel > 0f) {
-                    float secPerProduct = __instance.m_secPerProduct * __instance.m_fuelPerProduct * (Main.showTotalOfQueue.Value ? fuel : 1f);
-                    float percentage = (Main.showTotalOfQueue.Value ? fuel / __instance.m_maxFuel : (float)(fuel - Math.Truncate(fuel))) * 100f;
-                    __instance.m_addWoodSwitch.m_hoverText += String.Format(
-                        Main.processFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(percentage)}>"),
-                        $"{percentage:0.#}",
-                        TimeSpan.FromSeconds(secPerProduct).ToString(@"hh\:mm\:ss")
-                    );
-                }
-                Switch addWoodSwitch = __instance.m_addWoodSwitch;
-                addWoodSwitch.m_hoverText = $"{addWoodSwitch.m_hoverText}\n[<color=yellow><b>$KEY_Use</b></color>] $piece_smelter_add {itemName}";
+            __result += $"[<color=yellow><b>$KEY_Use</b></color>] $piece_smelter_add {itemName}";
+            __result = Localization.instance.Localize(__result);
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Smelter), nameof(Smelter.OnHoverAddOre))]
+        static void PatchSmelterHoverAddOre(ref string __result, Smelter __instance) {
+            if (!Main.enableEnvStats.Value || !Utilities.CheckInEnum(EnvType.Smelter, Main.showEnvStatus.Value)) return;
+            if (!__instance.m_nview.IsValid()) {
+                __result = "";
+                return;
             }
+            __instance.m_sb.Clear();
+            int queueSize = __instance.GetQueueSize();
+            __instance.m_sb.Append($"{__instance.m_name} ({queueSize}/{__instance.m_maxOre})\n");
+            if (queueSize > 0) {
+                float percentage = __instance.GetBakeTimer() * 100f / (__instance.m_secPerProduct * (Main.showTotalOfQueue.Value ? queueSize : 1f));
+                double remainingTime = (__instance.m_secPerProduct * (Main.showTotalOfQueue.Value ? queueSize : 1f)) - __instance.GetBakeTimer();
+                __instance.m_sb.Append(String.Format(
+                    Main.processFormat.Value.Replace("<color>", $"<color={Utilities.GetColorString(percentage)}>"),
+                    $"{percentage:0.#}",
+                    TimeSpan.FromSeconds(remainingTime).ToString(@"hh\:mm\:ss")
+                ));
+                __instance.m_sb.Append("\n");
+            }
+            if (__instance.m_requiresRoof && !__instance.m_haveRoof && Mathf.Sin(Time.time * 10f) > 0f)
+                __instance.m_sb.Append("<color=yellow>$piece_smelter_reqroof</color>\n");
+            __instance.m_sb.Append("[<color=yellow><b>$KEY_Use</b></color>] " + __instance.m_addOreTooltip);
+            __result = Localization.instance.Localize(__instance.m_sb.ToString());
         }
 
         [HarmonyPostfix]

@@ -105,6 +105,13 @@ df - Clear the entire AlweStats.json file by deleting it
 
 ### Changelog
 
+v**6.0.4**
+
+- Updated game version reference to 0.216.9
+- Fixed lime color not found
+- Fixed smelter hover texts
+- Resized health bars
+
 v**6.0.3**
 
 - Fixed bug that was not removing the title when deleting the pin

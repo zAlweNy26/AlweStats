@@ -156,7 +156,7 @@ namespace AlweStats {
         }
 
         private static void PatchCharacterSelection(FejdStartup instance) {
-            if (instance.m_profiles == null) instance.m_profiles = PlayerProfile.GetAllPlayerProfiles();
+            if (instance.m_profiles == null) instance.m_profiles = SaveSystem.GetAllPlayerProfiles();
             if (instance.m_profileIndex >= instance.m_profiles.Count) instance.m_profileIndex = instance.m_profiles.Count - 1;
             if (instance.m_profileIndex >= 0 && instance.m_profileIndex < instance.m_profiles.Count) {
                 PlayerProfile playerProfile = instance.m_profiles[instance.m_profileIndex];

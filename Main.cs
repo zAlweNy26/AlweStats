@@ -17,7 +17,7 @@ namespace AlweStats {
     public class Main : BaseUnityPlugin {
         public const string Plugin_GUID = "Alwe.AlweStats";
         public const string Plugin_Name = "AlweStats";
-        public const string Plugin_Version = "6.0.3";
+        public const string Plugin_Version = "6.0.4";
         private readonly Harmony harmony = new("zAlweNy26.AlweStats");
         public static ConfigFile config;
         public static string statsFilePath;
@@ -84,7 +84,7 @@ namespace AlweStats {
             enablePlayerInfos = Config.Bind("PlayerStats", "PlayerInfos", true, "Toggle the player infos in character selection");
             replaceBedPinIcon = Config.Bind("MapStats", "ReplaceBedPinIcon", true, "Replace the default pin icon for the bed with the icon of the bed building piece");
             showPingDistance = Config.Bind("MapStats", "ShowPingDistance", true, "Toggle the distance to be shown when someone pings on the map");
-            showTotalOfQueue = Config.Bind("EnvStats", "ShowTotalOfQueue", true, "Show the total remaining time for the entire queue (true) or for a single item (false)");
+            showTotalOfQueue = Config.Bind("EnvStats", "ShowTotalOfQueue", false, "Show the total remaining time for the entire queue (true) or for a single item (false)");
             onlyOwnTomb = Config.Bind("MapStats", "OnlyOwnTomb", true, "Points only at own tombs and not those of all");
             showOtherPlayersHealth = Config.Bind("ServerStats", "ShowOtherPlayersHealth", true, "Toggle the health values of players in range");
 

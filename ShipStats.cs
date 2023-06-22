@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using HarmonyLib;
 using UnityEngine;
 
 namespace AlweStats {
     [HarmonyPatch]
     public static class ShipStats {
-        private static readonly Dictionary<float, float> shipsMaxSpeed = new() {
-            { 300f, 3.1f }, { 500f, 7f }, { 1000f, 9.4f }
-        };
         private static Block shipBlock = null;
         private static Ship nearestShip = null;
+        private static float kts = 1.94384f;
 
         public static Block Start() {
             shipBlock = new Block(
@@ -33,10 +30,8 @@ namespace AlweStats {
                     WearNTear wnt = nearestShip.GetComponent<WearNTear>();
                     ZNetView znv = nearestShip.GetComponent<ZNetView>();
                     string windAngle = GetWindAngle(nearestShip.GetWindAngle());
-                    float kts = 1.94384f;
                     float windSpeed = EnvMan.instance.GetWindIntensity() * kts * 10f;
-                    if (!shipsMaxSpeed.TryGetValue(wnt.m_health, out float maxSpeed)) maxSpeed = wnt.m_health * 7f / 500f;
-                    float shipSpeed = Mathf.Abs(nearestShip.GetSpeed() * maxSpeed * kts / 10f);
+                    float shipSpeed = Mathf.Abs(nearestShip.GetSpeed()) * kts * 10f;
                     if (wnt != null && znv.IsValid()) {
                         string currentHealth = $"{znv.GetZDO().GetFloat("health", wnt.m_health):0.#}";
                         shipBlock.SetText(string.Format(Main.shipStatsFormat.Value, $"{shipSpeed:0.#} kts", currentHealth, wnt.m_health, $"{windSpeed:0.#} kts", windAngle));

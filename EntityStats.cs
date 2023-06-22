@@ -21,30 +21,27 @@ namespace AlweStats {
                     } else {
                         healthObj = UnityEngine.Object.Instantiate(originalHealthText.gameObject, originalHealthText);
                     }
-                    
+
+                    var darkenRect = healthTransform.Find("darken").GetComponent<RectTransform>();
+                    darkenRect.sizeDelta = new(Main.healthBarHeight.Value + 2, Main.healthBarHeight.Value + 2);
+
+                    var bkgRect = healthTransform.Find("bkg").GetComponent<RectTransform>();
+                    bkgRect.sizeDelta = new(0, Main.healthBarHeight.Value);
+
+                    var slowRect = healthTransform.Find("health_slow/bar").GetComponent<RectTransform>();
+                    slowRect.sizeDelta = new(slowRect.rect.width, Main.healthBarHeight.Value);
+
+                    var fastRect = healthTransform.Find("health_fast/bar").GetComponent<RectTransform>();
+                    fastRect.sizeDelta = new(fastRect.rect.width, Main.healthBarHeight.Value);
+
                     if (healthObj) {
                         healthObj.name = "HealthText";
                         healthObj.transform.SetParent(healthTransform);
                         healthObj.GetComponent<RectTransform>().anchoredPosition = Vector2.up;
+                        healthObj.GetComponent<RectTransform>().sizeDelta = new (bkgRect.rect.width + 2, bkgRect.rect.height);
                         healthObj.SetActive(true);
                         healthObj.GetComponent<TextMeshProUGUI>().fontSize = Main.healthBarHeight.Value;
                     }
-
-                    Vector2 darkenRect = healthTransform.Find("darken").GetComponent<RectTransform>().sizeDelta;
-                    healthTransform.Find("darken").GetComponent<RectTransform>().sizeDelta = 
-                        new(darkenRect.x, Main.healthBarHeight.Value + 3);
-
-                    Vector2 bgRect = healthTransform.Find("bkg").GetComponent<RectTransform>().sizeDelta;
-                    healthTransform.Find("bkg").GetComponent<RectTransform>().sizeDelta = 
-                        new(bgRect.x, Math.Max(Main.healthBarHeight.Value - 4, 0));
-
-                    Vector2 slowRect = healthTransform.Find("health_slow/bar").GetComponent<RectTransform>().sizeDelta;
-                    healthTransform.Find("health_slow/bar").GetComponent<RectTransform>().sizeDelta = 
-                        new(slowRect.x, Main.healthBarHeight.Value);
-
-                    Vector2 fastRect = healthTransform.Find("health_fast/bar").GetComponent<RectTransform>().sizeDelta;
-                    healthTransform.Find("health_fast/bar").GetComponent<RectTransform>().sizeDelta = 
-                        new(fastRect.x, Main.healthBarHeight.Value);
                 }
                 if (!Utilities.CheckInEnum(DistanceType.Disabled, Main.showEntityDistance.Value) && nameTransform) {
                     GameObject distanceObj = UnityEngine.Object.Instantiate(originalHealthText.gameObject, originalHealthText);

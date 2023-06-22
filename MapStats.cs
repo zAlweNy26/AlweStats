@@ -736,7 +736,7 @@ namespace AlweStats {
             Minimap.PinData closestPin = __instance.GetClosestPin(pos, __instance.m_removeRadius * (__instance.m_largeZoom * 2f));
             if (closestPin != null) {
                 if (closestPin.m_ownerID == 0L && (int) closestPin.m_type >= Enum.GetValues(typeof(Minimap.PinType)).Length) {
-                    __instance.ShowPinNameInput(closestPin);
+                    __instance.ShowPinNameInput(closestPin.m_pos);
                     return false;
                 }
             }
