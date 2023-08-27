@@ -162,7 +162,13 @@ namespace AlweStats {
                 PlayerProfile playerProfile = instance.m_profiles[instance.m_profileIndex];
                 PlayerProfile.PlayerStats playerStats = playerProfile.m_playerStats;
                 instance.m_csName.text = $"{playerProfile.GetName()}\n" +
-                    Localization.instance.Localize($"<size=20>$alwe_kills: {playerStats.m_kills}   $alwe_deaths: {playerStats.m_deaths}   $alwe_crafts: {playerStats.m_crafts}   $alwe_builds: {playerStats.m_builds}</size>");
+                    Localization.instance.Localize(
+                        $"<size=20>$alwe_monsters_kills: {playerStats.m_stats[PlayerStatType.EnemyKills]}   " + 
+                        $"$alwe_players_kills: {playerStats.m_stats[PlayerStatType.PlayerKills]}   " + 
+                        $"$alwe_deaths: {playerStats.m_stats[PlayerStatType.Deaths]}   " + 
+                        $"$alwe_crafts: {playerStats.m_stats[PlayerStatType.Crafts]}   " + 
+                        $"$alwe_builds: {playerStats.m_stats[PlayerStatType.Builds]}</size>"
+                    );
                 instance.m_csName.gameObject.SetActive(true);
                 instance.SetupCharacterPreview(playerProfile);
                 return;

@@ -105,6 +105,11 @@ df - Clear the entire AlweStats.json file by deleting it
 
 ### Changelog
 
+v**6.0.5**
+
+- Updated game version reference to 0.217.14
+- Fixed errors related to old game version reference
+
 v**6.0.4**
 
 - Updated game version reference to 0.216.9
